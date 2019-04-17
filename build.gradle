@@ -14,7 +14,9 @@ repositories {
 }
 
 dependencies {
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	runtimeOnly 'org.springframework.boot:spring-boot-devtools'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	compile 'org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r'
 }
