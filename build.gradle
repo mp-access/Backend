@@ -1,6 +1,6 @@
 plugins {
-	id 'org.springframework.boot' version '2.1.4.RELEASE'
-	id 'java'
+    id 'org.springframework.boot' version '2.1.4.RELEASE'
+    id 'java'
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -10,13 +10,16 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	runtimeOnly 'org.springframework.boot:spring-boot-devtools'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	compile 'org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-configuration-processor'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.1.4.RELEASE'
+    runtimeOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    compile 'org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r'
 }
