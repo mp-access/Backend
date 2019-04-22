@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,8 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
     private static final String CLIENT_NAME_ELEMENT_IN_JWT = "resource_access";
 
     private static final String ROLE_ELEMENT_IN_JWT = "roles";
+
+    private static final String COURSES_ELEMENT_IN_JWT = "courses";
 
     private ObjectMapper mapper;
 
@@ -54,6 +57,9 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         JsonNode token = mapper.convertValue(tokenMap, JsonNode.class);
         Set<String> audienceList = extractClients(token); // extracting client names
         List<GrantedAuthority> authorities = extractRoles(token); // extracting client roles
+        HashSet<String> courses = extractCourses(token);
+        Map<String, Serializable> extensionProperties = Map.of("courses", courses);
+
 
         OAuth2Authentication authentication = super.extractAuthentication(tokenMap);
         OAuth2Request oAuth2Request = authentication.getOAuth2Request();
@@ -63,7 +69,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
                         oAuth2Request.getClientId(),
                         authorities, true,
                         oAuth2Request.getScope(),
-                        audienceList, null, null, null);
+                        audienceList, null, null, extensionProperties);
 
         Authentication usernamePasswordAuthentication =
                 new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
@@ -105,5 +111,21 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
             throw new IllegalArgumentException("Expected element " +
                     CLIENT_NAME_ELEMENT_IN_JWT + " not found in token");
         }
+    }
+
+    private HashSet<String> extractCourses(JsonNode jwt) {
+        logger.debug("Begin extractCourses: jwt = {}", jwt);
+
+        final HashSet<String> courses = new HashSet<>();
+        if (jwt.has(COURSES_ELEMENT_IN_JWT)) {
+            JsonNode coursesNode = jwt.path(COURSES_ELEMENT_IN_JWT);
+            if (coursesNode.isArray()) {
+                for (JsonNode element : coursesNode) {
+                    courses.add(element.textValue());
+                }
+            }
+        }
+        logger.debug("End extractCourses: clients = {}", courses);
+        return courses;
     }
 }
