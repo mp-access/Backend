@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -22,5 +23,10 @@ public class UserResource {
     @PreAuthorize("hasAnyAuthority('author')")
     public ResponseEntity<String> getAdmin(Principal principal) {
         return ResponseEntity.ok("ggwp admin " + principal.getName());
+    }
+
+    @GetMapping("/demo")
+    public ResponseEntity<List<String>> demo() {
+        return ResponseEntity.ok(List.of("Alice", "Bob", "Ollie"));
     }
 }

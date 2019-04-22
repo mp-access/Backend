@@ -15,6 +15,7 @@ public class SecurityProperties {
   private String apiMatcher;
   private Cors cors;
   private String issuerUri;
+  private String authServer;
 
   public CorsConfiguration getCorsConfiguration() {
     CorsConfiguration corsConfiguration = new CorsConfiguration();
@@ -58,6 +59,14 @@ public class SecurityProperties {
 
   public void setIssuerUri(String issuerUri) {
     this.issuerUri = issuerUri;
+  }
+
+  public String getAuthServer() {
+    return authServer;
+  }
+
+  public void setAuthServer(String authServer) {
+    this.authServer = authServer;
   }
 
   public static class Cors {
