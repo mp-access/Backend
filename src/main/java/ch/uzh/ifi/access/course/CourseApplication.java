@@ -32,9 +32,13 @@ public class CourseApplication {
     @Bean
     CommandLineRunner runner() {
         return (args) -> {
-            keycloakClient.addCourseClaims();
-
-            courseData = RepoCacher.retrieveCourseData();
+            try {
+                keycloakClient.addCourseClaims();
+                courseData = RepoCacher.retrieveCourseData();
+            } catch (Exception e) {
+                // Do nothing for now
+                logger.error("Failed to initialize stuff", e);
+            }
         };
     }
 
