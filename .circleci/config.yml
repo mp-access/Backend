@@ -5,6 +5,7 @@
 version: 2
 jobs:
   build:
+    machine: true
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:11-jdk
@@ -24,6 +25,14 @@ jobs:
     steps:
       - checkout
 
+      - run:
+          name: Load infrastructure from repo
+          command: git clone https://github.com/mp-access/Infrastructure.git
+      - run:
+          name: Start infrastructure
+          command: docker-compose -f Infrastructure/keycloak-postgres.yml up
+
+
       # Download and cache dependencies
       - restore_cache:
           keys:
@@ -40,3 +49,6 @@ jobs:
 
       # run tests!
       - run: gradle test
+
+      # Stop infrastructure
+      - run: docker-compose -f Infrastructure/keycloak-postgres.yml down
