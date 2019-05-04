@@ -33,6 +33,12 @@ jobs:
           command: |
             cd Infrastructure
             docker-compose -f keycloak-postgres.yml up -d
+
+            # docker-compose will start 2 containers, the one with service will be named `keycloak`
+            # we start another container with curl in the same network as `keycloak`, this way we have
+            # all exposed ports from `contacts` available on `localhost` in this new container
+            docker run --network container:keycloak \
+              appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:9999/keycloak/test
             cd ..
 
 
