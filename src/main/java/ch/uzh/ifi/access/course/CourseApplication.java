@@ -17,7 +17,7 @@ public class CourseApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(CourseApplication.class);
 
-    public static Course courseData;
+    private static Course courseData;
 
     private final KeycloakClient keycloakClient;
 
@@ -33,8 +33,8 @@ public class CourseApplication {
     CommandLineRunner runner() {
         return (args) -> {
             try {
-                keycloakClient.addCourseClaims();
                 courseData = RepoCacher.retrieveCourseData();
+                keycloakClient.enrollUsersInCourse(courseData);
             } catch (Exception e) {
                 // Do nothing for now
                 logger.error("Failed to initialize stuff", e);
