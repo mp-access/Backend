@@ -30,7 +30,10 @@ jobs:
           command: git clone https://github.com/mp-access/Infrastructure.git
       - run:
           name: Start infrastructure
-          command: docker-compose -f Infrastructure/keycloak-postgres.yml up
+          command: |
+            cd Infrastructure
+            docker-compose -f keycloak-postgres.yml up -d
+            cd ..
 
 
       # Download and cache dependencies
