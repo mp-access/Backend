@@ -24,6 +24,7 @@ jobs:
     steps:
       - checkout
 
+      - setup_remote_docker
       - run:
           name: Load infrastructure from repo
           command: git clone https://github.com/mp-access/Infrastructure.git
