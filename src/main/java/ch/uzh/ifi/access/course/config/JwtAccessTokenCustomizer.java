@@ -29,7 +29,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
 
     private static final String ROLE_ELEMENT_IN_JWT = "roles";
 
-    private static final String COURSES_ELEMENT_IN_JWT = "courses";
+    private static final String COURSES_ELEMENT_IN_JWT = "groups";
 
     private ObjectMapper mapper;
 
