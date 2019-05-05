@@ -37,7 +37,7 @@ jobs:
             docker ps
             sleep 10
             docker ps
-            docker run --network container:idp appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080
+            docker run --network container:idp appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:9999
             cd ..
 
 
@@ -55,17 +55,6 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
-  tests:
-    docker:
-      - image: circleci/openjdk:11-jdk
-    working_directory: ~/course_service
-
-    environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      TERM: dumb
-
-    steps:
       # run tests!
       - run: gradle test
 
