@@ -7,14 +7,8 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:11-jdk
-      - image: circleci/postgres:9.6.5-alpine-ram
       - image: jboss/keycloak
         environment:
-          DB_VENDOR: POSTGRES
-          DB_ADDR: postgresql://root@localhost/
-          DB_DATABASE: circle_test
-          DB_USER: root
-          DB_PASSWORD:
           KEYCLOAK_USER: admin
           KEYCLOAK_PASSWORD: admin
           KEYCLOAK_HTTP_PORT: 9999
@@ -39,10 +33,6 @@ jobs:
           command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
           environment:
             DOCKERIZE_VERSION: v0.6.1
-      - run:
-          name: Wait for db
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-
       - run:
           name: Wait for keycloak
           command: dockerize -wait http://localhost:9999 -timeout 1m
