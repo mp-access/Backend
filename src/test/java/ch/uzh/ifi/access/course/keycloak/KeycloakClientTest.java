@@ -2,42 +2,66 @@ package ch.uzh.ifi.access.course.keycloak;
 
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.config.SecurityProperties;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.GroupsResource;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class KeycloakClientTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(KeycloakClientTest.class);
 
     private KeycloakClient client;
 
     private RealmResource realmResource;
 
+    private static final String REALM_NAME = "testing";
+
     @Before
     public void setUp() throws Exception {
-        SecurityProperties properties = new SecurityProperties();
-        properties.setAuthServer("http://localhost:9999/auth");
-        client = new KeycloakClient(properties, "Testing");
+        client = new KeycloakClient(properties(), REALM_NAME);
 
         // Make sure all users and groups are deleted
-        Keycloak keycloak = client.keycloak();
-        this.realmResource = keycloak.realm("Testing");
+        Keycloak keycloak = KeycloakClient.keycloak(properties());
 
-        UsersResource usersResource = realmResource.users();
-        usersResource.list().forEach(user -> usersResource.delete(user.getId()));
+        RealmRepresentation testRealm = new RealmRepresentation();
+        testRealm.setEnabled(true);
+        testRealm.setRealm(REALM_NAME);
 
-        GroupsResource groupsResource = realmResource.groups();
-        groupsResource.groups().forEach(g -> groupsResource.group(g.getId()).remove());
+        Map<String, String> config = new HashMap<>();
+        config.put("from", "admin@test.com");
+        config.put("host", "mailhog");
+        config.put("port", "1025");
+        testRealm.setSmtpServer(config);
+        keycloak.realms().create(testRealm);
+
+        realmResource = keycloak.realm(REALM_NAME);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        try {
+            this.realmResource.remove();
+        } catch (Exception e) {
+            logger.error(String.format("Failed to remove realm '%s'", REALM_NAME), e);
+        }
+    }
+
+    private SecurityProperties properties() {
+        SecurityProperties properties = new SecurityProperties();
+        properties.setAuthServer("http://localhost:9999/auth");
+        return properties;
     }
 
     @Test
@@ -127,8 +151,8 @@ public class KeycloakClientTest {
         List<String> userEmailAddresses = List.of("alice@example.com", existingEmail, "charlie@example.com");
 
         // Make sure all users are deleted
-        Keycloak keycloak = client.keycloak();
-        UsersResource usersResource = keycloak.realm("Testing").users();
+        Keycloak keycloak = KeycloakClient.keycloak(properties());
+        UsersResource usersResource = keycloak.realm(REALM_NAME).users();
         usersResource.list().forEach(user -> usersResource.delete(user.getId()));
 
         // Create one just to test if method works

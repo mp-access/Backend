@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -41,13 +42,13 @@ public class KeycloakClient {
     public KeycloakClient(SecurityProperties securityProperties) {
         this.securityProperties = securityProperties;
 
-        Keycloak keycloak = keycloak();
+        Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(DEFAULT_REALM);
     }
 
     public KeycloakClient(SecurityProperties securityProperties, String realm) {
         this.securityProperties = securityProperties;
-        Keycloak keycloak = keycloak();
+        Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
     }
 
@@ -120,9 +121,14 @@ public class KeycloakClient {
         UsersResource usersResource = realmResource.users();
 
         String createdId = Utils.getCreatedId(usersResource.create(createUser(email)));
-
         UserResource userResource = usersResource.get(createdId);
-        userResource.executeActionsEmail(emailActionsAfterCreation);
+
+        Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
+        if (!smtpConfig.isEmpty()) {
+            userResource.executeActionsEmail(emailActionsAfterCreation);
+        } else {
+            logger.warn("No smtp server configured. Cannot send out verification emails.");
+        }
         return userResource.toRepresentation();
     }
 
@@ -134,7 +140,7 @@ public class KeycloakClient {
         return newUser;
     }
 
-    Keycloak keycloak() {
+    static Keycloak keycloak(SecurityProperties securityProperties) {
         return KeycloakBuilder.builder()
                 .serverUrl(securityProperties.getAuthServer())
                 .realm("master")
