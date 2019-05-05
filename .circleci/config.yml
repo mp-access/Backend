@@ -5,8 +5,25 @@
 version: 2
 jobs:
   build:
-    machine:
-      docker_layer_caching: true
+    docker:
+      - image: circleci/openjdk:11-jdk
+      - image: postgres
+        - name: postgres
+        - environment:
+            - POSTGRES_DB: keycloak
+            - POSTGRES_USER: keycloak
+            - POSTGRES_PASSWORD: password
+      - image: jboss/keycloak
+        - environment:
+            - DB_VENDOR: POSTGRES
+            - DB_ADDR: postgres
+            - DB_DATABASE: keycloak
+            - DB_USER: keycloak
+            - DB_SCHEMA: public
+            - DB_PASSWORD: password
+            - KEYCLOAK_USER: admin
+            - KEYCLOAK_PASSWORD: admin
+            - KEYCLOAK_HTTP_PORT: 9999
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -23,22 +40,22 @@ jobs:
     steps:
       - checkout
 
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Load infrastructure from repo
-          command: git clone https://github.com/mp-access/Infrastructure.git
-      - run:
-          name: Start infrastructure
-          command: |
-            set -x
-            cd Infrastructure
-            docker-compose -f keycloak-postgres.yml up -d
-            docker ps
-            sleep 10
-            docker ps
-            docker run --network container:idp appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:9999
-            cd ..
+#      - setup_remote_docker:
+#          docker_layer_caching: true
+#      - run:
+#          name: Load infrastructure from repo
+#          command: git clone https://github.com/mp-access/Infrastructure.git
+#      - run:
+#          name: Start infrastructure
+#          command: |
+#            set -x
+#            cd Infrastructure
+#            docker-compose -f keycloak-postgres.yml up -d
+#            docker ps
+#            sleep 10
+#            docker ps
+#            docker run --network container:idp appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:9999
+#            cd ..
 
 
       # Download and cache dependencies
