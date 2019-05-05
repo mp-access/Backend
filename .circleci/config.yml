@@ -11,7 +11,8 @@ jobs:
         environment:
           KEYCLOAK_USER: admin
           KEYCLOAK_PASSWORD: admin
-          KEYCLOAK_HTTP_PORT: 9999
+        command:
+          - "-Djboss.http.port=9999"
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
