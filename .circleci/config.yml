@@ -55,6 +55,3 @@ jobs:
 
       # run tests!
       - run: gradle test
-
-      # Stop infrastructure
-      - run: docker-compose -f Infrastructure/keycloak-postgres.yml down

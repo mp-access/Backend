@@ -29,3 +29,10 @@ dependencies {
     implementation 'org.jboss.resteasy:resteasy-jackson2-provider:3.6.3.Final'
 
 }
+
+test {
+    //we want display the following test events
+    testLogging {
+        events "PASSED", "STARTED", "FAILED", "SKIPPED"
+    }
+}
