@@ -38,8 +38,7 @@ jobs:
             # docker-compose will start 2 containers, the one with service will be named `keycloak`
             # we start another container with curl in the same network as `keycloak`, this way we have
             # all exposed ports from `keycloak` available on `localhost` in this new container
-            docker run --network container:idp \
-              appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:8080/auth
+            docker run --network container:idp appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://idp:8080/auth
             cd ..
 
 
