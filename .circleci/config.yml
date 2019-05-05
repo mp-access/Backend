@@ -8,21 +8,21 @@ jobs:
     docker:
       - image: circleci/openjdk:11-jdk
       - image: postgres
-          environment:
-            POSTGRES_DB: keycloak
-            POSTGRES_USER: keycloak
-            POSTGRES_PASSWORD: password
+        environment:
+          POSTGRES_DB: keycloak
+          POSTGRES_USER: keycloak
+          POSTGRES_PASSWORD: password
       - image: jboss/keycloak
-          environment:
-            DB_VENDOR: POSTGRES
-            DB_ADDR: postgres
-            DB_DATABASE: keycloak
-            DB_USER: keycloak
-            DB_SCHEMA: public
-            DB_PASSWORD: password
-            KEYCLOAK_USER: admin
-            KEYCLOAK_PASSWORD: admin
-            KEYCLOAK_HTTP_PORT: 9999
+        environment:
+          DB_VENDOR: POSTGRES
+          DB_ADDR: postgres
+          DB_DATABASE: keycloak
+          DB_USER: keycloak
+          DB_SCHEMA: public
+          DB_PASSWORD: password
+          KEYCLOAK_USER: admin
+          KEYCLOAK_PASSWORD: admin
+          KEYCLOAK_HTTP_PORT: 9999
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
