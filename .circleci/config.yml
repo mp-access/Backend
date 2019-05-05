@@ -5,9 +5,10 @@
 version: 2
 jobs:
   build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/openjdk:11-jdk
+    machine: true
+      java:
+        version: openjdk:11-jdk
+      docker_layer_caching: true
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -24,8 +25,8 @@ jobs:
     steps:
       - checkout
 
-      - setup_remote_docker:
-          docker_layer_caching: true
+#      - setup_remote_docker:
+#          docker_layer_caching: true
       - run:
           name: Load infrastructure from repo
           command: git clone https://github.com/mp-access/Infrastructure.git
@@ -36,7 +37,7 @@ jobs:
             cd Infrastructure
             docker-compose -f keycloak-postgres.yml up -d
             docker ps
-            sleep 30
+            sleep 10
             docker ps
             docker run --network container:idp appropriate/curl --retry 10 --retry-delay 1 --retry-connrefused http://idp:8080
             cd ..
