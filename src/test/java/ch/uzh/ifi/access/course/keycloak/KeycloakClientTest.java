@@ -39,11 +39,11 @@ public class KeycloakClientTest {
         testRealm.setEnabled(true);
         testRealm.setRealm(REALM_NAME);
 
-        Map<String, String> config = new HashMap<>();
-        config.put("from", "admin@test.com");
-        config.put("host", "mailhog");
-        config.put("port", "1025");
-        testRealm.setSmtpServer(config);
+//        Map<String, String> config = new HashMap<>();
+//        config.put("from", "admin@test.com");
+//        config.put("host", "mailhog");
+//        config.put("port", "1025");
+//        testRealm.setSmtpServer(config);
         keycloak.realms().create(testRealm);
 
         realmResource = keycloak.realm(REALM_NAME);
