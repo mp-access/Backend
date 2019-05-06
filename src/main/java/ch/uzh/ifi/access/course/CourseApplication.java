@@ -17,7 +17,7 @@ public class CourseApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(CourseApplication.class);
 
-    private static Course courseData;
+    public static Course courseData;
 
     private final KeycloakClient keycloakClient;
 

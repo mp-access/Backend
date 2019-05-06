@@ -1,6 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.1.4.RELEASE'
     id 'java'
+    id "com.palantir.docker" version "0.22.1"
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -27,7 +28,6 @@ dependencies {
     implementation 'org.keycloak:keycloak-admin-client:6.0.0'
     implementation 'org.jboss.resteasy:resteasy-client:3.6.3.Final'
     implementation 'org.jboss.resteasy:resteasy-jackson2-provider:3.6.3.Final'
-
 }
 
 test {
@@ -35,4 +35,8 @@ test {
     testLogging {
         events "PASSED", "STARTED", "FAILED", "SKIPPED"
     }
+}
+
+docker {
+    name 'hub.docker.com/username/my-app:version'
 }
