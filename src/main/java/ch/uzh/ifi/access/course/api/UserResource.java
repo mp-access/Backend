@@ -11,8 +11,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.Serializable;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -40,7 +42,7 @@ public class UserResource {
     @GetMapping("/courses")
     public Object getCourses(OAuth2Authentication principal) {
         Map<String, Serializable> extensions = principal.getOAuth2Request().getExtensions();
-        Serializable courses = extensions.get("courses");
+        Set courses = (HashSet) extensions.get("courses");
 
         logger.info("Fetched courses: " + courses.toString());
         return courses;

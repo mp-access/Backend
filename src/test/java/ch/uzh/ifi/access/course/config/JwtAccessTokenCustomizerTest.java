@@ -12,7 +12,7 @@ public class JwtAccessTokenCustomizerTest {
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/Informatics 1/students");
 
-        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourseKey());
+        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourse());
         Assert.assertTrue(grantedCourseAccess.isStudent());
         Assert.assertFalse(grantedCourseAccess.isAuthor());
     }
@@ -23,7 +23,7 @@ public class JwtAccessTokenCustomizerTest {
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/Informatics 1/authors");
 
-        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourseKey());
+        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourse());
         Assert.assertFalse(grantedCourseAccess.isStudent());
         Assert.assertTrue(grantedCourseAccess.isAuthor());
     }
@@ -34,7 +34,7 @@ public class JwtAccessTokenCustomizerTest {
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/Informatics 1/");
 
-        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourseKey());
+        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourse());
         Assert.assertFalse(grantedCourseAccess.isStudent());
         Assert.assertTrue(grantedCourseAccess.isAuthor());
     }

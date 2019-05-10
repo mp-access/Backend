@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConv
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.util.StringUtils;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -61,8 +60,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         JsonNode token = mapper.convertValue(tokenMap, JsonNode.class);
         Set<String> audienceList = extractClients(token); // extracting client names
         List<GrantedAuthority> authorities = extractRoles(token); // extracting client roles
-        Map<String, Serializable> extensionProperties = Map.of("courses", extractCourses(token));
-
+        Set<GrantedCourseAccess> courseAccesses = extractCourses(token);
 
         OAuth2Authentication authentication = super.extractAuthentication(tokenMap);
         OAuth2Request oAuth2Request = authentication.getOAuth2Request();
@@ -72,14 +70,14 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
                         oAuth2Request.getClientId(),
                         authorities, true,
                         oAuth2Request.getScope(),
-                        audienceList, null, null, extensionProperties);
+                        audienceList, null, null, null);
 
         Authentication usernamePasswordAuthentication =
                 new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
                         "N/A", authorities);
 
         logger.debug("End extractAuthentication");
-        return new OAuth2Authentication(request, usernamePasswordAuthentication);
+        return new CourseAuthentication(request, usernamePasswordAuthentication, courseAccesses);
     }
 
     private List<GrantedAuthority> extractRoles(JsonNode jwt) {
@@ -116,7 +114,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         }
     }
 
-    private HashSet<GrantedCourseAccess> extractCourses(JsonNode jwt) {
+    private Set<GrantedCourseAccess> extractCourses(JsonNode jwt) {
         logger.debug("Begin extractCourses: jwt = {}", jwt);
 
         final HashSet<GrantedCourseAccess> courses = new HashSet<>();
