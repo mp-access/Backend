@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.config;
 
+import ch.uzh.ifi.access.course.Model.security.GrantedCourseAccess;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -13,12 +14,15 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         implements JwtAccessTokenConverterConfigurer {
@@ -57,8 +61,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         JsonNode token = mapper.convertValue(tokenMap, JsonNode.class);
         Set<String> audienceList = extractClients(token); // extracting client names
         List<GrantedAuthority> authorities = extractRoles(token); // extracting client roles
-        HashSet<String> courses = extractCourses(token);
-        Map<String, Serializable> extensionProperties = Map.of("courses", courses);
+        Map<String, Serializable> extensionProperties = Map.of("courses", extractCourses(token));
 
 
         OAuth2Authentication authentication = super.extractAuthentication(tokenMap);
@@ -113,19 +116,35 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         }
     }
 
-    private HashSet<String> extractCourses(JsonNode jwt) {
+    private HashSet<GrantedCourseAccess> extractCourses(JsonNode jwt) {
         logger.debug("Begin extractCourses: jwt = {}", jwt);
 
-        final HashSet<String> courses = new HashSet<>();
+        final HashSet<GrantedCourseAccess> courses = new HashSet<>();
         if (jwt.has(COURSES_ELEMENT_IN_JWT)) {
             JsonNode coursesNode = jwt.path(COURSES_ELEMENT_IN_JWT);
             if (coursesNode.isArray()) {
                 for (JsonNode element : coursesNode) {
-                    courses.add(element.textValue());
+                    courses.add(parseCourseAccess(element.textValue()));
                 }
             }
         }
         logger.debug("End extractCourses: clients = {}", courses);
         return courses;
+    }
+
+    GrantedCourseAccess parseCourseAccess(String courseElement) {
+        if (StringUtils.isEmpty(courseElement)) {
+            return GrantedCourseAccess.empty();
+        }
+
+        List<String> group = Stream.of(courseElement.split("/")).filter(str -> !StringUtils.isEmpty(str)).collect(Collectors.toList());
+        if (group.size() != 2) {
+            throw new IllegalArgumentException(String.format("Cannot parse group to GrantedCourseAccess for string %s", courseElement));
+        }
+        String courseKey = group.get(0);
+        boolean isStudent = group.get(1).equalsIgnoreCase("students");
+        boolean isAuthor = group.get(1).equalsIgnoreCase("authors");
+
+        return new GrantedCourseAccess(courseKey, isStudent, isAuthor);
     }
 }
