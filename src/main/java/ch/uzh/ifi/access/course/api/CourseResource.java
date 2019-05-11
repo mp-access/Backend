@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.api;
 
-import ch.uzh.ifi.access.course.CourseApplication;
+import ch.uzh.ifi.access.course.CourseRepository;
 import ch.uzh.ifi.access.course.Model.Assignment;
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.Model.Exercise;
@@ -13,24 +13,30 @@ import java.util.Date;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping("/courses")
 public class CourseResource {
 
-    @RequestMapping("/")
+    private final CourseRepository courseRepository;
+
+    public CourseResource(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+
+    @RequestMapping
     public Course getCourses() {
-        return CourseApplication.courseData;
+        return courseRepository.getCourse();
     }
 
     @RequestMapping("/title")
     public String getCourseTitle() {
-        return CourseApplication.courseData.title;
+        return courseRepository.getCourse().title;
     }
 
     //courseData currently only consists of one course, so it only checks if that course contains that title. We need to adapt course_structure repo
     @RequestMapping("/byTitle")
     public Course getCourseByTitle(@RequestParam(value = "title") String title) {
-        if (CourseApplication.courseData.title.contains(title)) {
-            return CourseApplication.courseData;
+        if (courseRepository.getCourse().title.contains(title)) {
+            return courseRepository.getCourse();
         } else {
             return null;
         }
@@ -38,44 +44,44 @@ public class CourseResource {
 
     @RequestMapping("/description")
     public String getCourseDescription() {
-        return CourseApplication.courseData.description;
+        return courseRepository.getCourse().description;
     }
 
     @RequestMapping("/owner")
     public String getCourseOwner() {
-        return CourseApplication.courseData.owner;
+        return courseRepository.getCourse().owner;
     }
 
     @RequestMapping("/startDate")
     public Date getCourseStartDate() {
-        return CourseApplication.courseData.startDate;
+        return courseRepository.getCourse().startDate;
     }
 
     @RequestMapping("/endDate")
     public Date getCourseEndDate() {
-        return CourseApplication.courseData.endDate;
+        return courseRepository.getCourse().endDate;
     }
 
     @RequestMapping("/assistants")
     public List getCourseAssistants() {
-        return CourseApplication.courseData.assistants;
+        return courseRepository.getCourse().assistants;
     }
 
     @RequestMapping("/students")
     public List getCourseStudents() {
-        return CourseApplication.courseData.students;
+        return courseRepository.getCourse().students;
     }
 
     @RequestMapping("/assignments")
     public List getCourseAssignments() {
-        return CourseApplication.courseData.assignments;
+        return courseRepository.getCourse().assignments;
     }
 
     //courseData currently only consists of one assignment. We need to adapt course_structure repo
     @RequestMapping("/assignmentPosition")
     public Assignment getCourseAssignmentPosition(@RequestParam(value = "assignmentPosition") int assignmentPosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            return CourseApplication.courseData.assignments.get(assignmentPosition);
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            return courseRepository.getCourse().assignments.get(assignmentPosition);
         } else {
             return null;
         }
@@ -83,8 +89,8 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/title")
     public String getCourseAssignmentPositionTitle(@RequestParam(value = "assignmentPosition") int assignmentPosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            return CourseApplication.courseData.assignments.get(assignmentPosition).title;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            return courseRepository.getCourse().assignments.get(assignmentPosition).title;
         } else {
             return null;
         }
@@ -92,8 +98,8 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/description")
     public String getCourseAssignmentPositionDescription(@RequestParam(value = "assignmentPosition") int assignmentPosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            return CourseApplication.courseData.assignments.get(assignmentPosition).description;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            return courseRepository.getCourse().assignments.get(assignmentPosition).description;
         } else {
             return null;
         }
@@ -101,8 +107,8 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/publishDate")
     public Date getCourseAssignmentPositionPublishDate(@RequestParam(value = "assignmentPosition") int assignmentPosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            return CourseApplication.courseData.assignments.get(assignmentPosition).publishDate;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            return courseRepository.getCourse().assignments.get(assignmentPosition).publishDate;
         } else {
             return null;
         }
@@ -110,8 +116,8 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/dueDate")
     public Date getCourseAssignmentPositionDueDate(@RequestParam(value = "assignmentPosition") int assignmentPosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            return CourseApplication.courseData.assignments.get(assignmentPosition).dueDate;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            return courseRepository.getCourse().assignments.get(assignmentPosition).dueDate;
         } else {
             return null;
         }
@@ -119,8 +125,8 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercises")
     public List getCourseAssignmentPositionExercises(@RequestParam(value = "assignmentPosition") int assignmentPosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            return CourseApplication.courseData.assignments.get(assignmentPosition).exercises;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            return courseRepository.getCourse().assignments.get(assignmentPosition).exercises;
         } else {
             return null;
         }
@@ -128,9 +134,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition")
     public Exercise getCourseAssignmentPositionExercisePosition(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition);
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition);
             } else {
                 return null;
             }
@@ -141,9 +147,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/type")
     public ExerciseType getCourseAssignmentPositionExercisePositionType(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).type;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).type;
             } else {
                 return null;
             }
@@ -154,9 +160,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/language")
     public String getCourseAssignmentPositionExercisePositionLanguage(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).language;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).language;
             } else {
                 return null;
             }
@@ -167,9 +173,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/question")
     public String getCourseAssignmentPositionExercisePositionQuestion(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).question;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).question;
             } else {
                 return null;
             }
@@ -180,9 +186,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/privateFiles")
     public List getCourseAssignmentPositionExercisePositionPrivateFiles(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).private_files;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).private_files;
             } else {
                 return null;
             }
@@ -193,9 +199,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/publicFiles")
     public List getCourseAssignmentPositionExercisePositionPublicFiles(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).public_files;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).public_files;
             } else {
                 return null;
             }
@@ -206,9 +212,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/resourceFiles")
     public List getCourseAssignmentPositionExercisePositionResourceFiles(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).resource_files;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).resource_files;
             } else {
                 return null;
             }
@@ -219,9 +225,9 @@ public class CourseResource {
 
     @RequestMapping("/assignmentPosition/exercisePosition/solutionFiles")
     public List getCourseAssignmentPositionExercisePositionSolutionFiles(@RequestParam(value = "assignmentPosition") int assignmentPosition, @RequestParam(value = "exercisePosition") int exercisePosition) {
-        if (CourseApplication.courseData.assignments.size() >= assignmentPosition) {
-            if (CourseApplication.courseData.assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
-                return CourseApplication.courseData.assignments.get(assignmentPosition).exercises.get(exercisePosition).solution_files;
+        if (courseRepository.getCourse().assignments.size() >= assignmentPosition) {
+            if (courseRepository.getCourse().assignments.get(assignmentPosition).exercises.size() >= exercisePosition) {
+                return courseRepository.getCourse().assignments.get(assignmentPosition).exercises.get(exercisePosition).solution_files;
             } else {
                 return null;
             }
