@@ -1,10 +1,12 @@
 package ch.uzh.ifi.access.course.Model;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class Course {
+    public File directory;
     public String title;
     public String description;
     public String owner;

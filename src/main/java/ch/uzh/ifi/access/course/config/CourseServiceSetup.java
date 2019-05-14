@@ -10,6 +10,6 @@ import org.springframework.context.annotation.Configuration;
 public class CourseServiceSetup {
 
     public CourseServiceSetup(KeycloakClient keycloakClient, CourseRepository courseRepository) {
-        keycloakClient.enrollUsersInCourse(courseRepository.getCourse());
+        keycloakClient.enrollUsersInCourse(courseRepository.getCourse(0));
     }
 }
