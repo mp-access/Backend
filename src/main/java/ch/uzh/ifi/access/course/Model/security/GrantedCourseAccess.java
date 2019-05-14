@@ -33,7 +33,7 @@ public class GrantedCourseAccess implements Serializable {
     }
 
     public boolean evaluateAccess(Course course) {
-        return this.course.equals(course.title);
+        return this.course.equals(course.getTitle());
     }
 
     public static GrantedCourseAccess empty() {

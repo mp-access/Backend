@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.api;
 
-import ch.uzh.ifi.access.course.CourseRepository;
+import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.course.Model.Assignment;
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.Model.Exercise;
@@ -15,10 +15,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/courses")
 public class CourseResource {
+/*
+    private final CourseService courseRepository;
 
-    private final CourseRepository courseRepository;
-
-    public CourseResource(CourseRepository courseRepository) {
+    public CourseResource(CourseService courseRepository) {
         this.courseRepository = courseRepository;
     }
 
@@ -235,4 +235,5 @@ public class CourseResource {
             return null;
         }
     }
+    */
 }
