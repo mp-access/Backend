@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.course;
 import ch.uzh.ifi.access.course.Model.Assignment;
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.Model.Exercise;
+import ch.uzh.ifi.access.course.Model.FileContent;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jgit.api.Git;
@@ -12,8 +13,7 @@ import java.io.FileInputStream;
 import java.util.*;
 
 public class RepoCacher {
- 	static final String REPO_DIR = "repo";
-	static final String REPO_URL = "https://github.com/mp-access/course_structure.git";
+ 	static final String REPO_DIR = "course_repositories";
 
 	// FOLDERS
 	static final String ASSIGNMENT_FOLDER_PREFIX = "assignment";
@@ -35,21 +35,28 @@ public class RepoCacher {
 	List<String> ignore_dir = Arrays.asList(".git");
 	List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static Course retrieveCourseData() throws Exception
+    public static Course[] retrieveCourseData(String repo_urls[]) throws Exception
     {
         deleteDir(new File(REPO_DIR));
 
-       	gitPull();
-
-        RepoCacher cacher = new RepoCacher();
-
 		mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-		Course course = new Course(); //mapper.readValue(new File(REPO_DIR + "/config.json"), Course.class);
 
-        cacher.cacheRepo(new File(REPO_DIR), course);
+		Course courses[] = new Course[repo_urls.length];
 
-        return course;
+		int i = 0;
+        for(String url : repo_urls) {
+			gitPull(url);
+
+			RepoCacher cacher = new RepoCacher();
+			File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
+			Course course = new Course(); //mapper.readValue(new File(REPO_DIR + "/config.json"), Course.class);
+			course.directory = repo;
+
+			cacher.cacheRepo(repo, course);
+			courses[i++] = course;
+		}
+        return courses;
     }
 
 	static String readFile(File file){
@@ -82,12 +89,16 @@ public class RepoCacher {
 				next_context = exercise;
 			}else if(file.getName().startsWith(PUBLIC_FOLDER_NAME)){
 				listFiles(file, ((Exercise)context).public_files);
+				//((Exercise)context).public_files.add(readFile(file));
 			}else if(file.getName().startsWith(PRIVATE_FOLDER_NAME)){
 				listFiles(file, ((Exercise)context).private_files);
+				//((Exercise)context).private_files.add(readFile(file));
 			}else if(file.getName().startsWith(RESOURCE_FOLDER_NAME)){
 				listFiles(file, ((Exercise)context).resource_files);
+				//((Exercise)context).resource_files.add(readFile(file));
 			}else if(file.getName().startsWith(SOLUTION_FOLDER_NAME)){
 				listFiles(file, ((Exercise)context).solution_files);
+				//((Exercise)context).solution_files.add(readFile(file));
 			}
 
 	    	String[] children = file.list(); 
@@ -101,6 +112,7 @@ public class RepoCacher {
 					try {
 						((Course)context).set(mapper.readValue(file, Course.class));
 					}catch(Exception e){
+						System.err.println("Error while parsing Course information: " + file.getName());
 						e.printStackTrace();
 					}
 				}
@@ -109,6 +121,7 @@ public class RepoCacher {
 					try {
 						((Assignment)context).set(mapper.readValue(file, Assignment.class));
 					}catch(Exception e){
+						System.err.println("Error while parsing Assignment information: " + file.getName());
 						e.printStackTrace();
 					}
 				}
@@ -119,6 +132,7 @@ public class RepoCacher {
 					try {
 						((Exercise)context).set(mapper.readValue(file, Exercise.class));
 					}catch(Exception e){
+						System.err.println("Error while parsing Exercise information: " + file.getName());
 						e.printStackTrace();
 					}
 				}
@@ -126,14 +140,14 @@ public class RepoCacher {
 	  	}
     }
 
-    public static void listFiles(File dir, List<File> fileList){
+    public static void listFiles(File dir, List<FileContent> fileList){
 		if (dir.isDirectory())
 		{
 			String[] children = dir.list();
 			for (int i=0; i<children.length; i++)
 				listFiles(new File(dir, children[i]), fileList);
 		}else {
-			fileList.add(dir);
+			fileList.add(new FileContent(dir.getAbsolutePath()));
 		}
 	}
 
@@ -146,12 +160,16 @@ public class RepoCacher {
 	        deleteDir(new File(dir, children[i]));
 	  }
 	  return dir.delete(); 
-	} 
+	}
 
-    static void gitPull() throws Exception{
+	static String nameFromGitURL(String url){
+    	return url.replace("https://github.com/", "").replace(".git", "");
+	}
+
+    static void gitPull(String url) throws Exception{
         Git.cloneRepository()
-                .setURI(REPO_URL)
-                .setDirectory(new File(REPO_DIR))
+                .setURI(url)
+                .setDirectory(new File(REPO_DIR + "/" + nameFromGitURL(url)))
                 .call();
 	}
  }

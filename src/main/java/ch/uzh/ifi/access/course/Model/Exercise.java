@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.course.Model;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,10 +9,10 @@ public class Exercise {
 
     public String question;
 
-    public List<File> private_files = new ArrayList<>();
-    public List<File> public_files= new ArrayList<>();
-    public List<File> resource_files = new ArrayList<>();
-    public List<File> solution_files = new ArrayList<>();
+    public List<FileContent> private_files = new ArrayList<>();
+    public List<FileContent> public_files= new ArrayList<>();
+    public List<FileContent> resource_files = new ArrayList<>();
+    public List<FileContent> solution_files = new ArrayList<>();
 
     public void set(Exercise other){
         this.type = other.type;
