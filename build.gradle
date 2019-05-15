@@ -1,7 +1,6 @@
 plugins {
     id 'org.springframework.boot' version '2.1.4.RELEASE'
     id 'java'
-    id "com.palantir.docker" version "0.22.1"
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -40,8 +39,4 @@ test {
     testLogging {
         events "PASSED", "STARTED", "FAILED", "SKIPPED"
     }
-}
-
-docker {
-    name 'hub.docker.com/username/my-app:version'
 }
