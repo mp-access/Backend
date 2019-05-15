@@ -53,10 +53,10 @@ public class KeycloakClient {
     }
 
     public Group enrollUsersInCourse(Course course) {
-        Users students = getUsersIfExistOrCreateUsers(course.students);
-        Users assistants = getUsersIfExistOrCreateUsers(course.assistants);
+        Users students = getUsersIfExistOrCreateUsers(course.getStudents());
+        Users assistants = getUsersIfExistOrCreateUsers(course.getAssistants());
 
-        Group courseGroup = removeIfExistsAndCreateGroup(course.title);
+        Group courseGroup = removeIfExistsAndCreateGroup(course.getTitle());
 
         UsersResource usersResource = realmResource.users();
         students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);

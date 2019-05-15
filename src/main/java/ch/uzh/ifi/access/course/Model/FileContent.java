@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.course.Model;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
