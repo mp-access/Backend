@@ -44,14 +44,14 @@ public class CourseController {
 
     @GetMapping(path = "{id}")
     public CourseDTO getCourseById(@PathVariable("id") UUID id) {
-        return new CourseDTO((courseService.getCourseById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No course found"))));
+        return new CourseDTO(courseService
+                .getCourseById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found")));
     }
 
     @GetMapping(path = "{id}/assignments")
     public List<AssignmentDTO> getAllAssignmentsByCourseId(@PathVariable("id") UUID id) {
-        CourseDTO cd = new CourseDTO((courseService.getCourseById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No course found"))));
+        CourseDTO cd = getCourseById(id);
         return cd.getAssignments();
     }
 
@@ -59,9 +59,8 @@ public class CourseController {
     @GetMapping("/{courseId}/assignments/{assignmentId}")
     public AssignmentDTO getAssignmentByCourseId(@PathVariable("courseId") UUID courseId, @PathVariable("assignmentId") UUID assignmentId) {
         return new AssignmentDTO(courseService.getCourseById(courseId)
-                .map(course -> course.getAssignmentById(assignmentId))
-                .map(a -> a.orElseThrow(() -> new IllegalArgumentException("No assignment found")))
-                .orElseThrow(() -> new IllegalArgumentException("No course found")));
+                .flatMap(course -> course.getAssignmentById(assignmentId))
+                .orElseThrow(() -> new ResourceNotFoundException("No assignment found")));
     }
 
     @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
@@ -69,11 +68,9 @@ public class CourseController {
                                                      @PathVariable("assignmentId") UUID assignmentId,
                                                      @PathVariable("exerciseId") UUID exerciseId) {
         return courseService.getCourseById(courseId)
-                .map(course -> course.getAssignmentById(assignmentId))
-                .map(a -> a.orElseThrow(IllegalArgumentException::new))
-                .map(a -> a.findExerciseById(exerciseId))
-                .map(exercise -> exercise.orElseThrow(IllegalArgumentException::new))
-                .orElseThrow(IllegalArgumentException::new);
+                .flatMap(course -> course.getAssignmentById(assignmentId))
+                .flatMap(assignment -> assignment.findExerciseById(exerciseId))
+                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
     }
 
     @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}/files/{fileId}")
