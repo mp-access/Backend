@@ -17,10 +17,10 @@ public class Exercise {
 
     private String question;
 
-    private List<FileContent> private_files = new ArrayList<>();
-    private List<FileContent> public_files= new ArrayList<>();
-    private List<FileContent> resource_files = new ArrayList<>();
-    private List<FileContent> solution_files = new ArrayList<>();
+    private List<VirtualFile> private_files = new ArrayList<>();
+    private List<VirtualFile> public_files= new ArrayList<>();
+    private List<VirtualFile> resource_files = new ArrayList<>();
+    private List<VirtualFile> solution_files = new ArrayList<>();
 
     public Exercise(){
         this.id = UUID.randomUUID();
@@ -31,8 +31,8 @@ public class Exercise {
         this.language = other.language;
     }
 
-    public Optional<FileContent> getFileById(UUID id){
-        Stream<FileContent> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
+    public Optional<VirtualFile> getFileById(UUID id){
+        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 }

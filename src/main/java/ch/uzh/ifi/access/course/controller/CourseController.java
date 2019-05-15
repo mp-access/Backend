@@ -2,7 +2,7 @@ package ch.uzh.ifi.access.course.controller;
 
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.Model.Exercise;
-import ch.uzh.ifi.access.course.Model.FileContent;
+import ch.uzh.ifi.access.course.Model.VirtualFile;
 import ch.uzh.ifi.access.course.dto.AssignmentDTO;
 import ch.uzh.ifi.access.course.dto.CourseDTO;
 import ch.uzh.ifi.access.course.service.CourseService;
@@ -82,7 +82,7 @@ public class CourseController {
                                             @PathVariable("exerciseId") UUID exerciseId,
                                             @PathVariable("fileId") UUID fileId) throws IOException {
         Exercise e = getExerciseByCourseAndAssignment(courseId, assignmentId, exerciseId);
-        Optional<FileContent> f = e.getFileById(fileId);
+        Optional<VirtualFile> f = e.getFileById(fileId);
         if (f.isPresent()) {
             File fileHandle = f.get().getFile();
             FileSystemResource r = new FileSystemResource(fileHandle);
