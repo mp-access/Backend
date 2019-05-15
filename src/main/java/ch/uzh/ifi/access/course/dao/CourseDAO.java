@@ -27,7 +27,6 @@ public class CourseDAO {
             try {
                 URLList conf = mapper.readValue(new File(CONFIG_FILE), URLList.class);
                 courseList = RepoCacher.retrieveCourseData(conf.repositories);
-                System.out.println(courseList);
             } catch (Exception e) {
                 e.printStackTrace();
             }

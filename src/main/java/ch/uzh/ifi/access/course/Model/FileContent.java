@@ -1,8 +1,6 @@
 package ch.uzh.ifi.access.course.Model;
 
-import lombok.Data;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-@JsonIgnoreProperties(value={"MEDIA_EXTENSIONS", "file"})
-@Data
 public class FileContent {
     private final UUID id;
 
@@ -53,4 +49,62 @@ public class FileContent {
         }
     }
 
+    @JsonIgnore
+    public List<String> getMEDIA_EXTENSIONS() {
+        return MEDIA_EXTENSIONS;
+    }
+
+    @JsonIgnore
+    public File getFile() {
+        return file;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileExtension() {
+        return fileExtension;
+    }
+
+    public void setFileExtension(String fileExtension) {
+        this.fileExtension = fileExtension;
+    }
+
+    public String getFileContent() {
+        return fileContent;
+    }
+
+    public void setFileContent(String fileContent) {
+        this.fileContent = fileContent;
+    }
+
+    public Boolean getMediaType() {
+        return isMediaType;
+    }
+
+    public void setMediaType(Boolean mediaType) {
+        isMediaType = mediaType;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
 }
+
