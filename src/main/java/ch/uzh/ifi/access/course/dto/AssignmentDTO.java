@@ -18,7 +18,7 @@ public class AssignmentDTO {
     private Date publishDate;
     private Date dueDate;
 
-    private List<UUID> exerciseids = new ArrayList<>();
+    private List<ExerciseDTO> exercises = new ArrayList<>();
 
     public AssignmentDTO(Assignment assignment){
         this.id = assignment.getId();
@@ -28,7 +28,7 @@ public class AssignmentDTO {
         this.dueDate = assignment.getDueDate();
 
         for(Exercise e : assignment.getExercises()){
-            this.exerciseids.add(e.getId());
+            this.exercises.add(new ExerciseDTO(e));
         }
     }
 

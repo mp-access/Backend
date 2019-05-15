@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.controller;
 
 import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.Model.Exercise;
 import ch.uzh.ifi.access.course.dto.AssignmentDTO;
 import ch.uzh.ifi.access.course.dto.CourseDTO;
 import ch.uzh.ifi.access.course.service.CourseService;
@@ -50,6 +51,18 @@ public class CourseController {
                 .map(course -> course.getAssignmentById(assignmentId))
                 .map(a -> a.orElseThrow(() -> new IllegalArgumentException("No assignment found")))
                 .orElseThrow(() -> new IllegalArgumentException("No course found")));
+    }
+
+    @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
+    public Exercise getExerciseByCourseAndAssignment(@PathVariable("courseId") UUID courseId,
+                                                     @PathVariable("assignmentId") UUID assignmentId,
+                                                     @PathVariable("exerciseId") UUID exerciseId) {
+        return courseService.getCourseById(courseId)
+                .map(course -> course.getAssignmentById(assignmentId))
+                .map(a -> a.orElseThrow(IllegalArgumentException::new))
+                .map(a -> a.findExerciseById(exerciseId))
+                .map(exercise -> exercise.orElseThrow(IllegalArgumentException::new))
+                .orElseThrow(IllegalArgumentException::new);
     }
 
 
