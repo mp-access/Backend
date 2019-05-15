@@ -31,7 +31,6 @@ public class RepoCacher {
 
 	static ObjectMapper mapper;
 
-	List<String> media_ext = Arrays.asList(".jpg", ".jpeg", ".png", ".mp3", ".mp4");
 	List<String> ignore_dir = Arrays.asList(".git");
 	List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
