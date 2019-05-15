@@ -2,7 +2,6 @@ package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.Model.Assignment;
 import ch.uzh.ifi.access.course.Model.Course;
-import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ public class CourseDTO {
     private String owner;
     private Date startDate;
     private Date endDate;
-    private List<UUID> assignmentids;
+    private List<AssignmentDTO> assignments = new ArrayList<>();
 
     public CourseDTO(Course course) {
         this.id = course.getId();
@@ -29,16 +28,14 @@ public class CourseDTO {
         this.owner = course.getOwner();
         this.startDate = course.getStartDate();
         this.endDate = course.getEndDate();
-        this.assignmentids = new ArrayList<>();
 
         for (Assignment a : course.getAssignments()) {
-            this.assignmentids.add(a.getId());
+            this.assignments.add(new AssignmentDTO(a));
         }
     }
 
     public CourseDTO() {
         id = UUID.randomUUID();
-        assignmentids = new ArrayList<>();
     }
 
 }

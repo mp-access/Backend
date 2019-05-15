@@ -1,11 +1,10 @@
 package ch.uzh.ifi.access.course.Model;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import lombok.Data;
 
+import java.util.*;
 
+@Data
 public class Course {
     private final UUID id;
 
@@ -39,79 +38,7 @@ public class Course {
         this.students = other.students;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setDirectory(String directory){
-        this.directory = directory;
-    }
-
-    public String getDirectory() {
-        return directory;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getOwner() {
-        return owner;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public List<String> getAssistants() {
-        return assistants;
-    }
-
-    public List<String> getStudents() {
-        return students;
-    }
-
-    public List<Assignment> getAssignments() {
-        return assignments;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
-    }
-
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(Date startDate) {
-        this.startDate = startDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
-    }
-
-    public void setAssistants(List<String> assistants) {
-        this.assistants = assistants;
-    }
-
-    public void setStudents(List<String> students) {
-        this.students = students;
-    }
-
-    public void setAssignments(List<Assignment> assignments) {
-        this.assignments = assignments;
+    public Optional<Assignment> getAssignmentById(UUID id) {
+        return assignments.stream().filter(a -> a.getId().equals(id)).findFirst();
     }
 }
