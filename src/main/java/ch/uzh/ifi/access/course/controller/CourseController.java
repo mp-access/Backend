@@ -6,7 +6,6 @@ import ch.uzh.ifi.access.course.Model.FileContent;
 import ch.uzh.ifi.access.course.dto.AssignmentDTO;
 import ch.uzh.ifi.access.course.dto.CourseDTO;
 import ch.uzh.ifi.access.course.service.CourseService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -28,8 +27,11 @@ import java.util.UUID;
 @RequestMapping("/courses")
 public class CourseController {
 
-    @Autowired
-    private CourseService courseService;
+    private final CourseService courseService;
+
+    public CourseController(CourseService courseService) {
+        this.courseService = courseService;
+    }
 
     @GetMapping
     public List<CourseDTO> getAllCourses() {
