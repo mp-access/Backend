@@ -28,7 +28,7 @@ public class CourseController {
 
     @GetMapping(path = "{id}")
     public CourseDTO getCourseById(@PathVariable("id") UUID id) {
-        return CourseDTO.setFromModel((courseService.getCourseById(id)
+        return new CourseDTO((courseService.getCourseById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No course found"))));
     }
 
