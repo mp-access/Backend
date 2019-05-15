@@ -1,8 +1,10 @@
 package ch.uzh.ifi.access.course.controller;
 
 import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.dto.CourseDTO;
 import ch.uzh.ifi.access.course.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/courses")
+@RequestMapping("/courses")
 public class CourseController {
 
     @Autowired
@@ -21,11 +23,19 @@ public class CourseController {
     @GetMapping
     public List<Course> getAllCourses(){
         return courseService.getAllCourses();
+
     }
 
     @GetMapping(path = "{id}")
-    public Course getCourseById(@PathVariable("id") UUID id) {
-        return courseService.getCourseById(id)
-                .orElse(null);
+    public CourseDTO getCourseById(@PathVariable("id") UUID id) {
+        return CourseDTO.setFromModel((courseService.getCourseById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No course found"))));
     }
+
+    /*
+    @RequestMapping("/assignments")
+    public Assiignment getAssignmentsbyCourseID(){
+
+    }
+     */
 }

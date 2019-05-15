@@ -1,5 +1,7 @@
+
 package ch.uzh.ifi.access.course.service;
 
+import ch.uzh.ifi.access.course.Model.Assignment;
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +29,12 @@ public class CourseService {
     }
 
     public Optional<Course> getCourseById(UUID id) {
+        return courseDao.selectCourseById(id);
+    }
+
+    public List<Assignment> getAllAssignmentsByCourseID() { return null;}
+
+    public Optional<Course> getAssignmentByIdByCourseId(UUID id) {
         return courseDao.selectCourseById(id);
     }
 }
