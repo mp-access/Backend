@@ -87,7 +87,7 @@ jobs:
       - run:
           name: Deploy app to Digital Ocean Server via Docker
           command: |
-            ssh -o $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
+            ssh $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
 
 workflows:
   version: 2
@@ -95,8 +95,8 @@ workflows:
     jobs:
       - build
       - deploy:
-          requires:
-            - build
+#          requires:
+#            - build
 #          filters:
 #            branches:
 #              only: master
