@@ -94,7 +94,7 @@ workflows:
   build-and-deploy-master:
     jobs:
       - build
-      - deploy:
+      - deploy
 #          requires:
 #            - build
 #          filters:
