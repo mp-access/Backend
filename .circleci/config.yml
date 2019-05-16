@@ -74,11 +74,18 @@ jobs:
           name: Build Docker image
           command: docker build -t hoal/$COURSE_SERVICE_IMAGE_NAME:latest .
 
+      - add_ssh_keys:
+          fingerprints:
+            - "fe:b1:c8:73:4c:fd:f9:6f:b9:84:56:6a:bc:ad:03:c8"
       - run:
           name: Push Docker image
           command: |
             echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
             docker push $DOCKER_USER/$COURSE_SERVICE_IMAGE_NAME:latest
+      - run:
+        name: Deploy app to Digital Ocean Server via Docker
+        command: |
+          ssh -o $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
 
 workflows:
   version: 2
@@ -88,6 +95,6 @@ workflows:
       - deploy:
           requires:
             - build
-          filters:
-            branches:
-              only: master
+#          filters:
+#            branches:
+#              only: master
