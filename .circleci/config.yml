@@ -87,7 +87,7 @@ jobs:
       - run:
           name: Deploy app to Digital Ocean Server via Docker
           command: |
-            ssh $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
+            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
 
 workflows:
   version: 2
