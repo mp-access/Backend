@@ -83,9 +83,9 @@ jobs:
             echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
             docker push $DOCKER_USER/$COURSE_SERVICE_IMAGE_NAME:latest
       - run:
-        name: Deploy app to Digital Ocean Server via Docker
-        command: |
-          ssh -o $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
+          name: Deploy app to Digital Ocean Server via Docker
+          command: |
+            ssh -o $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "echo \"deployment test\" >> /root/access/junk.tmp"
 
 workflows:
   version: 2
