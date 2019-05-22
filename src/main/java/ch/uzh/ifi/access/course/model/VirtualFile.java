@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.model;
 
 
+import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
@@ -10,13 +11,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 public class VirtualFile {
     private static final List<String> MEDIA_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "mp3", "mp4");
 
-    private final UUID id;
+    private final String id;
 
     private String path;
     private String name;
@@ -28,7 +28,7 @@ public class VirtualFile {
     private File file;
 
     public VirtualFile(String fullPath, String virtualPath) {
-        this.id = UUID.randomUUID();
+        this.id = new Utils().getID();
         this.file = new File(fullPath);
         this.path = virtualPath;
 

@@ -6,10 +6,17 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import org.eclipse.jgit.api.Git;
+import org.springframework.format.datetime.joda.LocalDateTimeParser;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.*;
 
 public class RepoCacher {
@@ -38,8 +45,22 @@ public class RepoCacher {
     {
         deleteDir(new File(REPO_DIR));
 
+		DateTimeFormatter fmt = new DateTimeFormatterBuilder()
+				.appendPattern("yyyy-MM-dd")
+				.optionalStart()
+				.appendPattern(" HH:mm")
+				.optionalEnd()
+				.parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+				.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+				.toFormatter();
+
+		JavaTimeModule javaTimeModule = new JavaTimeModule();
+		LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
+		javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
+
 		mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.registerModule(javaTimeModule);
 
 		List<Course> courses = new ArrayList<>();
 
@@ -84,7 +105,7 @@ public class RepoCacher {
 				next_context = assignment;
 			}else if(file.getName().startsWith(EXERCISE_FOLDER_PREFIX)){
 				Exercise exercise = new Exercise();
-				((Assignment)context).getExercises().add(exercise);
+				((Assignment)context).addExercise(exercise);
 				next_context = exercise;
 			}else if(file.getName().startsWith(PUBLIC_FOLDER_NAME)){
 				listFiles(file, ((Exercise)context).getPublic_files(), file.getPath());

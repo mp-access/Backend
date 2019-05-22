@@ -1,22 +1,24 @@
 package ch.uzh.ifi.access.course.model;
 
+import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
 public class Assignment {
-    private final UUID id;
+    private final String id;
 
     private String title;
     private String description;
-    private Date publishDate;
-    private Date dueDate;
+    private LocalDateTime publishDate;
+    private LocalDateTime dueDate;
 
     private List<Exercise> exercises = new ArrayList<>();
 
     public Assignment() {
-        this.id = UUID.randomUUID();
+        this.id = new Utils().getID();
     }
 
     public void set(Assignment other) {
@@ -26,8 +28,18 @@ public class Assignment {
         this.dueDate = other.dueDate;
     }
 
-    public Optional<Exercise> findExerciseById(UUID id) {
+    public void addExercise(Exercise ex){
+        exercises.add(ex);
+        ex.setAssignment(this);
+    }
+
+    public Optional<Exercise> findExerciseById(String id) {
         return exercises.stream().filter(e -> e.getId().equals(id)).findFirst();
+    }
+
+    public boolean isPastDueDate()
+    {
+        return LocalDateTime.now().isAfter(dueDate);
     }
 }
 

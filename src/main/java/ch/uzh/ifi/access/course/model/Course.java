@@ -1,21 +1,23 @@
 package ch.uzh.ifi.access.course.model;
 
+import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
 public class Course {
-    private final UUID id;
+    private final String id;
 
     private String directory;
 
     private String title;
     private String description;
     private String owner;
-    private Date startDate;
+    private LocalDateTime startDate;
 
-    private Date endDate;
+    private LocalDateTime endDate;
 
     private List<String> assistants = new ArrayList<>();
     private List<String> students = new ArrayList<>();
@@ -23,7 +25,7 @@ public class Course {
     private List<Assignment> assignments = new ArrayList<>();
 
     public Course(){
-        this.id = UUID.randomUUID();
+        this.id = new Utils().getID();
     }
 
     public void set(Course other){
@@ -38,7 +40,7 @@ public class Course {
         this.students = other.students;
     }
 
-    public Optional<Assignment> getAssignmentById(UUID id) {
+    public Optional<Assignment> getAssignmentById(String id) {
         return assignments.stream().filter(a -> a.getId().equals(id)).findFirst();
     }
 }

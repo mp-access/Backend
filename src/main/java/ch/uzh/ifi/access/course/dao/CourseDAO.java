@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 class URLList{
     public String repositories[];
@@ -39,7 +38,7 @@ public class CourseDAO {
         return courseList;
     }
 
-    public Optional<Course> selectCourseById(UUID id) {
+    public Optional<Course> selectCourseById(String id) {
         return courseList.stream()
                 .filter(course -> course.getId().equals(id))
                 .findFirst();

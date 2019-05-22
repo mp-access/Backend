@@ -2,24 +2,23 @@ package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
+import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
-public class ExerciseDTO {
-    private final UUID id;
+public class ExerciseMetadataDTO {
+    private final String id;
 
     private ExerciseType type;
     private String language;
 
-    public ExerciseDTO(Exercise exercise){
+    public ExerciseMetadataDTO(Exercise exercise){
         this.id = exercise.getId();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
     }
 
-    public ExerciseDTO(){
-        this.id = UUID.randomUUID();
+    public ExerciseMetadataDTO(){
+        this.id = new Utils().getID();
     }
 }
