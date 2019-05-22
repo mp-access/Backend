@@ -67,18 +67,18 @@ public class KeycloakClientTest {
     @Test
     public void enrollUsersInCourse() {
         Course course = new Course();
-        course.title = "Informatics 1";
-        course.students = List.of("alice@example.com", "bob@example.com");
-        course.assistants = List.of("ta@uzh.ch", "dr.prof@uzh.ch");
+        course.setTitle("Informatics 1");
+        course.setStudents(List.of("alice@example.com", "bob@example.com"));
+        course.setAssistants(List.of("ta@uzh.ch", "dr.prof@uzh.ch"));
 
         Group group = client.enrollUsersInCourse(course);
 
         List<String> studentEmails = group.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> assistantsEmails = group.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
-        Assert.assertEquals(group.getName(), course.title);
-        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.students));
-        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.assistants));
+        Assert.assertEquals(group.getName(), course.getTitle());
+        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
+        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
     }
 
     @Test
@@ -86,33 +86,33 @@ public class KeycloakClientTest {
         final String emailAddressStudentAndTa = "ta-student@uzh.ch";
         // Enroll users in a first course
         Course course = new Course();
-        course.title = "Informatics 1";
-        course.students = List.of("alice@example.com", "bob@example.com");
-        course.assistants = List.of(emailAddressStudentAndTa, "dr.prof@uzh.ch");
+        course.setTitle("Informatics 1");
+        course.setStudents(List.of("alice@example.com", "bob@example.com"));
+        course.setAssistants(List.of(emailAddressStudentAndTa, "dr.prof@uzh.ch"));
 
         Group info1 = client.enrollUsersInCourse(course);
 
         List<String> studentEmails = info1.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> assistantsEmails = info1.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
-        Assert.assertEquals(info1.getName(), course.title);
-        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.students));
-        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.assistants));
+        Assert.assertEquals(info1.getName(), course.getTitle());
+        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
+        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
 
 
         // Enrolling them in a second course should not remove them from the first one
         Course course2 = new Course();
-        course2.title = "DBS";
-        course2.students = List.of("alice@example.com", "bob@example.com", emailAddressStudentAndTa);
-        course2.assistants = List.of("dr.prof@uzh.ch");
+        course2.setTitle("DBS");
+        course2.setStudents(List.of("alice@example.com", "bob@example.com", emailAddressStudentAndTa));
+        course2.setAssistants(List.of("dr.prof@uzh.ch"));
         Group dbs = client.enrollUsersInCourse(course2);
 
         studentEmails = dbs.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         assistantsEmails = dbs.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
-        Assert.assertEquals(course2.title, dbs.getName());
-        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course2.students));
-        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course2.assistants));
+        Assert.assertEquals(course2.getTitle(), dbs.getName());
+        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course2.getStudents()));
+        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course2.getAssistants()));
 
         // Get all students
         Set<UserRepresentation> info1Users = info1.getStudents().stream().collect(Collectors.toSet());
@@ -137,10 +137,10 @@ public class KeycloakClientTest {
         UserRepresentation taStudent = users.stream().filter(u -> u.getEmail().equals(emailAddressStudentAndTa)).findFirst().get();
         List<GroupRepresentation> groups = realmResource.users().get(taStudent.getId()).groups();
         for (GroupRepresentation group : groups) {
-            if (group.getPath().contains(course.title)) {
-                Assert.assertEquals(String.format("ta-student should be an 'author' of course '%s'", course.title), "authors", group.getName());
+            if (group.getPath().contains(course.getTitle())) {
+                Assert.assertEquals(String.format("ta-student should be an 'author' of course '%s'", course.getTitle()), "authors", group.getName());
             } else {
-                Assert.assertEquals(String.format("ta-student should be a 'student' of course '%s'", course2.title), "students", group.getName());
+                Assert.assertEquals(String.format("ta-student should be a 'student' of course '%s'", course2.getTitle()), "students", group.getName());
             }
         }
     }

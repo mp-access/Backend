@@ -3,7 +3,7 @@ package ch.uzh.ifi.access.course;
 import ch.uzh.ifi.access.course.Model.Assignment;
 import ch.uzh.ifi.access.course.Model.Course;
 import ch.uzh.ifi.access.course.Model.Exercise;
-import ch.uzh.ifi.access.course.Model.FileContent;
+import ch.uzh.ifi.access.course.Model.VirtualFile;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jgit.api.Git;
@@ -31,18 +31,17 @@ public class RepoCacher {
 
 	static ObjectMapper mapper;
 
-	List<String> media_ext = Arrays.asList(".jpg", ".jpeg", ".png", ".mp3", ".mp4");
 	List<String> ignore_dir = Arrays.asList(".git");
 	List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static Course[] retrieveCourseData(String repo_urls[]) throws Exception
+    public static List<Course> retrieveCourseData(String repo_urls[]) throws Exception
     {
         deleteDir(new File(REPO_DIR));
 
 		mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-		Course courses[] = new Course[repo_urls.length];
+		List<Course> courses = new ArrayList<>();
 
 		int i = 0;
         for(String url : repo_urls) {
@@ -50,11 +49,11 @@ public class RepoCacher {
 
 			RepoCacher cacher = new RepoCacher();
 			File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
-			Course course = new Course(); //mapper.readValue(new File(REPO_DIR + "/config.json"), Course.class);
-			course.directory = repo;
+			Course course = new Course();
+			course.setDirectory(repo.getAbsolutePath());
 
 			cacher.cacheRepo(repo, course);
-			courses[i++] = course;
+			courses.add(course);
 		}
         return courses;
     }
@@ -81,24 +80,20 @@ public class RepoCacher {
 	  		Object next_context = context;
 			if(file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)){
 				Assignment assignment = new Assignment();
-				((Course)context).assignments.add(assignment);
+				((Course)context).getAssignments().add(assignment);
 				next_context = assignment;
 			}else if(file.getName().startsWith(EXERCISE_FOLDER_PREFIX)){
 				Exercise exercise = new Exercise();
-				((Assignment)context).exercises.add(exercise);
+				((Assignment)context).getExercises().add(exercise);
 				next_context = exercise;
 			}else if(file.getName().startsWith(PUBLIC_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).public_files);
-				//((Exercise)context).public_files.add(readFile(file));
+				listFiles(file, ((Exercise)context).getPublic_files(), file.getPath());
 			}else if(file.getName().startsWith(PRIVATE_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).private_files);
-				//((Exercise)context).private_files.add(readFile(file));
+				listFiles(file, ((Exercise)context).getPrivate_files(), file.getPath());
 			}else if(file.getName().startsWith(RESOURCE_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).resource_files);
-				//((Exercise)context).resource_files.add(readFile(file));
+				listFiles(file, ((Exercise)context).getResource_files(), file.getPath());
 			}else if(file.getName().startsWith(SOLUTION_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).solution_files);
-				//((Exercise)context).solution_files.add(readFile(file));
+				listFiles(file, ((Exercise)context).getSolution_files(), file.getPath());
 			}
 
 	    	String[] children = file.list(); 
@@ -127,7 +122,7 @@ public class RepoCacher {
 				}
 			}else if(context instanceof Exercise){
 				if(file.getName().equals(QUESTION_FILE_NAME)){
-					((Exercise)context).question =	readFile(file);
+					((Exercise)context).setQuestion(readFile(file));
 				}else if(file.getName().equals(EXERCISE_FILE_NAME)){
 					try {
 						((Exercise)context).set(mapper.readValue(file, Exercise.class));
@@ -140,14 +135,13 @@ public class RepoCacher {
 	  	}
     }
 
-    public static void listFiles(File dir, List<FileContent> fileList){
-		if (dir.isDirectory())
-		{
+    private static void listFiles(File dir, List<VirtualFile> fileList, String root){
+		if (dir.isDirectory()){
 			String[] children = dir.list();
 			for (int i=0; i<children.length; i++)
-				listFiles(new File(dir, children[i]), fileList);
+				listFiles(new File(dir, children[i]), fileList, root);
 		}else {
-			fileList.add(new FileContent(dir.getAbsolutePath()));
+			fileList.add(new VirtualFile(dir.getAbsolutePath(), dir.getPath().replace(root, "")));
 		}
 	}
 

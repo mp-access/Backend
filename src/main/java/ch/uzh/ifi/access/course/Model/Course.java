@@ -1,24 +1,33 @@
 package ch.uzh.ifi.access.course.Model;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import lombok.Data;
 
+import java.util.*;
+
+@Data
 public class Course {
-    public File directory;
-    public String title;
-    public String description;
-    public String owner;
-    public Date startDate;
-    public Date endDate;
+    private final UUID id;
 
-    public List<String> assistants = new ArrayList<>();
-    public List<String> students = new ArrayList<>();
+    private String directory;
 
-    public List<Assignment> assignments = new ArrayList<>();
+    private String title;
+    private String description;
+    private String owner;
+    private Date startDate;
+
+    private Date endDate;
+
+    private List<String> assistants = new ArrayList<>();
+    private List<String> students = new ArrayList<>();
+
+    private List<Assignment> assignments = new ArrayList<>();
+
+    public Course(){
+        this.id = UUID.randomUUID();
+    }
 
     public void set(Course other){
+        //this.directory = other.directory;
         this.title = other.title;
         this.description = other.description;
         this.owner = other.owner;
@@ -27,5 +36,9 @@ public class Course {
 
         this.assistants = other.assistants;
         this.students = other.students;
+    }
+
+    public Optional<Assignment> getAssignmentById(UUID id) {
+        return assignments.stream().filter(a -> a.getId().equals(id)).findFirst();
     }
 }

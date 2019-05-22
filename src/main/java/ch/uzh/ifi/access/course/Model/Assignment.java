@@ -1,22 +1,33 @@
 package ch.uzh.ifi.access.course.Model;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import lombok.Data;
 
+import java.util.*;
+
+@Data
 public class Assignment {
-    public String title;
-    public String description;
-    public Date publishDate;
-    public Date dueDate;
+    private final UUID id;
 
-    public List<Exercise> exercises = new ArrayList<>();
+    private String title;
+    private String description;
+    private Date publishDate;
+    private Date dueDate;
 
-    public void set(Assignment other){
+    private List<Exercise> exercises = new ArrayList<>();
+
+    public Assignment() {
+        this.id = UUID.randomUUID();
+    }
+
+    public void set(Assignment other) {
         this.title = other.title;
         this.description = other.description;
         this.publishDate = other.publishDate;
         this.dueDate = other.dueDate;
+    }
+
+    public Optional<Exercise> findExerciseById(UUID id) {
+        return exercises.stream().filter(e -> e.getId().equals(id)).findFirst();
     }
 }
 

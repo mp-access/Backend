@@ -21,7 +21,7 @@ public class CoursePermissionEvaluatorTest {
         GrantedCourseAccess info1 = new GrantedCourseAccess(courseName, true, false);
         GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false);
         Course course = new Course();
-        course.title = courseName;
+        course.setTitle(courseName);
 
         CourseAuthentication courseAuthentication = authentication(Set.of(info1, info2));
 
@@ -34,7 +34,7 @@ public class CoursePermissionEvaluatorTest {
         String someOtherCourseName = "Info2";
         GrantedCourseAccess info1 = new GrantedCourseAccess(someOtherCourseName, true, false);
         Course course = new Course();
-        course.title = courseName;
+        course.setTitle(courseName);
 
         CourseAuthentication courseAuthentication = authentication(Set.of(info1));
 
