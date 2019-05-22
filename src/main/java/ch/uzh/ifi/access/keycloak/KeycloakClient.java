@@ -1,7 +1,7 @@
-package ch.uzh.ifi.access.course.keycloak;
+package ch.uzh.ifi.access.keycloak;
 
-import ch.uzh.ifi.access.course.Model.Course;
-import ch.uzh.ifi.access.course.config.SecurityProperties;
+import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.config.SecurityProperties;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;

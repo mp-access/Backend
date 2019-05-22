@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course;
+package ch.uzh.ifi.access;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -7,10 +7,10 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
 
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class,
         UserDetailsServiceAutoConfiguration.class})
-public class CourseApplication {
+public class AccessApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CourseApplication.class, args);
+        SpringApplication.run(AccessApplication.class, args);
     }
 
 }

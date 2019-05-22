@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.RepoCacher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Repository;

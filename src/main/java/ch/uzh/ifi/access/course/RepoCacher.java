@@ -1,9 +1,9 @@
 package ch.uzh.ifi.access.course;
 
-import ch.uzh.ifi.access.course.Model.Assignment;
-import ch.uzh.ifi.access.course.Model.Course;
-import ch.uzh.ifi.access.course.Model.Exercise;
-import ch.uzh.ifi.access.course.Model.VirtualFile;
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.VirtualFile;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jgit.api.Git;

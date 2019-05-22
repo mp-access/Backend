@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course.config;
+package ch.uzh.ifi.access.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

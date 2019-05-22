@@ -1,8 +1,8 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.course.Model.Course;
-import ch.uzh.ifi.access.course.Model.Exercise;
-import ch.uzh.ifi.access.course.Model.VirtualFile;
+import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.dto.AssignmentDTO;
 import ch.uzh.ifi.access.course.dto.CourseDTO;
 import ch.uzh.ifi.access.course.service.CourseService;

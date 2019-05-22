@@ -1,8 +1,8 @@
 package ch.uzh.ifi.access.course.config;
 
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
-import ch.uzh.ifi.access.course.keycloak.KeycloakClient;
+import ch.uzh.ifi.access.keycloak.KeycloakClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 

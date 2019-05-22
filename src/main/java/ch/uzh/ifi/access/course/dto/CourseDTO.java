@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.course.dto;
 
-import ch.uzh.ifi.access.course.Model.Assignment;
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Course;
 import lombok.Data;
 
 import java.util.ArrayList;

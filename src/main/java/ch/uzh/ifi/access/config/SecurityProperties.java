@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course.config;
+package ch.uzh.ifi.access.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

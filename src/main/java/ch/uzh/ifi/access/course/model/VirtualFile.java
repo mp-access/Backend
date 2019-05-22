@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course.Model;
+package ch.uzh.ifi.access.course.model;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

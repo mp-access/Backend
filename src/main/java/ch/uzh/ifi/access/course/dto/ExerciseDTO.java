@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.course.dto;
 
-import ch.uzh.ifi.access.course.Model.Exercise;
-import ch.uzh.ifi.access.course.Model.ExerciseType;
+import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.ExerciseType;
 import lombok.Data;
 
 import java.util.UUID;

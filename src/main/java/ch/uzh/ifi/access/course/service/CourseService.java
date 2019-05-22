@@ -1,15 +1,13 @@
 
 package ch.uzh.ifi.access.course.service;
 
-import ch.uzh.ifi.access.course.Model.Assignment;
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;

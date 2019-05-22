@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course.config;
+package ch.uzh.ifi.access.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
