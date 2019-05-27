@@ -16,4 +16,5 @@ ARG DEPENDENCY=/workspace/app/build/dependency
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
 COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-ENTRYPOINT ["java","-cp","app:app/lib/*","ch.uzh.ifi.access.course.CourseApplication"]
+COPY --from=build /workspace/app/src/main/resources/application-prod.properties /app/application.properties
+ENTRYPOINT ["java","-cp","app:app/lib/*","ch.uzh.ifi.access.AccessApplication"]
