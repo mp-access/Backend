@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course.keycloak;
+package ch.uzh.ifi.access.keycloak;
 
 import org.keycloak.admin.client.resource.GroupResource;
 import org.keycloak.admin.client.resource.GroupsResource;

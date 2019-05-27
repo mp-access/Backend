@@ -1,27 +1,28 @@
 package ch.uzh.ifi.access.course.dto;
 
-import ch.uzh.ifi.access.course.Model.Assignment;
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Data
-public class CourseDTO {
+public class CourseMetadataDTO {
 
-    private final UUID id;
+    private final String id;
 
     private String title;
     private String description;
     private String owner;
-    private Date startDate;
-    private Date endDate;
-    private List<AssignmentDTO> assignments = new ArrayList<>();
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private List<AssignmentMetadataDTO> assignments = new ArrayList<>();
 
-    public CourseDTO(Course course) {
+    public CourseMetadataDTO(Course course) {
         this.id = course.getId();
         this.title = course.getTitle();
         this.description = course.getDescription();
@@ -30,12 +31,12 @@ public class CourseDTO {
         this.endDate = course.getEndDate();
 
         for (Assignment a : course.getAssignments()) {
-            this.assignments.add(new AssignmentDTO(a));
+            this.assignments.add(new AssignmentMetadataDTO(a));
         }
     }
 
-    public CourseDTO() {
-        id = UUID.randomUUID();
+    public CourseMetadataDTO() {
+        this.id = new Utils().getID();
     }
 
 }

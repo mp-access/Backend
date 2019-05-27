@@ -1,6 +1,7 @@
-package ch.uzh.ifi.access.course.config;
+package ch.uzh.ifi.access.config;
 
-import ch.uzh.ifi.access.course.Model.security.GrantedCourseAccess;
+import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;

@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.RepoCacher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 
 @Repository("gitrepo")
@@ -42,7 +41,7 @@ public class CourseDAO {
         return courseList;
     }
 
-    public Optional<Course> selectCourseById(UUID id) {
+    public Optional<Course> selectCourseById(String id) {
         return courseList.stream()
                 .filter(course -> course.getId().equals(id))
                 .findFirst();

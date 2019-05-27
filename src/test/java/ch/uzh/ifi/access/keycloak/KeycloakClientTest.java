@@ -1,7 +1,7 @@
-package ch.uzh.ifi.access.course.keycloak;
+package ch.uzh.ifi.access.keycloak;
 
-import ch.uzh.ifi.access.course.Model.Course;
-import ch.uzh.ifi.access.course.config.SecurityProperties;
+import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.config.SecurityProperties;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

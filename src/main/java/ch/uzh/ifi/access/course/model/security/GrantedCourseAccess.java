@@ -1,6 +1,6 @@
-package ch.uzh.ifi.access.course.Model.security;
+package ch.uzh.ifi.access.course.model.security;
 
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Course;
 
 import java.io.Serializable;
 

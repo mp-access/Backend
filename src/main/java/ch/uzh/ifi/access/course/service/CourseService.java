@@ -1,15 +1,15 @@
 
 package ch.uzh.ifi.access.course.service;
 
-import ch.uzh.ifi.access.course.Model.Assignment;
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ch.uzh.ifi.access.course.model.Exercise;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,13 +28,19 @@ public class CourseService {
         return courseDao.selectAllCourses();
     }
 
-    public Optional<Course> getCourseById(UUID id) {
+    public Optional<Course> getCourseById(String id) {
         return courseDao.selectCourseById(id);
     }
 
-    public List<Assignment> getAllAssignmentsByCourseID() { return null;}
+    public Optional<Exercise> getExerciseByCourseAndAssignmentId(String courseId, String assignmentId, String exerciseId) {
+        return getCourseById(courseId)
+                .flatMap(course -> course.getAssignmentById(assignmentId))
+                .flatMap(assignment -> assignment.findExerciseById(exerciseId));
+    }
 
-    public Optional<Course> getAssignmentByIdByCourseId(UUID id) {
+    public List<Assignment> getAllAssignmentsByCourseId() { return null;}
+
+    public Optional<Course> getAssignmentByIdByCourseId(String id) {
         return courseDao.selectCourseById(id);
     }
 }

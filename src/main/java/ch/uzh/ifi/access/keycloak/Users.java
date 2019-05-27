@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course.keycloak;
+package ch.uzh.ifi.access.keycloak;
 
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.UserRepresentation;

@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.config;
 
-import ch.uzh.ifi.access.course.Model.Course;
+import ch.uzh.ifi.access.course.model.Course;
 import org.springframework.stereotype.Service;
 
 @Service

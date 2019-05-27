@@ -1,6 +1,6 @@
-package ch.uzh.ifi.access.course.api;
+package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.course.Model.security.GrantedCourseAccess;
+import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

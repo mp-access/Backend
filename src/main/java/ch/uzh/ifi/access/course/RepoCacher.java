@@ -1,15 +1,22 @@
 package ch.uzh.ifi.access.course;
 
-import ch.uzh.ifi.access.course.Model.Assignment;
-import ch.uzh.ifi.access.course.Model.Course;
-import ch.uzh.ifi.access.course.Model.Exercise;
-import ch.uzh.ifi.access.course.Model.FileContent;
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.VirtualFile;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import org.eclipse.jgit.api.Git;
+import org.springframework.format.datetime.joda.LocalDateTimeParser;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.*;
 
 public class RepoCacher {
@@ -38,8 +45,22 @@ public class RepoCacher {
     {
         deleteDir(new File(REPO_DIR));
 
+		DateTimeFormatter fmt = new DateTimeFormatterBuilder()
+				.appendPattern("yyyy-MM-dd")
+				.optionalStart()
+				.appendPattern(" HH:mm")
+				.optionalEnd()
+				.parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+				.parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+				.toFormatter();
+
+		JavaTimeModule javaTimeModule = new JavaTimeModule();
+		LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
+		javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
+
 		mapper = new ObjectMapper();
 		mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.registerModule(javaTimeModule);
 
 		List<Course> courses = new ArrayList<>();
 
@@ -84,16 +105,16 @@ public class RepoCacher {
 				next_context = assignment;
 			}else if(file.getName().startsWith(EXERCISE_FOLDER_PREFIX)){
 				Exercise exercise = new Exercise();
-				((Assignment)context).getExercises().add(exercise);
+				((Assignment)context).addExercise(exercise);
 				next_context = exercise;
 			}else if(file.getName().startsWith(PUBLIC_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).getPublic_files());
+				listFiles(file, ((Exercise)context).getPublic_files(), file.getPath());
 			}else if(file.getName().startsWith(PRIVATE_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).getPrivate_files());
+				listFiles(file, ((Exercise)context).getPrivate_files(), file.getPath());
 			}else if(file.getName().startsWith(RESOURCE_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).getResource_files());
+				listFiles(file, ((Exercise)context).getResource_files(), file.getPath());
 			}else if(file.getName().startsWith(SOLUTION_FOLDER_NAME)){
-				listFiles(file, ((Exercise)context).getSolution_files());
+				listFiles(file, ((Exercise)context).getSolution_files(), file.getPath());
 			}
 
 	    	String[] children = file.list(); 
@@ -135,14 +156,13 @@ public class RepoCacher {
 	  	}
     }
 
-    public static void listFiles(File dir, List<FileContent> fileList){
-		if (dir.isDirectory())
-		{
+    private static void listFiles(File dir, List<VirtualFile> fileList, String root){
+		if (dir.isDirectory()){
 			String[] children = dir.list();
 			for (int i=0; i<children.length; i++)
-				listFiles(new File(dir, children[i]), fileList);
+				listFiles(new File(dir, children[i]), fileList, root);
 		}else {
-			fileList.add(new FileContent(dir.getAbsolutePath()));
+			fileList.add(new VirtualFile(dir.getAbsolutePath(), dir.getPath().replace(root, "")));
 		}
 	}
 
