@@ -20,9 +20,10 @@ public class RetryConfig {
             @Override
             public <T, E extends Throwable> void onError(
                     RetryContext context, RetryCallback<T, E> callback, Throwable throwable) {
-                logger.warn("Retryable method {} threw {}th exception {}",
+                logger.warn("Count {}: retryable method {} threw exception {}",
+                        context.getRetryCount(),
                         context.getAttribute("context.name"),
-                        context.getRetryCount(), throwable.toString());
+                        throwable.toString());
                 super.onError(context, callback, throwable);
             }
         };
