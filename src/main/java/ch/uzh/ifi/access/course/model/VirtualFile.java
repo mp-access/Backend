@@ -27,6 +27,10 @@ public class VirtualFile {
     @JsonIgnore
     private File file;
 
+    public VirtualFile() {
+        this.id = new Utils().getID();
+    }
+
     public VirtualFile(String fullPath, String virtualPath) {
         this.id = new Utils().getID();
         this.file = new File(fullPath);

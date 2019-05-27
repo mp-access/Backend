@@ -1,24 +1,27 @@
 package ch.uzh.ifi.access.course.controller;
 
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
+import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
+import ch.uzh.ifi.access.course.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
-import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
-import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
+import ch.uzh.ifi.access.course.model.workspace.StudentAnswer;
 import ch.uzh.ifi.access.course.service.CourseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +29,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CourseController.class);
 
     private final CourseService courseService;
 
@@ -65,13 +70,13 @@ public class CourseController {
 
     @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
     public ResponseEntity<?> getExerciseByCourseAndAssignment(@PathVariable("courseId") String courseId,
-                                                     @PathVariable("assignmentId") String assignmentId,
-                                                     @PathVariable("exerciseId") String exerciseId) {
+                                                              @PathVariable("assignmentId") String assignmentId,
+                                                              @PathVariable("exerciseId") String exerciseId) {
         Exercise ex = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-        if(ex.isPastDueDate()){
+        if (ex.isPastDueDate()) {
             return ResponseEntity.ok(new ExerciseWithSolutionsDTO(ex));
-        }else{
+        } else {
             return ResponseEntity.ok(ex);
         }
     }
@@ -97,4 +102,27 @@ public class CourseController {
         return ResponseEntity.notFound().build();
     }
 
+    @PostMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
+    public ResponseEntity<StudentAnswer> submitAnswer(@PathVariable("courseId") String courseId,
+                                                      @PathVariable("assignmentId") String assignmentId,
+                                                      @PathVariable("exerciseId") String exerciseId,
+                                                      @RequestBody StudentAnswerDTO studentAnswer,
+                                                      CourseAuthentication authentication) {
+        Exercise exercise = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
+
+        StudentAnswer workspace = studentAnswer.createStudentAnswer();
+        workspace.setExercise(exercise);
+        workspace.setAssignmentId(assignmentId);
+        workspace.setCourseId(courseId);
+        workspace.setTimestamp(LocalDateTime.now());
+        workspace.setVersion(1);
+        workspace.setCommitId("commit-qwertz");
+
+        if (authentication != null) {
+            workspace.setUserId(authentication.getUserId());
+        }
+
+        return ResponseEntity.ok(workspace);
+    }
 }
