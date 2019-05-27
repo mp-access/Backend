@@ -1,8 +1,9 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.RepoCacher;
+import ch.uzh.ifi.access.course.model.Course;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -47,7 +48,8 @@ public class CourseDAO {
                 .findFirst();
     }
 
-    public static class URLList {
-        public String[] repositories;
+    @Data
+    private static class URLList {
+        private String[] repositories;
     }
 }
