@@ -1,35 +1,39 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.RepoCacher;
+import ch.uzh.ifi.access.course.model.Course;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-class URLList{
-    public String repositories[];
-}
 
 @Repository("gitrepo")
 public class CourseDAO {
 
-    private final String CONFIG_FILE = "src/main/resources/repositories.json";
+    private static final Logger logger = LoggerFactory.getLogger(CourseDAO.class);
 
-    private static List<Course> courseList;
+    private static final String CONFIG_FILE = "repositories.json";
 
-    public CourseDAO(){
-        ObjectMapper mapper = new ObjectMapper();
-        if(new File(CONFIG_FILE).exists()){
+    private List<Course> courseList;
+
+    public CourseDAO() {
+        ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
+        if (resource.exists()) {
             try {
-                URLList conf = mapper.readValue(new File(CONFIG_FILE), URLList.class);
+                ObjectMapper mapper = new ObjectMapper();
+                URLList conf = mapper.readValue(resource.getFile(), URLList.class);
                 courseList = RepoCacher.retrieveCourseData(conf.repositories);
+                logger.info(String.format("Parsed %d courses", courseList.size()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             courseList = null;
         }
     }
@@ -42,5 +46,10 @@ public class CourseDAO {
         return courseList.stream()
                 .filter(course -> course.getId().equals(id))
                 .findFirst();
+    }
+
+    @Data
+    private static class URLList {
+        private String[] repositories;
     }
 }

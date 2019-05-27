@@ -24,6 +24,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:4.5.0.201609210915-r'
 
+    implementation 'org.springframework.boot:spring-boot-starter-aop:2.1.5.RELEASE'
+    implementation 'org.springframework.retry:spring-retry:1.2.4.RELEASE'
+
     // Keycloak admin client dependencies
     implementation 'org.keycloak:keycloak-admin-client:6.0.0'
     implementation 'org.jboss.resteasy:resteasy-client:3.6.3.Final'

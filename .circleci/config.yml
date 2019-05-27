@@ -1,8 +1,4 @@
-# Java Gradle CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-java/ for more details
-#
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -26,7 +22,7 @@ jobs:
       - checkout
 
       - run:
-          name: install dockerize
+          name: Install dockerize
           command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
           environment:
             DOCKERIZE_VERSION: v0.6.1
@@ -50,3 +46,53 @@ jobs:
 
       # run tests!
       - run: gradle test
+
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
+  deploy:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    working_directory: ~/course_service
+
+    steps:
+      - checkout
+
+      - setup_remote_docker
+
+      - run:
+          name: Build Docker image
+          command: docker build -t hoal/$COURSE_SERVICE_IMAGE_NAME:latest .
+
+      - add_ssh_keys:
+          fingerprints:
+            - "fe:b1:c8:73:4c:fd:f9:6f:b9:84:56:6a:bc:ad:03:c8"
+      - run:
+          name: Push Docker image
+          command: |
+            echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
+            docker push $DOCKER_USER/$COURSE_SERVICE_IMAGE_NAME:latest
+      - run:
+          name: Deploy app to Digital Ocean Server via Docker
+          command: |
+            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "cd /root/access/infrastructure && docker-compose down && docker-compose up -d"
+
+workflows:
+  version: 2
+  build-and-deploy-master:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master

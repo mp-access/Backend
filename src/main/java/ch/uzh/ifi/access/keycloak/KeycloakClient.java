@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.keycloak;
 
-import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.config.SecurityProperties;
+import ch.uzh.ifi.access.course.model.Course;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -28,8 +28,6 @@ public class KeycloakClient {
 
     private static final Logger logger = LoggerFactory.getLogger(KeycloakClient.class);
 
-    private SecurityProperties securityProperties;
-
     private static final List<String> emailActionsAfterCreation = List.of("VERIFY_EMAIL", "UPDATE_PASSWORD", "UPDATE_PROFILE");
 
     private static final String ADMIN_CLIENT_ID = "admin-cli";
@@ -40,14 +38,11 @@ public class KeycloakClient {
 
     @Autowired
     public KeycloakClient(SecurityProperties securityProperties) {
-        this.securityProperties = securityProperties;
-
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(DEFAULT_REALM);
     }
 
     public KeycloakClient(SecurityProperties securityProperties, String realm) {
-        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
     }
