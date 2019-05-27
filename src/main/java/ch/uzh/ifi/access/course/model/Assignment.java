@@ -4,10 +4,13 @@ import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Data
 public class Assignment {
+
     private final String id;
 
     private String title;
@@ -28,7 +31,7 @@ public class Assignment {
         this.dueDate = other.dueDate;
     }
 
-    public void addExercise(Exercise ex){
+    public void addExercise(Exercise ex) {
         exercises.add(ex);
         ex.setAssignment(this);
     }
@@ -37,8 +40,7 @@ public class Assignment {
         return exercises.stream().filter(e -> e.getId().equals(id)).findFirst();
     }
 
-    public boolean isPastDueDate()
-    {
+    public boolean isPastDueDate() {
         return LocalDateTime.now().isAfter(dueDate);
     }
 }

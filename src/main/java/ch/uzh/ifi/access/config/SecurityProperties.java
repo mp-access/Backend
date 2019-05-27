@@ -36,7 +36,7 @@ public class SecurityProperties {
 
     @Data
     @Configuration
-    @ConfigurationProperties(prefix = "cors")
+    @ConfigurationProperties(prefix = "rest.security.cors")
     public static class Cors {
 
         private List<String> allowedOrigins;

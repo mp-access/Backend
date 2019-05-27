@@ -3,10 +3,12 @@ package ch.uzh.ifi.access.course.config;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.keycloak.KeycloakClient;
+import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.retry.annotation.Backoff;
@@ -43,5 +45,16 @@ public class CourseServiceSetup {
     @Recover
     void logFailedAttemptToInitializeParticipants() {
         logger.warn("Failed to initialize participants: could not connect to identity provider");
+    }
+
+    @Data
+    @Configuration
+    @ConfigurationProperties(prefix = "course.users")
+    public static class CourseProperties {
+        private boolean initOnStartup;
+
+        private boolean useDefaultPasswordForNewAccounts;
+
+        private String defaultPassword;
     }
 }

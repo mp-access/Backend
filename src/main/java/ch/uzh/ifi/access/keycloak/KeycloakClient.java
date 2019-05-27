@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.keycloak;
 
 import ch.uzh.ifi.access.config.SecurityProperties;
+import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.model.Course;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.admin.client.Keycloak;
@@ -8,6 +9,7 @@ import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
@@ -36,15 +38,24 @@ public class KeycloakClient {
 
     private final RealmResource realmResource;
 
+    private final CourseServiceSetup.CourseProperties courseProperties;
+
     @Autowired
-    public KeycloakClient(SecurityProperties securityProperties) {
+    public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties) {
+        this.courseProperties = courseProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(DEFAULT_REALM);
     }
 
-    public KeycloakClient(SecurityProperties securityProperties, String realm) {
+    public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties) {
+        this.courseProperties = courseProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
+    }
+
+    public UserRepresentation getUserById(String id) {
+        UserResource userResource = realmResource.users().get(id);
+        return userResource.toRepresentation();
     }
 
     public Group enrollUsersInCourse(Course course) {
@@ -112,7 +123,7 @@ public class KeycloakClient {
      * @param email email address
      * @return the newly created user
      */
-    private UserRepresentation createAndVerifyUser(final String email) {
+    UserRepresentation createAndVerifyUser(final String email) {
         UsersResource usersResource = realmResource.users();
 
         String createdId = Utils.getCreatedId(usersResource.create(createUser(email)));
@@ -127,11 +138,18 @@ public class KeycloakClient {
         return userResource.toRepresentation();
     }
 
-    private UserRepresentation createUser(final String email) {
+    UserRepresentation createUser(final String email) {
         UserRepresentation newUser = new UserRepresentation();
         newUser.setUsername(email);
         newUser.setEmail(email);
         newUser.setEnabled(true);
+
+        if (courseProperties.isUseDefaultPasswordForNewAccounts()) {
+            CredentialRepresentation credentials = new CredentialRepresentation();
+            credentials.setType(CredentialRepresentation.PASSWORD);
+            credentials.setValue(courseProperties.getDefaultPassword());
+            newUser.setCredentials(List.of(credentials));
+        }
         return newUser;
     }
 

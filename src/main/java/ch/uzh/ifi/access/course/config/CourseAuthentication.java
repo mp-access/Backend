@@ -11,6 +11,8 @@ public class CourseAuthentication extends OAuth2Authentication {
 
     private final Set<GrantedCourseAccess> courseAccesses;
 
+    private final String userId;
+
     /**
      * Construct an OAuth 2 authentication. Since some grant types don't require user authentication, the user
      * authentication may be null.
@@ -18,12 +20,17 @@ public class CourseAuthentication extends OAuth2Authentication {
      * @param storedRequest      The authorization request (must not be null).
      * @param userAuthentication The user authentication (possibly null).
      */
-    public CourseAuthentication(OAuth2Request storedRequest, Authentication userAuthentication, Set<GrantedCourseAccess> courseAccesses) {
+    public CourseAuthentication(OAuth2Request storedRequest, Authentication userAuthentication, Set<GrantedCourseAccess> courseAccesses, String userId) {
         super(storedRequest, userAuthentication);
         this.courseAccesses = Set.copyOf(courseAccesses);
+        this.userId = userId;
     }
 
     public Set<GrantedCourseAccess> getCourseAccesses() {
         return courseAccesses;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 }

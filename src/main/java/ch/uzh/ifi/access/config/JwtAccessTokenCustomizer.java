@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.config;
 
-import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -59,6 +59,8 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
     public OAuth2Authentication extractAuthentication(Map<String, ?> tokenMap) {
         logger.debug("Begin extractAuthentication: tokenMap = {}", tokenMap);
         JsonNode token = mapper.convertValue(tokenMap, JsonNode.class);
+
+        String subject = extractSubject(token);
         Set<String> audienceList = extractClients(token); // extracting client names
         List<GrantedAuthority> authorities = extractRoles(token); // extracting client roles
         Set<GrantedCourseAccess> courseAccesses = extractCourses(token);
@@ -78,7 +80,14 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
                         "N/A", authorities);
 
         logger.debug("End extractAuthentication");
-        return new CourseAuthentication(request, usernamePasswordAuthentication, courseAccesses);
+        return new CourseAuthentication(request, usernamePasswordAuthentication, courseAccesses, subject);
+    }
+
+    String extractSubject(JsonNode jwt) {
+        if (jwt.has("sub")) {
+            return jwt.get("sub").asText();
+        }
+        return null;
     }
 
     private List<GrantedAuthority> extractRoles(JsonNode jwt) {

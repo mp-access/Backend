@@ -1,9 +1,11 @@
 package ch.uzh.ifi.access.course.model.security;
 
 import ch.uzh.ifi.access.course.model.Course;
+import lombok.Value;
 
 import java.io.Serializable;
 
+@Value
 public class GrantedCourseAccess implements Serializable {
 
     private static final GrantedCourseAccess EMPTY = new GrantedCourseAccess("", false, false);
@@ -20,32 +22,11 @@ public class GrantedCourseAccess implements Serializable {
         this.isAuthor = isAuthor;
     }
 
-    public String getCourse() {
-        return course;
-    }
-
-    public boolean isStudent() {
-        return isStudent;
-    }
-
-    public boolean isAuthor() {
-        return isAuthor;
-    }
-
     public boolean evaluateAccess(Course course) {
         return this.course.equals(course.getTitle());
     }
 
     public static GrantedCourseAccess empty() {
         return EMPTY;
-    }
-
-    @Override
-    public String toString() {
-        return "GrantedCourseAccess{" +
-                "course='" + course + '\'' +
-                ", isStudent=" + isStudent +
-                ", isAuthor=" + isAuthor +
-                '}';
     }
 }

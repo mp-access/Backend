@@ -47,6 +47,6 @@ public class CoursePermissionEvaluatorTest {
                 List.of(), true,
                 Set.of("openid"),
                 Set.of(), null, null, null);
-        return new CourseAuthentication(request, null, grantedCourseAccesses);
+        return new CourseAuthentication(request, null, grantedCourseAccesses, "");
     }
 }
