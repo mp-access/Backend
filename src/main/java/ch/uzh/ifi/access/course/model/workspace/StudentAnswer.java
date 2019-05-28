@@ -5,6 +5,9 @@ import ch.uzh.ifi.access.course.model.VirtualFile;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,8 +15,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document(collection = "answers")
 public abstract class StudentAnswer {
 
+    @Id
     private String id;
 
     private int version;
@@ -28,6 +33,7 @@ public abstract class StudentAnswer {
 
     private String exerciseId;
 
+    @Transient
     private Exercise exercise;
 
     private LocalDateTime timestamp;

@@ -4,6 +4,8 @@ package ch.uzh.ifi.access.course.model;
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.springframework.data.annotation.Transient;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +18,7 @@ import java.util.List;
 public class VirtualFile {
     private static final List<String> MEDIA_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "mp3", "mp4");
 
-    private final String id;
+    private String id;
 
     private String path;
     private String name;
@@ -24,7 +26,9 @@ public class VirtualFile {
     private String content;
     private Boolean isMediaType;
 
+    @Transient
     @JsonIgnore
+    @EqualsAndHashCode.Exclude
     private File file;
 
     public VirtualFile() {
@@ -38,7 +42,7 @@ public class VirtualFile {
 
         if (file.exists() && !file.isDirectory()) {
             try {
-                String tmp[] = file.getName().split("\\.");
+                String[] tmp = file.getName().split("\\.");
                 if (tmp.length > 1) {
                     name = tmp[0];
                     extension = tmp[1];

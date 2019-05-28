@@ -1,7 +1,6 @@
 package ch.uzh.ifi.access.course.model.workspace;
 
 import ch.uzh.ifi.access.TestObjectFactory;
-import ch.uzh.ifi.access.course.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
