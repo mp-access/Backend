@@ -57,9 +57,15 @@ public class TestObjectFactory {
         return virtualFile;
     }
 
+    public static CodeAnswer createCodeAnswerWithExercise(Exercise exercise) {
+        CodeAnswer answer = createCodeAnswer();
+        answer.setExercise(exercise);
+        return answer;
+    }
+
     public static CodeAnswer createCodeAnswer() {
         return CodeAnswer.builder()
-                .version(1)
+                .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
                 .courseId("course-1")
@@ -73,7 +79,7 @@ public class TestObjectFactory {
 
     public static TextAnswer createTextAnswer() {
         return TextAnswer.builder()
-                .version(1)
+                .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
                 .courseId("course-1")
@@ -86,7 +92,7 @@ public class TestObjectFactory {
 
     public static MultipleChoiceAnswer createMultipleChoiceAnswer() {
         return MultipleChoiceAnswer.builder()
-                .version(1)
+                .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
                 .courseId("course-1")

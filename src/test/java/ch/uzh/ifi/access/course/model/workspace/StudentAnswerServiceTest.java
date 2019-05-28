@@ -33,6 +33,25 @@ public class StudentAnswerServiceTest {
         repository.deleteAll();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void saveNullCodeSubmission() {
+        service.saveSubmission(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void saveCodeSubmissionNoUserId() {
+        CodeAnswer codeAnswer = new CodeAnswer();
+        codeAnswer.setExerciseId("123");
+        service.saveSubmission(codeAnswer);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void saveCodeSubmissionNoExerciseId() {
+        CodeAnswer codeAnswer = new CodeAnswer();
+        codeAnswer.setUserId("123");
+        service.saveSubmission(codeAnswer);
+    }
+
     @Test
     public void saveCodeSubmission() {
 
@@ -44,7 +63,7 @@ public class StudentAnswerServiceTest {
 
         Assertions.assertThat(savedAnswer).isNotNull();
         Assertions.assertThat(savedAnswer.getId()).isNotNull();
-        Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
+        Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(0);
         Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
         Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
         Assertions.assertThat(savedAnswer.getCourseId()).isEqualTo(submittedAnswer.getCourseId());
@@ -111,6 +130,59 @@ public class StudentAnswerServiceTest {
         List<String> submissionIds = submissions.stream().map(StudentAnswer::getId).collect(Collectors.toList());
 
         Assertions.assertThat(submissionIds).isEqualTo(List.of(codeSubmission.getId(), textSubmission.getId(), multipleChoiceSubmission.getId()));
+    }
 
+    @Test
+    public void findAllByExerciseId() {
+        repository.deleteAll();
+        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
+        Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
+
+        CodeAnswer codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+
+        CodeAnswer codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeAnswer codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeAnswer someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise);
+
+        // Explicitly set user ids for test
+        final String userId1 = "userId-1";
+        final String userId2 = "userId-2";
+        codeSubmission1.setUserId(userId1);
+        codeSubmission2.setUserId(userId1);
+        codeSubmission3.setUserId(userId2);
+        someOtherSubmission.setUserId(userId2);
+
+        codeSubmission1 = service.saveSubmission(codeSubmission1);
+        codeSubmission2 = service.saveSubmission(codeSubmission2);
+        codeSubmission3 = service.saveSubmission(codeSubmission3);
+        someOtherSubmission = service.saveSubmission(someOtherSubmission);
+
+        List<CodeAnswer> answers = service.findAllSubmissionsOrderedByVersionDesc(exercise.getId(), userId1);
+
+        Assertions.assertThat(answers.size()).isEqualTo(2);
+
+        Assertions.assertThat(answers.get(1).getId()).isEqualTo(codeSubmission1.getId());
+        Assertions.assertThat(answers.get(1).getExerciseId()).isEqualTo(codeSubmission1.getExerciseId());
+        Assertions.assertThat(answers.get(1).getVersion()).isEqualTo(codeSubmission1.getVersion());
+        Assertions.assertThat(answers.get(1).getVersion()).isEqualTo(0);
+
+        Assertions.assertThat(answers.get(0).getId()).isEqualTo(codeSubmission2.getId());
+        Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(codeSubmission2.getExerciseId());
+        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission2.getVersion());
+        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(1);
+
+        answers = service.findAllSubmissionsOrderedByVersionDesc(exercise.getId(), userId2);
+        Assertions.assertThat(answers.size()).isEqualTo(1);
+
+        Assertions.assertThat(answers.get(0).getId()).isEqualTo(codeSubmission3.getId());
+        Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(codeSubmission3.getExerciseId());
+        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission3.getVersion());
+
+        answers = service.findAllSubmissionsOrderedByVersionDesc(someOtherExercise.getId(), userId2);
+        Assertions.assertThat(answers.size()).isEqualTo(1);
+
+        Assertions.assertThat(answers.get(0).getId()).isEqualTo(someOtherSubmission.getId());
+        Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(someOtherSubmission.getExerciseId());
+        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(someOtherSubmission.getVersion());
     }
 }
