@@ -1,9 +1,11 @@
 plugins {
     id 'org.springframework.boot' version '2.1.4.RELEASE'
     id 'java'
+    id 'jacoco'
 }
 
 apply plugin: 'io.spring.dependency-management'
+
 
 group = 'ch.uzh.ifi.access'
 version = '0.0.1-SNAPSHOT'
@@ -36,12 +38,18 @@ dependencies {
     // Lombok
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
-
 }
 
 test {
     //we want display the following test events
     testLogging {
         events "PASSED", "STARTED", "FAILED", "SKIPPED"
+    }
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
     }
 }
