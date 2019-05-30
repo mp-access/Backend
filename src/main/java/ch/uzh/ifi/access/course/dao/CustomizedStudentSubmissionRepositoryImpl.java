@@ -1,5 +1,6 @@
-package ch.uzh.ifi.access.course.model.workspace;
+package ch.uzh.ifi.access.course.dao;
 
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubmissionRepository {
+class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubmissionRepository {
 
     private final MongoTemplate mongoTemplate;
 

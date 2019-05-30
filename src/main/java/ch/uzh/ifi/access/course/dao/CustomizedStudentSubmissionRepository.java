@@ -1,4 +1,6 @@
-package ch.uzh.ifi.access.course.model.workspace;
+package ch.uzh.ifi.access.course.dao;
+
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 
 import java.util.List;
 

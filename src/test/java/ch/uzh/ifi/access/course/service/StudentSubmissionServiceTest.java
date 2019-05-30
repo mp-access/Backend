@@ -1,9 +1,13 @@
 package ch.uzh.ifi.access.course.service;
 
 import ch.uzh.ifi.access.TestObjectFactory;
+import ch.uzh.ifi.access.course.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.workspace.*;
+import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
+import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;

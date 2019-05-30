@@ -1,5 +1,6 @@
-package ch.uzh.ifi.access.course.model.workspace;
+package ch.uzh.ifi.access.course.dao;
 
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
