@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import org.eclipse.jgit.api.Git;
-import org.springframework.format.datetime.joda.LocalDateTimeParser;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +43,7 @@ public class RepoCacher {
 
     public static List<Course> retrieveCourseData(String repo_urls[]) throws Exception
     {
-        deleteDir(new File(REPO_DIR));
+        //deleteDir(new File(REPO_DIR));
 
 		DateTimeFormatter fmt = new DateTimeFormatterBuilder()
 				.appendPattern("yyyy-MM-dd")
@@ -66,7 +66,7 @@ public class RepoCacher {
 
 		int i = 0;
         for(String url : repo_urls) {
-			gitPull(url);
+			getFilesFromGit(url);
 
 			RepoCacher cacher = new RepoCacher();
 			File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
@@ -181,10 +181,18 @@ public class RepoCacher {
     	return url.replace("https://github.com/", "").replace(".git", "");
 	}
 
-    static void gitPull(String url) throws Exception{
-        Git.cloneRepository()
-                .setURI(url)
-                .setDirectory(new File(REPO_DIR + "/" + nameFromGitURL(url)))
-                .call();
+    static void getFilesFromGit(String url) throws Exception{
+    	File gitDir = new File(REPO_DIR + "/" + nameFromGitURL(url));
+    	if(gitDir.exists()){
+			new Git(new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")))
+					.pull()
+					.call();
+		}else {
+			Git.cloneRepository()
+					.setURI(url)
+					.setDirectory(gitDir)
+					.call();
+    	}
+
 	}
  }
