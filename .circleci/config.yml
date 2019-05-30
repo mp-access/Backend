@@ -10,6 +10,7 @@ jobs:
         command:
           - "-Djboss.bind.address=0.0.0.0"
           - "-Djboss.http.port=9999"
+      - image: circleci/mongo
 
     working_directory: ~/course_service
 
@@ -92,7 +93,7 @@ jobs:
       - run:
           name: Deploy app to Digital Ocean Server via Docker
           command: |
-            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "cd /root/access/infrastructure && docker-compose down && docker-compose up -d"
+            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "cd /root/access/infrastructure && sh ./scripts/restart-containers.sh"
 
 workflows:
   version: 2
