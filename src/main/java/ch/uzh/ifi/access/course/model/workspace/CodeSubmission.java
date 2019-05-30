@@ -20,13 +20,13 @@ public class CodeSubmission extends StudentSubmission {
 
     private List<VirtualFile> publicFiles;
 
-    private boolean isOfficialSubmission;
+    private boolean isGraded;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, List<VirtualFile> publicFiles, boolean isOfficialSubmission) {
-        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp, null);
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, LocalDateTime timestamp, List<VirtualFile> publicFiles, boolean isGraded) {
+        super(id, version, userId, commitId, exerciseId, exercise, timestamp, null);
         this.publicFiles = publicFiles;
-        this.isOfficialSubmission = isOfficialSubmission;
+        this.isGraded = isGraded;
     }
 
     public void setExercise(Exercise exercise) {

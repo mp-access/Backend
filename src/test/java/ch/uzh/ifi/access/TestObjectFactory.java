@@ -68,12 +68,10 @@ public class TestObjectFactory {
                 .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
-                .courseId("course-1")
-                .assignmentId("assignment-1")
                 .exerciseId("exercise-1")
                 .timestamp(LocalDateTime.now())
                 .publicFiles(List.of(createVirtualFile("test", "py", false), createVirtualFile("test2", "py", false)))
-                .isOfficialSubmission(true)
+                .isGraded(true)
                 .build();
     }
 
@@ -88,8 +86,6 @@ public class TestObjectFactory {
                 .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
-                .courseId("course-1")
-                .assignmentId("assignment-1")
                 .exerciseId("exercise-1")
                 .timestamp(LocalDateTime.now())
                 .answer("Hello world!")
@@ -107,8 +103,6 @@ public class TestObjectFactory {
                 .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
-                .courseId("course-1")
-                .assignmentId("assignment-1")
                 .exerciseId("exercise-1")
                 .timestamp(LocalDateTime.now())
                 .choices(Set.of(1, 3))

@@ -113,8 +113,6 @@ public class CourseController {
 
         StudentSubmission workspace = studentAnswer.createStudentAnswer();
         workspace.setExercise(exercise);
-        workspace.setAssignmentId(assignmentId);
-        workspace.setCourseId(courseId);
         workspace.setTimestamp(LocalDateTime.now());
         workspace.setVersion(1);
         workspace.setCommitId("commit-qwertz");

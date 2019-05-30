@@ -74,8 +74,6 @@ public class StudentSubmissionServiceTest {
         Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(0);
         Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
         Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
-        Assertions.assertThat(savedAnswer.getCourseId()).isEqualTo(submittedAnswer.getCourseId());
-        Assertions.assertThat(savedAnswer.getAssignmentId()).isEqualTo(submittedAnswer.getAssignmentId());
         Assertions.assertThat(savedAnswer.getExerciseId()).isEqualTo(submittedAnswer.getExerciseId());
         Assertions.assertThat(savedAnswer.getTimestamp()).isEqualTo(submittedAnswer.getTimestamp());
     }
@@ -92,8 +90,6 @@ public class StudentSubmissionServiceTest {
         Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
         Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
         Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
-        Assertions.assertThat(savedAnswer.getCourseId()).isEqualTo(submittedAnswer.getCourseId());
-        Assertions.assertThat(savedAnswer.getAssignmentId()).isEqualTo(submittedAnswer.getAssignmentId());
         Assertions.assertThat(savedAnswer.getExerciseId()).isEqualTo(submittedAnswer.getExerciseId());
         Assertions.assertThat(savedAnswer.getTimestamp()).isEqualTo(submittedAnswer.getTimestamp());
     }
@@ -110,8 +106,6 @@ public class StudentSubmissionServiceTest {
         Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
         Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
         Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
-        Assertions.assertThat(savedAnswer.getCourseId()).isEqualTo(submittedAnswer.getCourseId());
-        Assertions.assertThat(savedAnswer.getAssignmentId()).isEqualTo(submittedAnswer.getAssignmentId());
         Assertions.assertThat(savedAnswer.getExerciseId()).isEqualTo(submittedAnswer.getExerciseId());
         Assertions.assertThat(savedAnswer.getTimestamp()).isEqualTo(submittedAnswer.getTimestamp());
     }

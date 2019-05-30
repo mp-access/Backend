@@ -19,8 +19,8 @@ public class TextSubmission extends StudentSubmission {
     private String answer;
 
     @Builder
-    public TextSubmission(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, String answer) {
-        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp, null);
+    public TextSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, LocalDateTime timestamp, String answer) {
+        super(id, version, userId, commitId, exerciseId, exercise, timestamp, null);
         this.answer = answer;
     }
 
