@@ -1,7 +1,9 @@
-package ch.uzh.ifi.access.course.model.workspace;
+package ch.uzh.ifi.access.course.service;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmissionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -10,11 +12,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class StudentAnswerService {
+public class StudentSubmissionService {
 
     private final StudentSubmissionRepository studentSubmissionRepository;
 
-    public StudentAnswerService(StudentSubmissionRepository studentSubmissionRepository) {
+    public StudentSubmissionService(StudentSubmissionRepository studentSubmissionRepository) {
         this.studentSubmissionRepository = studentSubmissionRepository;
     }
 

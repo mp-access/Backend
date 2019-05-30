@@ -1,8 +1,9 @@
-package ch.uzh.ifi.access.course.model.workspace;
+package ch.uzh.ifi.access.course.service;
 
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.workspace.*;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
@@ -24,11 +25,11 @@ public class StudentSubmissionServiceTest {
     @Autowired
     private StudentSubmissionRepository repository;
 
-    private StudentAnswerService service;
+    private StudentSubmissionService service;
 
     @Before
     public void setUp() {
-        this.service = new StudentAnswerService(repository);
+        this.service = new StudentSubmissionService(repository);
     }
 
     @After
@@ -205,9 +206,9 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         someOtherSubmission.setUserId(userId);
 
-        codeSubmission1 = service.saveSubmission(codeSubmission1);
+        service.saveSubmission(codeSubmission1);
         codeSubmission2 = service.saveSubmission(codeSubmission2);
-        someOtherSubmission = service.saveSubmission(someOtherSubmission);
+        service.saveSubmission(someOtherSubmission);
 
         Optional<StudentSubmission> latestSubmissionOptional = service.findLatestExerciseSubmission(exercise.getId(), userId);
         StudentSubmission latestSubmission = latestSubmissionOptional.orElseGet(() -> Assertions.fail("There should be 2 submissions"));
@@ -250,10 +251,10 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         codeSubmission3.setUserId(userId);
 
-        answer1 = service.saveSubmission(answer1);
+        service.saveSubmission(answer1);
         answer2 = service.saveSubmission(answer2);
         answer3 = service.saveSubmission(answer3);
-        codeSubmission2 = service.saveSubmission(codeSubmission2);
+        service.saveSubmission(codeSubmission2);
         codeSubmission3 = service.saveSubmission(codeSubmission3);
 
         List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestSubmissionsByAssignment(assignment, userId);
