@@ -10,8 +10,6 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 import ch.uzh.ifi.access.course.service.CourseService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -29,8 +27,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
-
-    private static final Logger logger = LoggerFactory.getLogger(CourseController.class);
 
     private final CourseService courseService;
 
