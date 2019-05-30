@@ -62,7 +62,6 @@ public class StudentSubmissionServiceTest {
 
     @Test
     public void saveCodeSubmission() {
-
         Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
         CodeSubmission submittedAnswer = TestObjectFactory.createCodeAnswer();
         submittedAnswer.setExercise(exercise);
