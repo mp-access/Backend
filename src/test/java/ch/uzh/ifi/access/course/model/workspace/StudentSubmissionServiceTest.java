@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.model.workspace;
 
 import ch.uzh.ifi.access.TestObjectFactory;
+import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -12,14 +13,16 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @DataMongoTest
 @RunWith(SpringRunner.class)
-public class StudentAnswerServiceTest {
+public class StudentSubmissionServiceTest {
 
     @Autowired
-    private StudentAnswerRepository repository;
+    private StudentSubmissionRepository repository;
 
     private StudentAnswerService service;
 
@@ -40,26 +43,26 @@ public class StudentAnswerServiceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void saveCodeSubmissionNoUserId() {
-        CodeAnswer codeAnswer = new CodeAnswer();
-        codeAnswer.setExerciseId("123");
-        service.saveSubmission(codeAnswer);
+        CodeSubmission codeSubmission = new CodeSubmission();
+        codeSubmission.setExerciseId("123");
+        service.saveSubmission(codeSubmission);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void saveCodeSubmissionNoExerciseId() {
-        CodeAnswer codeAnswer = new CodeAnswer();
-        codeAnswer.setUserId("123");
-        service.saveSubmission(codeAnswer);
+        CodeSubmission codeSubmission = new CodeSubmission();
+        codeSubmission.setUserId("123");
+        service.saveSubmission(codeSubmission);
     }
 
     @Test
     public void saveCodeSubmission() {
 
         Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        CodeAnswer submittedAnswer = TestObjectFactory.createCodeAnswer();
+        CodeSubmission submittedAnswer = TestObjectFactory.createCodeAnswer();
         submittedAnswer.setExercise(exercise);
 
-        CodeAnswer savedAnswer = service.saveSubmission(submittedAnswer);
+        CodeSubmission savedAnswer = service.saveSubmission(submittedAnswer);
 
         Assertions.assertThat(savedAnswer).isNotNull();
         Assertions.assertThat(savedAnswer.getId()).isNotNull();
@@ -75,10 +78,10 @@ public class StudentAnswerServiceTest {
     @Test
     public void saveTextSubmission() {
         Exercise exercise = TestObjectFactory.createTextExercise("Hello, world?");
-        TextAnswer submittedAnswer = TestObjectFactory.createTextAnswer();
+        TextSubmission submittedAnswer = TestObjectFactory.createTextAnswer();
         submittedAnswer.setExercise(exercise);
 
-        TextAnswer savedAnswer = service.saveSubmission(submittedAnswer);
+        TextSubmission savedAnswer = service.saveSubmission(submittedAnswer);
         Assertions.assertThat(savedAnswer).isNotNull();
         Assertions.assertThat(savedAnswer.getId()).isNotNull();
         Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
@@ -93,10 +96,10 @@ public class StudentAnswerServiceTest {
     @Test
     public void saveMultipleChoiceSubmission() {
         Exercise exercise = TestObjectFactory.createMultipleChoiceExercise("Hello, world?");
-        MultipleChoiceAnswer submittedAnswer = TestObjectFactory.createMultipleChoiceAnswer();
+        MultipleChoiceSubmission submittedAnswer = TestObjectFactory.createMultipleChoiceAnswer();
         submittedAnswer.setExercise(exercise);
 
-        MultipleChoiceAnswer savedAnswer = service.saveSubmission(submittedAnswer);
+        MultipleChoiceSubmission savedAnswer = service.saveSubmission(submittedAnswer);
         Assertions.assertThat(savedAnswer).isNotNull();
         Assertions.assertThat(savedAnswer.getId()).isNotNull();
         Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
@@ -111,23 +114,23 @@ public class StudentAnswerServiceTest {
     @Test
     public void findAllSubmissions() {
         Exercise codeExercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        CodeAnswer codeSubmission = TestObjectFactory.createCodeAnswer();
+        CodeSubmission codeSubmission = TestObjectFactory.createCodeAnswer();
         codeSubmission.setExercise(codeExercise);
 
         Exercise textExercise = TestObjectFactory.createTextExercise("Hello, world?");
-        TextAnswer textSubmission = TestObjectFactory.createTextAnswer();
+        TextSubmission textSubmission = TestObjectFactory.createTextAnswer();
         textSubmission.setExercise(textExercise);
 
         Exercise multipleChoiceExercise = TestObjectFactory.createMultipleChoiceExercise("Hello, world?");
-        MultipleChoiceAnswer multipleChoiceSubmission = TestObjectFactory.createMultipleChoiceAnswer();
+        MultipleChoiceSubmission multipleChoiceSubmission = TestObjectFactory.createMultipleChoiceAnswer();
         multipleChoiceSubmission.setExercise(multipleChoiceExercise);
 
         codeSubmission = service.saveSubmission(codeSubmission);
         textSubmission = service.saveSubmission(textSubmission);
         multipleChoiceSubmission = service.saveSubmission(multipleChoiceSubmission);
 
-        List<StudentAnswer> submissions = service.findAll();
-        List<String> submissionIds = submissions.stream().map(StudentAnswer::getId).collect(Collectors.toList());
+        List<StudentSubmission> submissions = service.findAll();
+        List<String> submissionIds = submissions.stream().map(StudentSubmission::getId).collect(Collectors.toList());
 
         Assertions.assertThat(submissionIds).isEqualTo(List.of(codeSubmission.getId(), textSubmission.getId(), multipleChoiceSubmission.getId()));
     }
@@ -138,11 +141,11 @@ public class StudentAnswerServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
         Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
 
-        CodeAnswer codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
 
-        CodeAnswer codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
-        CodeAnswer codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
-        CodeAnswer someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise);
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise);
 
         // Explicitly set user ids for test
         final String userId1 = "userId-1";
@@ -157,7 +160,7 @@ public class StudentAnswerServiceTest {
         codeSubmission3 = service.saveSubmission(codeSubmission3);
         someOtherSubmission = service.saveSubmission(someOtherSubmission);
 
-        List<CodeAnswer> answers = service.findAllSubmissionsOrderedByVersionDesc(exercise.getId(), userId1);
+        List<CodeSubmission> answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId1);
 
         Assertions.assertThat(answers.size()).isEqualTo(2);
 
@@ -171,18 +174,91 @@ public class StudentAnswerServiceTest {
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission2.getVersion());
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(1);
 
-        answers = service.findAllSubmissionsOrderedByVersionDesc(exercise.getId(), userId2);
+        answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId2);
         Assertions.assertThat(answers.size()).isEqualTo(1);
 
         Assertions.assertThat(answers.get(0).getId()).isEqualTo(codeSubmission3.getId());
         Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(codeSubmission3.getExerciseId());
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission3.getVersion());
 
-        answers = service.findAllSubmissionsOrderedByVersionDesc(someOtherExercise.getId(), userId2);
+        answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(someOtherExercise.getId(), userId2);
         Assertions.assertThat(answers.size()).isEqualTo(1);
 
         Assertions.assertThat(answers.get(0).getId()).isEqualTo(someOtherSubmission.getId());
         Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(someOtherSubmission.getExerciseId());
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(someOtherSubmission.getVersion());
+    }
+
+    @Test
+    public void findLatestExerciseSubmission() {
+        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
+        Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
+
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise);
+
+        // Explicitly set user ids for test
+        final String userId = "userId-1";
+        codeSubmission1.setUserId(userId);
+        codeSubmission2.setUserId(userId);
+        someOtherSubmission.setUserId(userId);
+
+        codeSubmission1 = service.saveSubmission(codeSubmission1);
+        codeSubmission2 = service.saveSubmission(codeSubmission2);
+        someOtherSubmission = service.saveSubmission(someOtherSubmission);
+
+        Optional<StudentSubmission> latestSubmissionOptional = service.findLatestExerciseSubmission(exercise.getId(), userId);
+        StudentSubmission latestSubmission = latestSubmissionOptional.orElseGet(() -> Assertions.fail("There should be 2 submissions"));
+
+        Assertions.assertThat(latestSubmission.getId()).isEqualTo(codeSubmission2.getId());
+    }
+
+    @Test
+    public void findLatestExerciseSubmissionNoSubmissionsYet() {
+        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
+        final String userId = "userId-1";
+
+        Optional<StudentSubmission> latestSubmission = service.findLatestExerciseSubmission(exercise.getId(), userId);
+
+        Assertions.assertThat(latestSubmission.isPresent()).isFalse();
+    }
+
+    @Test
+    public void findLatestSubmissionsByAssignment() {
+        Assignment assignment = TestObjectFactory.createAssignment("Assignment title");
+        Exercise exercise1 = TestObjectFactory.createCodeExercise("Exercise 1");
+        Exercise exercise2 = TestObjectFactory.createTextExercise("Exercise 2");
+        Exercise exercise3 = TestObjectFactory.createMultipleChoiceExercise("Exercise 3");
+
+        assignment.addExercise(exercise1);
+        assignment.addExercise(exercise2);
+        assignment.addExercise(exercise3);
+
+        CodeSubmission answer1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1);
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1);
+        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise1);
+        TextSubmission answer2 = TestObjectFactory.createTextAnswerWithExercise(exercise2);
+        MultipleChoiceSubmission answer3 = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise3);
+
+        // Explicitly set user ids for test
+        final String userId = "userId-1";
+        answer1.setUserId(userId);
+        answer2.setUserId(userId);
+        answer3.setUserId(userId);
+        codeSubmission2.setUserId(userId);
+        codeSubmission3.setUserId(userId);
+
+        answer1 = service.saveSubmission(answer1);
+        answer2 = service.saveSubmission(answer2);
+        answer3 = service.saveSubmission(answer3);
+        codeSubmission2 = service.saveSubmission(codeSubmission2);
+        codeSubmission3 = service.saveSubmission(codeSubmission3);
+
+        List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestSubmissionsByAssignment(assignment, userId);
+        List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
+
+        Assertions.assertThat(Set.copyOf(ids)).isEqualTo(Set.of(codeSubmission3.getId(), answer2.getId(), answer3.getId()));
     }
 }

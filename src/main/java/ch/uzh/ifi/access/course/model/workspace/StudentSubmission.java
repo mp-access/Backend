@@ -15,8 +15,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "answers")
-public abstract class StudentAnswer {
+@Document(collection = "studentSubmissions")
+public abstract class StudentSubmission {
 
     @Id
     private String id;
@@ -37,6 +37,8 @@ public abstract class StudentAnswer {
     private Exercise exercise;
 
     private LocalDateTime timestamp;
+
+    private AnswerEvaluation result;
 
     public void setExercise(Exercise exercise) {
         this.exercise = exercise;

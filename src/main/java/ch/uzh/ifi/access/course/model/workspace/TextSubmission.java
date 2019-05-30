@@ -12,15 +12,15 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "answers")
+@Document(collection = "studentSubmissions")
 @TypeAlias("text")
-public class TextAnswer extends StudentAnswer {
+public class TextSubmission extends StudentSubmission {
 
     private String answer;
 
     @Builder
-    public TextAnswer(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, String answer) {
-        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp);
+    public TextSubmission(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, String answer) {
+        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp, null);
         this.answer = answer;
     }
 

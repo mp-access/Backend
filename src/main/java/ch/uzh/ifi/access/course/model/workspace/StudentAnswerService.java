@@ -1,39 +1,58 @@
 package ch.uzh.ifi.access.course.model.workspace;
 
+import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.Exercise;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class StudentAnswerService {
 
-    private final StudentAnswerRepository studentAnswerRepository;
+    private final StudentSubmissionRepository studentSubmissionRepository;
 
-    public StudentAnswerService(StudentAnswerRepository studentAnswerRepository) {
-        this.studentAnswerRepository = studentAnswerRepository;
+    public StudentAnswerService(StudentSubmissionRepository studentSubmissionRepository) {
+        this.studentSubmissionRepository = studentSubmissionRepository;
     }
 
-    public List<StudentAnswer> findAll() {
-        return studentAnswerRepository.findAll();
+    public List<StudentSubmission> findAll() {
+        return studentSubmissionRepository.findAll();
     }
 
-    public <T extends StudentAnswer> List<T> findAllSubmissionsOrderedByVersionDesc(String exerciseId, String userId) {
+    public <T extends StudentSubmission> List<T> findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(String exerciseId, String userId) {
         Assert.notNull(exerciseId, "exerciseId cannot be null");
         Assert.notNull(userId, "userId cannot be null");
-        
-        return studentAnswerRepository.findAllByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, userId);
+
+        return studentSubmissionRepository.findAllByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, userId);
     }
 
-    public <T extends StudentAnswer> T saveSubmission(T answer) {
+    public <T extends StudentSubmission> T saveSubmission(T answer) {
         Assert.notNull(answer, "answer cannot be null");
 
-        List<StudentAnswer> previousSubmissions = findAllSubmissionsOrderedByVersionDesc(answer.getExerciseId(), answer.getUserId());
+        List<StudentSubmission> previousSubmissions = findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(answer.getExerciseId(), answer.getUserId());
         if (previousSubmissions.size() > 0) {
-            StudentAnswer lastUserSubmission = previousSubmissions.get(0);
+            StudentSubmission lastUserSubmission = previousSubmissions.get(0);
             answer.setVersion(lastUserSubmission.getVersion() + 1);
         }
 
-        return studentAnswerRepository.save(answer);
+        return studentSubmissionRepository.save(answer);
+    }
+
+    public <T extends StudentSubmission> Optional<T> findLatestExerciseSubmission(String exerciseId, String userId) {
+        Assert.notNull(exerciseId, "exerciseId cannot be null");
+        Assert.notNull(userId, "userId cannot be null");
+
+        return studentSubmissionRepository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, userId);
+    }
+
+    public List<StudentSubmission> findLatestSubmissionsByAssignment(Assignment assignment, String userId) {
+        Assert.notNull(assignment, "assignment cannot be null");
+        Assert.notNull(userId, "userId cannot be null");
+        List<String> exerciseIds = assignment.getExercises().stream().map(Exercise::getId).collect(Collectors.toList());
+
+        return studentSubmissionRepository.findByExerciseIdInAndUserIdOrderByVersionDesc(exerciseIds, userId);
     }
 }

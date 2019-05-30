@@ -2,10 +2,10 @@ package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.model.VirtualFile;
-import ch.uzh.ifi.access.course.model.workspace.CodeAnswer;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceAnswer;
-import ch.uzh.ifi.access.course.model.workspace.StudentAnswer;
-import ch.uzh.ifi.access.course.model.workspace.TextAnswer;
+import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
+import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
@@ -14,10 +14,10 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Set;
 
-public class StudentAnswerDTOTest {
+public class StudentSubmissionDTOTest {
 
     @Test
-    public void createStudentAnswer() throws IOException {
+    public void createCodeSubmission() throws IOException {
         String json = "{\"publicFiles\": [\n" +
                 "            {\n" +
                 "                \"id\": \"6\",\n" +
@@ -45,14 +45,14 @@ public class StudentAnswerDTOTest {
                 .details(detailsJson)
                 .build();
 
-        StudentAnswer studentAnswer = dto.createStudentAnswer();
-        Assert.assertEquals(studentAnswer.getClass(), CodeAnswer.class);
+        StudentSubmission studentSubmission = dto.createStudentAnswer();
+        Assert.assertEquals(studentSubmission.getClass(), CodeSubmission.class);
 
-        CodeAnswer codeAnswer = (CodeAnswer) studentAnswer;
-        Assert.assertEquals(codeAnswer.getPublicFiles().size(), 2);
+        CodeSubmission codeSubmission = (CodeSubmission) studentSubmission;
+        Assert.assertEquals(codeSubmission.getPublicFiles().size(), 2);
 
-        VirtualFile vf1 = codeAnswer.getPublicFiles().get(0);
-        VirtualFile vf2 = codeAnswer.getPublicFiles().get(1);
+        VirtualFile vf1 = codeSubmission.getPublicFiles().get(0);
+        VirtualFile vf2 = codeSubmission.getPublicFiles().get(1);
         Assert.assertEquals(vf1.getId(), "6");
         Assert.assertEquals(vf2.getId(), "7");
 
@@ -64,7 +64,7 @@ public class StudentAnswerDTOTest {
     }
 
     @Test
-    public void createTextAnswer() throws IOException {
+    public void createTextSubmission() throws IOException {
         String json = "{\n" +
                 "        \"answer\": \"11\"\n" +
                 "    }";
@@ -77,15 +77,15 @@ public class StudentAnswerDTOTest {
                 .details(detailsJson)
                 .build();
 
-        StudentAnswer studentAnswer = dto.createStudentAnswer();
-        Assert.assertEquals(studentAnswer.getClass(), TextAnswer.class);
+        StudentSubmission studentSubmission = dto.createStudentAnswer();
+        Assert.assertEquals(studentSubmission.getClass(), TextSubmission.class);
 
-        TextAnswer textAnswer = (TextAnswer) studentAnswer;
+        TextSubmission textAnswer = (TextSubmission) studentSubmission;
         Assert.assertEquals(textAnswer.getAnswer(), "11");
     }
 
     @Test
-    public void createMultipleChoiceAnswer() throws IOException {
+    public void createMultipleChoiceSubmission() throws IOException {
         String json = "{\n" +
                 "        \"choices\": [0, 2]\n" +
                 "    }";
@@ -97,10 +97,10 @@ public class StudentAnswerDTOTest {
                 .details(detailsJson)
                 .build();
 
-        StudentAnswer studentAnswer = dto.createStudentAnswer();
-        Assert.assertEquals(studentAnswer.getClass(), MultipleChoiceAnswer.class);
+        StudentSubmission studentSubmission = dto.createStudentAnswer();
+        Assert.assertEquals(studentSubmission.getClass(), MultipleChoiceSubmission.class);
 
-        MultipleChoiceAnswer multipleChoiceAnswer = (MultipleChoiceAnswer) studentAnswer;
-        Assert.assertEquals(multipleChoiceAnswer.getChoices(), Set.of(0, 2));
+        MultipleChoiceSubmission multipleChoiceSubmission = (MultipleChoiceSubmission) studentSubmission;
+        Assert.assertEquals(multipleChoiceSubmission.getChoices(), Set.of(0, 2));
     }
 }

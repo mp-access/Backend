@@ -14,17 +14,17 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "answers")
+@Document(collection = "studentSubmissions")
 @TypeAlias("code")
-public class CodeAnswer extends StudentAnswer {
+public class CodeSubmission extends StudentSubmission {
 
     private List<VirtualFile> publicFiles;
 
     private boolean isOfficialSubmission;
 
     @Builder
-    public CodeAnswer(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, List<VirtualFile> publicFiles, boolean isOfficialSubmission) {
-        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp);
+    public CodeSubmission(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, List<VirtualFile> publicFiles, boolean isOfficialSubmission) {
+        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp, null);
         this.publicFiles = publicFiles;
         this.isOfficialSubmission = isOfficialSubmission;
     }

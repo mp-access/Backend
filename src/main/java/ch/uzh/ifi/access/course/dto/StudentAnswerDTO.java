@@ -1,10 +1,10 @@
 package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.ExerciseType;
-import ch.uzh.ifi.access.course.model.workspace.CodeAnswer;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceAnswer;
-import ch.uzh.ifi.access.course.model.workspace.StudentAnswer;
-import ch.uzh.ifi.access.course.model.workspace.TextAnswer;
+import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
+import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -22,15 +22,15 @@ public class StudentAnswerDTO {
 
     private JsonNode details;
 
-    public StudentAnswer createStudentAnswer() {
+    public StudentSubmission createStudentAnswer() {
         ObjectMapper mapper = new ObjectMapper();
         switch (type) {
             case code:
-                return mapper.convertValue(details, CodeAnswer.class);
+                return mapper.convertValue(details, CodeSubmission.class);
             case text:
-                return mapper.convertValue(details, TextAnswer.class);
+                return mapper.convertValue(details, TextSubmission.class);
             case multipleChoice:
-                return mapper.convertValue(details, MultipleChoiceAnswer.class);
+                return mapper.convertValue(details, MultipleChoiceSubmission.class);
             default:
                 throw new IllegalArgumentException("Cannot determine question type");
         }

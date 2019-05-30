@@ -13,15 +13,15 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "answers")
+@Document(collection = "studentSubmissions")
 @TypeAlias("multipleChoice")
-public class MultipleChoiceAnswer extends StudentAnswer {
+public class MultipleChoiceSubmission extends StudentSubmission {
 
     private Set<Integer> choices;
 
     @Builder
-    public MultipleChoiceAnswer(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, Set<Integer> choices) {
-        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp);
+    public MultipleChoiceSubmission(String id, int version, String userId, String commitId, String courseId, String assignmentId, String exerciseId, Exercise exercise, LocalDateTime timestamp, Set<Integer> choices) {
+        super(id, version, userId, commitId, courseId, assignmentId, exerciseId, exercise, timestamp, null);
         this.choices = choices;
     }
 

@@ -1,9 +1,9 @@
 package ch.uzh.ifi.access;
 
 import ch.uzh.ifi.access.course.model.*;
-import ch.uzh.ifi.access.course.model.workspace.CodeAnswer;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceAnswer;
-import ch.uzh.ifi.access.course.model.workspace.TextAnswer;
+import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
+import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,14 +57,14 @@ public class TestObjectFactory {
         return virtualFile;
     }
 
-    public static CodeAnswer createCodeAnswerWithExercise(Exercise exercise) {
-        CodeAnswer answer = createCodeAnswer();
+    public static CodeSubmission createCodeAnswerWithExercise(Exercise exercise) {
+        CodeSubmission answer = createCodeAnswer();
         answer.setExercise(exercise);
         return answer;
     }
 
-    public static CodeAnswer createCodeAnswer() {
-        return CodeAnswer.builder()
+    public static CodeSubmission createCodeAnswer() {
+        return CodeSubmission.builder()
                 .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
@@ -77,8 +77,14 @@ public class TestObjectFactory {
                 .build();
     }
 
-    public static TextAnswer createTextAnswer() {
-        return TextAnswer.builder()
+    public static TextSubmission createTextAnswerWithExercise(Exercise exercise) {
+        TextSubmission textAnswer = createTextAnswer();
+        textAnswer.setExercise(exercise);
+        return textAnswer;
+    }
+
+    public static TextSubmission createTextAnswer() {
+        return TextSubmission.builder()
                 .version(0)
                 .userId("user-1")
                 .commitId("commit-1")
@@ -90,8 +96,14 @@ public class TestObjectFactory {
                 .build();
     }
 
-    public static MultipleChoiceAnswer createMultipleChoiceAnswer() {
-        return MultipleChoiceAnswer.builder()
+    public static MultipleChoiceSubmission createMultipleChoiceAnswerWithExercise(Exercise exercise) {
+        MultipleChoiceSubmission multipleChoiceSubmission = createMultipleChoiceAnswer();
+        multipleChoiceSubmission.setExercise(exercise);
+        return multipleChoiceSubmission;
+    }
+
+    public static MultipleChoiceSubmission createMultipleChoiceAnswer() {
+        return MultipleChoiceSubmission.builder()
                 .version(0)
                 .userId("user-1")
                 .commitId("commit-1")

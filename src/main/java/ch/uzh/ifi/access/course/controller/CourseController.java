@@ -8,7 +8,7 @@ import ch.uzh.ifi.access.course.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
-import ch.uzh.ifi.access.course.model.workspace.StudentAnswer;
+import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 import ch.uzh.ifi.access.course.service.CourseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,15 +103,15 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
-    public ResponseEntity<StudentAnswer> submitAnswer(@PathVariable("courseId") String courseId,
-                                                      @PathVariable("assignmentId") String assignmentId,
-                                                      @PathVariable("exerciseId") String exerciseId,
-                                                      @RequestBody StudentAnswerDTO studentAnswer,
-                                                      CourseAuthentication authentication) {
+    public ResponseEntity<StudentSubmission> submitAnswer(@PathVariable("courseId") String courseId,
+                                                          @PathVariable("assignmentId") String assignmentId,
+                                                          @PathVariable("exerciseId") String exerciseId,
+                                                          @RequestBody StudentAnswerDTO studentAnswer,
+                                                          CourseAuthentication authentication) {
         Exercise exercise = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
 
-        StudentAnswer workspace = studentAnswer.createStudentAnswer();
+        StudentSubmission workspace = studentAnswer.createStudentAnswer();
         workspace.setExercise(exercise);
         workspace.setAssignmentId(assignmentId);
         workspace.setCourseId(courseId);
