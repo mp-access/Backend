@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -15,6 +16,7 @@ public class Exercise {
     @JsonIgnore
     private Assignment assignment;
 
+    private String gitHash;
     private ExerciseType type;
     private String language;
 
@@ -35,6 +37,16 @@ public class Exercise {
     public void set(Exercise other){
         this.type = other.type;
         this.language = other.language;
+        this.question = other.question;
+    }
+
+    public void update(Exercise other){
+        set(other);
+        this.gitHash = other.gitHash;
+        this.private_files = other.private_files;
+        this.public_files = other.public_files;
+        this.solution_files = other.solution_files;
+        this.resource_files = other.resource_files;
     }
 
     public Optional<VirtualFile> getFileById(String id){
@@ -45,5 +57,15 @@ public class Exercise {
 
     public boolean isPastDueDate(){
         return assignment.isPastDueDate();
+    }
+
+    public boolean hasChanged(Exercise other){
+        return !(Objects.equals(this.type, other.type) &&
+                Objects.equals(this.language, other.language) &&
+                Objects.equals(this.question, other.question) &&
+                Objects.equals(this.private_files, other.private_files) &&
+                Objects.equals(this.solution_files, other.solution_files) &&
+                Objects.equals(this.resource_files, other.resource_files) &&
+                Objects.equals(this.public_files, other.public_files));
     }
 }

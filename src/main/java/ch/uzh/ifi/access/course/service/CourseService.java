@@ -24,6 +24,8 @@ public class CourseService {
         this.courseDao = courseDao;
     }
 
+    public void updateCourses() {courseDao.updateCourse();}
+
     public List<Course> getAllCourses() {
         return courseDao.selectAllCourses();
     }

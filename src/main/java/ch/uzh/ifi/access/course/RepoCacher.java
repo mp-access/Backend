@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import org.eclipse.jgit.api.Git;
-import org.springframework.format.datetime.joda.LocalDateTimeParser;
+import org.eclipse.jgit.internal.storage.file.FileRepository;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,7 +43,7 @@ public class RepoCacher {
 
     public static List<Course> retrieveCourseData(String repo_urls[]) throws Exception
     {
-        deleteDir(new File(REPO_DIR));
+        //deleteDir(new File(REPO_DIR));
 
 		DateTimeFormatter fmt = new DateTimeFormatterBuilder()
 				.appendPattern("yyyy-MM-dd")
@@ -66,11 +66,12 @@ public class RepoCacher {
 
 		int i = 0;
         for(String url : repo_urls) {
-			gitPull(url);
+			String hash = loadFilesFromGit(url);
 
 			RepoCacher cacher = new RepoCacher();
 			File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
 			Course course = new Course();
+			course.setGitHash(hash);
 			course.setDirectory(repo.getAbsolutePath());
 
 			cacher.cacheRepo(repo, course);
@@ -79,7 +80,7 @@ public class RepoCacher {
         return courses;
     }
 
-	static String readFile(File file){
+	private static String readFile(File file){
 		try{
 			byte[] data = null;
 			FileInputStream fis = new FileInputStream(file);
@@ -93,7 +94,7 @@ public class RepoCacher {
 		}
 	}
 
-    void cacheRepo(File file, Object context){
+	private void cacheRepo(File file, Object context){
 		if (file.isDirectory()) 
 	  	{
 	  		if(ignore_dir.contains(file.getName())) return;
@@ -101,10 +102,11 @@ public class RepoCacher {
 	  		Object next_context = context;
 			if(file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)){
 				Assignment assignment = new Assignment();
-				((Course)context).getAssignments().add(assignment);
+				((Course)context).addAssignment(assignment);
 				next_context = assignment;
 			}else if(file.getName().startsWith(EXERCISE_FOLDER_PREFIX)){
 				Exercise exercise = new Exercise();
+				exercise.setGitHash(((Assignment)context).getCourse().getGitHash());
 				((Assignment)context).addExercise(exercise);
 				next_context = exercise;
 			}else if(file.getName().startsWith(PUBLIC_FOLDER_NAME)){
@@ -177,14 +179,23 @@ public class RepoCacher {
 	  return dir.delete(); 
 	}
 
-	static String nameFromGitURL(String url){
+	private static String nameFromGitURL(String url){
     	return url.replace("https://github.com/", "").replace(".git", "");
 	}
 
-    static void gitPull(String url) throws Exception{
-        Git.cloneRepository()
-                .setURI(url)
-                .setDirectory(new File(REPO_DIR + "/" + nameFromGitURL(url)))
-                .call();
+    private static String loadFilesFromGit(String url) throws Exception{
+    	File gitDir = new File(REPO_DIR + "/" + nameFromGitURL(url));
+    	if(gitDir.exists()){
+			new Git(new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")))
+					.pull()
+					.call();
+		}else {
+			Git.cloneRepository()
+					.setURI(url)
+					.setDirectory(gitDir)
+					.call();
+    	}
+
+    	return (new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")).getAllRefs().get("HEAD").getObjectId().getName());
 	}
  }

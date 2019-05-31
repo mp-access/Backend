@@ -3,9 +3,11 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Transient;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,8 +15,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-@Data
+@ToString
+@Getter
+@Setter
 public class VirtualFile {
     private static final List<String> MEDIA_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "mp3", "mp4");
 
@@ -25,6 +30,7 @@ public class VirtualFile {
     private String extension;
     private String content;
     private Boolean isMediaType;
+
 
     @Transient
     @JsonIgnore
@@ -60,5 +66,27 @@ public class VirtualFile {
             }
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        // self check
+        if (this == o)
+            return true;
+        // null check
+        if (o == null)
+            return false;
+        // type check and cast
+        if (getClass() != o.getClass())
+            return false;
+        VirtualFile f = (VirtualFile) o;
+        // field comparison
+        return Objects.equals(this.path, f.path) &&
+                Objects.equals(this.name, f.name) &&
+                Objects.equals(this.extension, f.extension) &&
+                Objects.equals(this.content, f.content) &&
+                Objects.equals(this.isMediaType, f.isMediaType) &&
+                Objects.equals(this.file, f.file);
+    }
+
 }
 

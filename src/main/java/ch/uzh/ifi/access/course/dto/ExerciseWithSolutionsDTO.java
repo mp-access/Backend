@@ -13,6 +13,7 @@ import java.util.List;
 public class ExerciseWithSolutionsDTO {
     private final String id;
 
+    private String gitHash;
     private ExerciseType type;
     private String language;
 
@@ -25,6 +26,7 @@ public class ExerciseWithSolutionsDTO {
 
     public ExerciseWithSolutionsDTO(Exercise exercise){
         this.id = exercise.getId();
+        this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
         this.question = exercise.getQuestion();

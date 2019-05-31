@@ -38,6 +38,25 @@ public class CourseDAO {
         }
     }
 
+    public void updateCourse(){
+        ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
+        if (resource.exists()) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                URLList conf = mapper.readValue(resource.getFile(), URLList.class);
+                List<Course> courseUpdate = RepoCacher.retrieveCourseData(conf.repositories);
+
+                for(int i = 0; i < courseList.size(); ++i){
+                    courseList.get(i).update(courseUpdate.get(i));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            courseList = null;
+        }
+    }
+
     public List<Course> selectAllCourses() {
         return courseList;
     }
