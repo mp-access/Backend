@@ -10,6 +10,7 @@ jobs:
         command:
           - "-Djboss.bind.address=0.0.0.0"
           - "-Djboss.http.port=9999"
+      - image: circleci/mongo
 
     working_directory: ~/course_service
 
@@ -47,6 +48,8 @@ jobs:
       # run tests!
       - run: gradle test
 
+      - run: gradle jacocoTestReport
+
       - run:
           name: Save test results
           command: |
@@ -57,6 +60,13 @@ jobs:
           path: ~/test-results
       - store_artifacts:
           path: ~/test-results/junit
+
+      - run:
+          name: Send test coverage to Codacy
+          command: |
+            curl -Ls -o codacy-coverage-reporter "$(curl -Ls https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({name, browser_download_url} | select(.name | contains("codacy-coverage-reporter-linux"))) | .[0].browser_download_url')"
+            chmod +x codacy-coverage-reporter
+            ./codacy-coverage-reporter report -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
 
   deploy:
     docker:
@@ -83,7 +93,7 @@ jobs:
       - run:
           name: Deploy app to Digital Ocean Server via Docker
           command: |
-            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "cd /root/access/infrastructure && docker-compose down && docker-compose up -d"
+            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "cd /root/access/infrastructure && sh ./scripts/restart-containers.sh"
 
 workflows:
   version: 2
