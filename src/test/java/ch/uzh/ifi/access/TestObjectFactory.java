@@ -5,6 +5,7 @@ import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
 import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -69,7 +70,7 @@ public class TestObjectFactory {
                 .userId("user-1")
                 .commitId("commit-1")
                 .exerciseId("exercise-1")
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .publicFiles(List.of(createVirtualFile("test", "py", false), createVirtualFile("test2", "py", false)))
                 .isGraded(true)
                 .build();
@@ -87,7 +88,7 @@ public class TestObjectFactory {
                 .userId("user-1")
                 .commitId("commit-1")
                 .exerciseId("exercise-1")
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .answer("Hello world!")
                 .build();
     }
@@ -104,7 +105,7 @@ public class TestObjectFactory {
                 .userId("user-1")
                 .commitId("commit-1")
                 .exerciseId("exercise-1")
-                .timestamp(LocalDateTime.now())
+                .timestamp(Instant.now())
                 .choices(Set.of(1, 3))
                 .build();
     }

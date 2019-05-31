@@ -33,6 +33,8 @@ public class StudentSubmissionService {
 
     public <T extends StudentSubmission> T saveSubmission(T answer) {
         Assert.notNull(answer, "answer cannot be null");
+        Assert.notNull(answer.getExerciseId(), "exerciseId cannot be null");
+        Assert.notNull(answer.getUserId(), "userId cannot be null");
 
         List<StudentSubmission> previousSubmissions = findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(answer.getExerciseId(), answer.getUserId());
         if (previousSubmissions.size() > 0) {

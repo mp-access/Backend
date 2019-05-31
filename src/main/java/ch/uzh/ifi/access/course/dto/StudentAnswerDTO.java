@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +24,15 @@ public class StudentAnswerDTO {
 
     private JsonNode details;
 
-    public StudentSubmission createStudentAnswer() {
+    public StudentSubmission createSubmission(String userId, String exerciseId) {
+        StudentSubmission submission = createSubmission();
+        submission.setExerciseId(exerciseId);
+        submission.setUserId(userId);
+        submission.setTimestamp(Instant.now());
+        return submission;
+    }
+
+    public StudentSubmission createSubmission() {
         ObjectMapper mapper = new ObjectMapper();
         switch (type) {
             case code:

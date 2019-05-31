@@ -32,7 +32,7 @@ public abstract class StudentSubmission {
 
     private Instant timestamp;
 
-    private AnswerEvaluation result;
+    private SubmissionEvaluation result;
 
     public void setExercise(Exercise exercise) {
         this.exercise = exercise;

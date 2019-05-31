@@ -45,7 +45,7 @@ public class StudentSubmissionDTOTest {
                 .details(detailsJson)
                 .build();
 
-        StudentSubmission studentSubmission = dto.createStudentAnswer();
+        StudentSubmission studentSubmission = dto.createSubmission();
         Assert.assertEquals(studentSubmission.getClass(), CodeSubmission.class);
 
         CodeSubmission codeSubmission = (CodeSubmission) studentSubmission;
@@ -77,7 +77,7 @@ public class StudentSubmissionDTOTest {
                 .details(detailsJson)
                 .build();
 
-        StudentSubmission studentSubmission = dto.createStudentAnswer();
+        StudentSubmission studentSubmission = dto.createSubmission();
         Assert.assertEquals(studentSubmission.getClass(), TextSubmission.class);
 
         TextSubmission textAnswer = (TextSubmission) studentSubmission;
@@ -97,7 +97,7 @@ public class StudentSubmissionDTOTest {
                 .details(detailsJson)
                 .build();
 
-        StudentSubmission studentSubmission = dto.createStudentAnswer();
+        StudentSubmission studentSubmission = dto.createSubmission();
         Assert.assertEquals(studentSubmission.getClass(), MultipleChoiceSubmission.class);
 
         MultipleChoiceSubmission multipleChoiceSubmission = (MultipleChoiceSubmission) studentSubmission;

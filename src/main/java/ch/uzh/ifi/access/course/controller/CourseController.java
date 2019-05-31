@@ -1,25 +1,24 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
-import ch.uzh.ifi.access.course.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 import ch.uzh.ifi.access.course.service.CourseService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -96,27 +95,5 @@ public class CourseController {
                     .body(r);
         }
         return ResponseEntity.notFound().build();
-    }
-
-    @PostMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
-    public ResponseEntity<StudentSubmission> submitAnswer(@PathVariable("courseId") String courseId,
-                                                          @PathVariable("assignmentId") String assignmentId,
-                                                          @PathVariable("exerciseId") String exerciseId,
-                                                          @RequestBody StudentAnswerDTO studentAnswer,
-                                                          CourseAuthentication authentication) {
-        Exercise exercise = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-
-        StudentSubmission workspace = studentAnswer.createStudentAnswer();
-        workspace.setExercise(exercise);
-        workspace.setTimestamp(LocalDateTime.now());
-        workspace.setVersion(1);
-        workspace.setCommitId("commit-qwertz");
-
-        if (authentication != null) {
-            workspace.setUserId(authentication.getUserId());
-        }
-
-        return ResponseEntity.ok(workspace);
     }
 }
