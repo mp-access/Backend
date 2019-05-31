@@ -80,7 +80,7 @@ public class RepoCacher {
         return courses;
     }
 
-	static String readFile(File file){
+	private static String readFile(File file){
 		try{
 			byte[] data = null;
 			FileInputStream fis = new FileInputStream(file);
@@ -94,7 +94,7 @@ public class RepoCacher {
 		}
 	}
 
-    void cacheRepo(File file, Object context){
+	private void cacheRepo(File file, Object context){
 		if (file.isDirectory()) 
 	  	{
 	  		if(ignore_dir.contains(file.getName())) return;
@@ -179,11 +179,11 @@ public class RepoCacher {
 	  return dir.delete(); 
 	}
 
-	static String nameFromGitURL(String url){
+	private static String nameFromGitURL(String url){
     	return url.replace("https://github.com/", "").replace(".git", "");
 	}
 
-    static String loadFilesFromGit(String url) throws Exception{
+    private static String loadFilesFromGit(String url) throws Exception{
     	File gitDir = new File(REPO_DIR + "/" + nameFromGitURL(url));
     	if(gitDir.exists()){
 			new Git(new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")))
