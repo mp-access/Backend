@@ -8,7 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
@@ -30,7 +30,7 @@ public abstract class StudentSubmission {
     @Transient
     private Exercise exercise;
 
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 
     private AnswerEvaluation result;
 

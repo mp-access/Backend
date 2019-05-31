@@ -6,7 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Set;
 
 @Data
@@ -20,7 +20,7 @@ public class MultipleChoiceSubmission extends StudentSubmission {
     private Set<Integer> choices;
 
     @Builder
-    public MultipleChoiceSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, LocalDateTime timestamp, Set<Integer> choices) {
+    public MultipleChoiceSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, Instant timestamp, Set<Integer> choices) {
         super(id, version, userId, commitId, exerciseId, exercise, timestamp, null);
         this.choices = choices;
     }
