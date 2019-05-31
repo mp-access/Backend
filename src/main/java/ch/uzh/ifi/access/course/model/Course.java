@@ -10,6 +10,7 @@ import java.util.*;
 public class Course {
     private final String id;
 
+    private String gitHash;
     private String directory;
 
     private String title;
@@ -29,6 +30,7 @@ public class Course {
 
     public void set(Course other){
         //this.directory = other.directory;
+        this.gitHash = other.gitHash;
         this.title = other.title;
         this.description = other.description;
         this.owner = other.owner;
@@ -43,6 +45,7 @@ public class Course {
         set(other);
         int diff = assignments.size() - other.assignments.size();
         int size = assignments.size();
+
         if(diff > 0){
             // Deleted Assignment
             for(int i = 0; i < Math.abs(diff); ++i){
@@ -58,8 +61,13 @@ public class Course {
         }
 
         for(int i = 0; i < assignments.size(); ++i){
-            assignments.get(i).set(other.assignments.get(i));
+            assignments.get(i).update(other.assignments.get(i));
         }
+    }
+
+    public void addAssignment(Assignment a){
+        a.setCourse(this);
+        assignments.add(a);
     }
 
     public Optional<Assignment> getAssignmentById(String id) {

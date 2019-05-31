@@ -66,11 +66,12 @@ public class RepoCacher {
 
 		int i = 0;
         for(String url : repo_urls) {
-			getFilesFromGit(url);
+			String hash = loadFilesFromGit(url);
 
 			RepoCacher cacher = new RepoCacher();
 			File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
 			Course course = new Course();
+			course.setGitHash(hash);
 			course.setDirectory(repo.getAbsolutePath());
 
 			cacher.cacheRepo(repo, course);
@@ -101,10 +102,11 @@ public class RepoCacher {
 	  		Object next_context = context;
 			if(file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)){
 				Assignment assignment = new Assignment();
-				((Course)context).getAssignments().add(assignment);
+				((Course)context).addAssignment(assignment);
 				next_context = assignment;
 			}else if(file.getName().startsWith(EXERCISE_FOLDER_PREFIX)){
 				Exercise exercise = new Exercise();
+				exercise.setGitHash(((Assignment)context).getCourse().getGitHash());
 				((Assignment)context).addExercise(exercise);
 				next_context = exercise;
 			}else if(file.getName().startsWith(PUBLIC_FOLDER_NAME)){
@@ -181,7 +183,7 @@ public class RepoCacher {
     	return url.replace("https://github.com/", "").replace(".git", "");
 	}
 
-    static void getFilesFromGit(String url) throws Exception{
+    static String loadFilesFromGit(String url) throws Exception{
     	File gitDir = new File(REPO_DIR + "/" + nameFromGitURL(url));
     	if(gitDir.exists()){
 			new Git(new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")))
@@ -194,5 +196,6 @@ public class RepoCacher {
 					.call();
     	}
 
+    	return (new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")).getAllRefs().get("HEAD").getObjectId().getName());
 	}
  }

@@ -9,11 +9,13 @@ import lombok.Data;
 public class ExerciseMetadataDTO {
     private final String id;
 
+    private String gitHash;
     private ExerciseType type;
     private String language;
 
     public ExerciseMetadataDTO(Exercise exercise){
         this.id = exercise.getId();
+        this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
     }
