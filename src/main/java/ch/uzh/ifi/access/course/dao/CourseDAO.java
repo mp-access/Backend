@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.course.dao;
 
 import ch.uzh.ifi.access.course.RepoCacher;
 import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.course.model.Exercise;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -10,7 +11,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Repository("gitrepo")
@@ -22,6 +25,8 @@ public class CourseDAO {
 
     private List<Course> courseList;
 
+    private Map<String, Exercise> exerciseIndex;
+
     public CourseDAO() {
         ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
         if (resource.exists()) {
@@ -29,6 +34,7 @@ public class CourseDAO {
                 ObjectMapper mapper = new ObjectMapper();
                 URLList conf = mapper.readValue(resource.getFile(), URLList.class);
                 courseList = RepoCacher.retrieveCourseData(conf.repositories);
+                exerciseIndex = buildExerciseIndex(courseList);
                 logger.info(String.format("Parsed %d courses", courseList.size()));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -38,7 +44,15 @@ public class CourseDAO {
         }
     }
 
-    public void updateCourse(){
+    protected Map<String, Exercise> buildExerciseIndex(List<Course> courses) {
+        return courses
+                .stream()
+                .flatMap(c -> c.getAssignments().stream())
+                .flatMap(a -> a.getExercises().stream())
+                .collect(Collectors.toUnmodifiableMap(Exercise::getId, ex -> ex));
+    }
+
+    public void updateCourse() {
         ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
         if (resource.exists()) {
             try {
@@ -46,7 +60,7 @@ public class CourseDAO {
                 URLList conf = mapper.readValue(resource.getFile(), URLList.class);
                 List<Course> courseUpdate = RepoCacher.retrieveCourseData(conf.repositories);
 
-                for(int i = 0; i < courseList.size(); ++i){
+                for (int i = 0; i < courseList.size(); ++i) {
                     courseList.get(i).update(courseUpdate.get(i));
                 }
             } catch (Exception e) {
@@ -65,6 +79,10 @@ public class CourseDAO {
         return courseList.stream()
                 .filter(course -> course.getId().equals(id))
                 .findFirst();
+    }
+
+    public Optional<Exercise> selectExerciseById(String id) {
+        return Optional.ofNullable(exerciseIndex.get(id));
     }
 
     @Data
