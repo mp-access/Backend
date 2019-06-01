@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.model.workspace;
 
 import ch.uzh.ifi.access.course.model.Exercise;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,6 +28,7 @@ public abstract class StudentSubmission {
 
     private String exerciseId;
 
+    @JsonIgnore
     @Transient
     private Exercise exercise;
 
