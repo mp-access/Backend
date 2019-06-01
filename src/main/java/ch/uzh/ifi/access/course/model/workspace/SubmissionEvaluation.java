@@ -2,12 +2,12 @@ package ch.uzh.ifi.access.course.model.workspace;
 
 import lombok.Value;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Value
-public class AnswerEvaluation {
+public class SubmissionEvaluation {
 
     private int score;
 
-    private LocalDateTime timestamp;
+    private Instant timestamp;
 }

@@ -6,7 +6,7 @@ import lombok.*;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -19,7 +19,7 @@ public class TextSubmission extends StudentSubmission {
     private String answer;
 
     @Builder
-    public TextSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, LocalDateTime timestamp, String answer) {
+    public TextSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, Instant timestamp, String answer) {
         super(id, version, userId, commitId, exerciseId, exercise, timestamp, null);
         this.answer = answer;
     }
