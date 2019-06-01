@@ -36,11 +36,8 @@ public class StudentSubmissionService {
         Assert.notNull(answer.getExerciseId(), "exerciseId cannot be null");
         Assert.notNull(answer.getUserId(), "userId cannot be null");
 
-        List<StudentSubmission> previousSubmissions = findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(answer.getExerciseId(), answer.getUserId());
-        if (previousSubmissions.size() > 0) {
-            StudentSubmission lastUserSubmission = previousSubmissions.get(0);
-            answer.setVersion(lastUserSubmission.getVersion() + 1);
-        }
+        Optional<StudentSubmission> previousSubmissions = findLatestExerciseSubmission(answer.getExerciseId(), answer.getUserId());
+        previousSubmissions.ifPresent(prev -> answer.setVersion(prev.getVersion() + 1));
 
         return studentSubmissionRepository.save(answer);
     }
