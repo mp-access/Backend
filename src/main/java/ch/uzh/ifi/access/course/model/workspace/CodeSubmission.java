@@ -30,6 +30,10 @@ public class CodeSubmission extends StudentSubmission {
     }
 
     public void setExercise(Exercise exercise) {
+        if (exercise == null) {
+            return;
+        }
+
         if (!ExerciseType.code.equals(exercise.getType())) {
             throw new IllegalArgumentException(String.format("Can only set exercise of type 'code'. Got %s", exercise.getType()));
         }
