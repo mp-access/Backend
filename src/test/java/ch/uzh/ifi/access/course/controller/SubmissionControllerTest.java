@@ -24,8 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -164,5 +166,60 @@ public class SubmissionControllerTest {
         Assertions.assertThat(submission.getUserId()).isEqualTo(authentication.getUserId());
         Assertions.assertThat(submission).isInstanceOf(TextSubmission.class);
         Assertions.assertThat(((TextSubmission) submission).getAnswer()).isEqualTo(answer);
+    }
+
+    @Test
+    public void getMostRecentSubmissionForExercise() throws Exception {
+        final String exerciseId = "1";
+        final String payload1 = "{\n" +
+                "    \"type\": \"multipleChoice\",\n" +
+                "    \"details\": {\n" +
+                "        \"choices\": [0, 2]\n" +
+                "    }\n" +
+                "}";
+        final String payload2 = "{\n" +
+                "    \"type\": \"multipleChoice\",\n" +
+                "    \"details\": {\n" +
+                "        \"choices\": [0, 2, 3]\n" +
+                "    }\n" +
+                "}";
+
+        mvc.perform(post("/submissions/" + exerciseId)
+                .with(csrf())
+                .with(authentication(authentication))
+                .contentType("application/json")
+                .content(payload1))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/submissions/" + exerciseId)
+                .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(authentication.getUserId()))
+                .andExpect(jsonPath("$.exerciseId").value(exerciseId))
+                .andExpect(jsonPath("$.version").value(0))
+                .andExpect(jsonPath("$.choices").isArray())
+                .andExpect(jsonPath("$.choices", hasSize(2)))
+                .andExpect(jsonPath("$.choices[0]").value(0))
+                .andExpect(jsonPath("$.choices[1]").value(2));
+
+        mvc.perform(post("/submissions/" + exerciseId)
+                .with(csrf())
+                .with(authentication(authentication))
+                .contentType("application/json")
+                .content(payload2))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/submissions/" + exerciseId)
+                .with(authentication(authentication)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(authentication.getUserId()))
+                .andExpect(jsonPath("$.exerciseId").value(exerciseId))
+                .andExpect(jsonPath("$.version").value(1))
+                .andExpect(jsonPath("$.choices").isArray())
+                .andExpect(jsonPath("$.choices", hasSize(3)))
+                .andExpect(jsonPath("$.choices[0]").value(0))
+                .andExpect(jsonPath("$.choices[1]").value(2))
+                .andExpect(jsonPath("$.choices[2]").value(3));
+
     }
 }
