@@ -27,7 +27,7 @@ public class ExerciseController {
         this.courseService = courseService;
     }
 
-    @GetMapping("/exercises/{exerciseId}")
+    @GetMapping("/{exerciseId}")
     public ResponseEntity<?> getExerciseByCourseAndAssignment(
             @PathVariable("exerciseId") String exerciseId) {
         Exercise ex = courseService.getExerciseById(exerciseId)
