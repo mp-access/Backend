@@ -32,6 +32,7 @@ public class TestObjectFactory {
         exercise.setLanguage("python");
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.code);
+        exercise.setGitHash("0x123456");
         return exercise;
     }
 
@@ -39,6 +40,7 @@ public class TestObjectFactory {
         Exercise exercise = new Exercise();
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.text);
+        exercise.setGitHash("0x123456");
         return exercise;
     }
 
@@ -46,6 +48,7 @@ public class TestObjectFactory {
         Exercise exercise = new Exercise();
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.multipleChoice);
+        exercise.setGitHash("0x123456");
         return exercise;
     }
 
