@@ -1,18 +1,17 @@
 
 package ch.uzh.ifi.access.course.service;
 
-import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
-import ch.uzh.ifi.access.course.model.Assignment;
-import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.VirtualFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class CourseService {
@@ -24,7 +23,9 @@ public class CourseService {
         this.courseDao = courseDao;
     }
 
-    public void updateCourses() {courseDao.updateCourse();}
+    public void updateCourses() {
+        courseDao.updateCourse();
+    }
 
     public List<Course> getAllCourses() {
         return courseDao.selectAllCourses();
@@ -40,9 +41,14 @@ public class CourseService {
                 .flatMap(assignment -> assignment.findExerciseById(exerciseId));
     }
 
-    public List<Assignment> getAllAssignmentsByCourseId() { return null;}
+    public Optional<Exercise> getExerciseById(String exerciseId) {
+        return courseDao.selectExerciseById(exerciseId);
+    }
 
-    public Optional<Course> getAssignmentByIdByCourseId(String id) {
-        return courseDao.selectCourseById(id);
+    public Optional<FileSystemResource> getFileByExerciseIdAndFileId(String exerciseId, String fileId) {
+        Optional<Exercise> exercise = getExerciseById(exerciseId);
+        Optional<VirtualFile> virtualFile = exercise.flatMap(e -> e.getFileById(fileId));
+
+        return virtualFile.map(file -> new FileSystemResource(file.getFile()));
     }
 }

@@ -4,7 +4,9 @@ import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Data
 public class Course {
@@ -24,11 +26,11 @@ public class Course {
 
     private List<Assignment> assignments = new ArrayList<>();
 
-    public Course(){
+    public Course() {
         this.id = new Utils().getID();
     }
 
-    public void set(Course other){
+    public void set(Course other) {
         //this.directory = other.directory;
         this.gitHash = other.gitHash;
         this.title = other.title;
@@ -41,33 +43,39 @@ public class Course {
         this.students = other.students;
     }
 
-    public void update(Course other){
+    public void update(Course other) {
         set(other);
         int diff = assignments.size() - other.assignments.size();
         int size = assignments.size();
 
-        if(diff > 0){
+        if (diff > 0) {
             // Deleted Assignment
-            for(int i = 0; i < Math.abs(diff); ++i){
-                assignments.remove(size - (i+1));
+            for (int i = 0; i < Math.abs(diff); ++i) {
+                assignments.remove(size - (i + 1));
             }
-        }else if(diff < 0){
+        } else if (diff < 0) {
             // Added assignment
-            for(int i = 0; i < Math.abs(diff); ++i){
+            for (int i = 0; i < Math.abs(diff); ++i) {
                 Assignment a = new Assignment();
                 a.set(other.assignments.get(size + i));
                 assignments.add(a);
             }
         }
 
-        for(int i = 0; i < assignments.size(); ++i){
+        for (int i = 0; i < assignments.size(); ++i) {
             assignments.get(i).update(other.assignments.get(i));
         }
     }
 
-    public void addAssignment(Assignment a){
+    public void addAssignment(Assignment a) {
         a.setCourse(this);
         assignments.add(a);
+    }
+
+    public void addAssignments(Assignment... assignments) {
+        for (Assignment a : assignments) {
+            addAssignment(a);
+        }
     }
 
     public Optional<Assignment> getAssignmentById(String id) {
