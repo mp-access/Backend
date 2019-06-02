@@ -24,11 +24,12 @@ public class StudentAnswerDTO {
 
     private JsonNode details;
 
-    public StudentSubmission createSubmission(String userId, String exerciseId) {
+    public StudentSubmission createSubmission(String userId, String exerciseId, String commitHash) {
         StudentSubmission submission = createSubmission();
         submission.setExerciseId(exerciseId);
         submission.setUserId(userId);
         submission.setTimestamp(Instant.now());
+        submission.setCommitId(commitHash);
         return submission;
     }
 

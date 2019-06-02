@@ -3,14 +3,18 @@ package ch.uzh.ifi.access.course.controller;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.course.dto.SubmissionHistoryDTO;
+import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.course.service.StudentSubmissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/submissions")
@@ -20,8 +24,11 @@ public class SubmissionController {
 
     private final StudentSubmissionService studentSubmissionService;
 
-    public SubmissionController(StudentSubmissionService studentSubmissionService) {
+    private final CourseService courseService;
+
+    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService) {
         this.studentSubmissionService = studentSubmissionService;
+        this.courseService = courseService;
     }
 
     @GetMapping("/{exerciseId}")
@@ -38,15 +45,21 @@ public class SubmissionController {
     }
 
     @PostMapping("/{exerciseId}")
-    public StudentSubmission submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, CourseAuthentication authentication) {
+    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         String username = authentication.getName();
 
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
-        StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId);
-        return studentSubmissionService.saveSubmission(submission);
+        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
+
+        if (commitHash.isPresent()) {
+            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
+            return ResponseEntity.accepted().body(studentSubmissionService.saveSubmission(submission));
+        } else {
+            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+        }
     }
 
     @GetMapping("/{exerciseId}/history")

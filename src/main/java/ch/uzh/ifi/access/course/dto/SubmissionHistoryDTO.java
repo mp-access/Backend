@@ -24,10 +24,13 @@ public class SubmissionHistoryDTO {
 
         private final Instant timestamp;
 
+        private final String commitHash;
+
         SubmissionMetadata(StudentSubmission submission) {
             this.id = submission.getId();
             this.version = submission.getVersion();
             this.timestamp = submission.getTimestamp();
+            this.commitHash = submission.getCommitId();
         }
     }
 }
