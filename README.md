@@ -15,3 +15,16 @@ rest.security.enabled=true
 # Initialize course participants, if true, will connect to keycloak to create user accounts and course groups
 course.users.init-on-startup=false 
 ```
+
+## MongoDB
+
+https://docs.docker.com/samples/library/mongo/
+
+standard port: 27017
+
+`docker pull mongo`
+`docker run -d --name mongodb mongo:latest`
+`docker exec -it mongodb bash`
+
+docker inspect CID
+
