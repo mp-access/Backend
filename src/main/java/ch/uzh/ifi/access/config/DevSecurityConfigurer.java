@@ -1,7 +1,6 @@
 package ch.uzh.ifi.access.config;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
-import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
@@ -34,9 +34,8 @@ public class DevSecurityConfigurer extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.addFilterBefore(new CustomAuthenticationProvider(), BasicAuthenticationFilter.class)
-
                 .authorizeRequests()
-                .antMatchers("/**")
+                .anyRequest()
                 .authenticated()
                 .and()
                 .csrf().disable();
@@ -55,19 +54,19 @@ public class DevSecurityConfigurer extends WebSecurityConfigurerAdapter {
     public static class CustomAuthenticationProvider extends OncePerRequestFilter {
 
         public Authentication authentication() {
-            Set<GrantedCourseAccess> grantedCourseAccesses = Set.of();
             OAuth2Request request = new OAuth2Request(Map.of(),
                     "client",
                     List.of(), true,
                     Set.of("openid"),
                     Set.of(), null, null, null);
-            Authentication auth = new UsernamePasswordAuthenticationToken("testUser", "---");
-            return new CourseAuthentication(request, auth, grantedCourseAccesses, "");
+            Authentication auth = new UsernamePasswordAuthenticationToken("testUser", "---", List.of(new SimpleGrantedAuthority("USER")));
+            return new CourseAuthentication(request, auth, Set.of(), "");
         }
 
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
             SecurityContextHolder.getContext().setAuthentication(authentication());
+
             filterChain.doFilter(request, response);
         }
     }
