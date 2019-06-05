@@ -66,7 +66,7 @@ public class DevSecurityConfigurer extends WebSecurityConfigurerAdapter {
         }
 
         @Override
-        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
             SecurityContextHolder.getContext().setAuthentication(authentication());
             filterChain.doFilter(request, response);
         }
