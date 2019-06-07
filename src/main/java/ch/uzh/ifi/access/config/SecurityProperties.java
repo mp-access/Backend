@@ -24,6 +24,10 @@ public class SecurityProperties {
 
     private String authServer;
 
+    private String tokenEndpoint;
+
+    private String authorizationEndpoint;
+
     public CorsConfiguration getCorsConfiguration() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedMethods(cors.getAllowedMethods());
