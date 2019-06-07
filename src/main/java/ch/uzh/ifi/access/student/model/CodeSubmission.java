@@ -1,7 +1,5 @@
 package ch.uzh.ifi.access.student.model;
 
-import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import lombok.*;
 import org.springframework.data.annotation.TypeAlias;
@@ -23,20 +21,9 @@ public class CodeSubmission extends StudentSubmission {
     private boolean isGraded;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, Instant timestamp, List<VirtualFile> publicFiles, boolean isGraded) {
-        super(id, version, userId, commitId, exerciseId, exercise, timestamp, null);
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Instant timestamp, List<VirtualFile> publicFiles, boolean isGraded) {
+        super(id, version, userId, commitId, exerciseId, timestamp, null);
         this.publicFiles = publicFiles;
         this.isGraded = isGraded;
-    }
-
-    public void setExercise(Exercise exercise) {
-        if (exercise == null) {
-            return;
-        }
-
-        if (!ExerciseType.code.equals(exercise.getType())) {
-            throw new IllegalArgumentException(String.format("Can only set exercise of type 'code'. Got %s", exercise.getType()));
-        }
-        super.setExercise(exercise);
     }
 }
