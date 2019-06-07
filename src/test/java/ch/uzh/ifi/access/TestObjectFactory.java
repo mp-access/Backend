@@ -1,9 +1,9 @@
 package ch.uzh.ifi.access;
 
 import ch.uzh.ifi.access.course.model.*;
-import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
-import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.model.CodeSubmission;
+import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.student.model.TextSubmission;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

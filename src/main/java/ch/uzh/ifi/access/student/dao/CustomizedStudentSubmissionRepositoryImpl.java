@@ -1,6 +1,6 @@
-package ch.uzh.ifi.access.course.dao;
+package ch.uzh.ifi.access.student.dao;
 
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;

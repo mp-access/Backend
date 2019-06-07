@@ -1,12 +1,13 @@
-package ch.uzh.ifi.access.course.controller;
+package ch.uzh.ifi.access.student.controller;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
-import ch.uzh.ifi.access.course.dto.StudentAnswerDTO;
-import ch.uzh.ifi.access.course.dto.SubmissionHistoryDTO;
+import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
 import ch.uzh.ifi.access.course.service.CourseService;
-import ch.uzh.ifi.access.course.service.StudentSubmissionService;
+import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
+import ch.uzh.ifi.access.student.dto.SubmissionHistoryDTO;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
+import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
