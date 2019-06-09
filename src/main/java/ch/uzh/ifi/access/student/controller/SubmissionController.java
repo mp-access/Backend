@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +34,7 @@ public class SubmissionController {
     }
 
     @GetMapping("/{exerciseId}")
-    public StudentSubmission getSubmissionByExercise(@PathVariable String exerciseId, CourseAuthentication authentication) {
+    public StudentSubmission getSubmissionByExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
         String username = authentication.getName();
         String userId = authentication.getUserId();
@@ -46,7 +47,7 @@ public class SubmissionController {
     }
 
     @PostMapping("/{exerciseId}")
-    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, CourseAuthentication authentication) {
+    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         String username = authentication.getName();
@@ -64,7 +65,7 @@ public class SubmissionController {
     }
 
     @GetMapping("/{exerciseId}/history")
-    public SubmissionHistoryDTO getAllSubmissionsForExercise(@PathVariable String exerciseId, CourseAuthentication authentication) {
+    public SubmissionHistoryDTO getAllSubmissionsForExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         logger.info(String.format("Fetching all submission for user %s and exercise %s", authentication.getName(), exerciseId));

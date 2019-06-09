@@ -40,6 +40,7 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
+        final String[] swaggerPaths = new String[]{"/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**"};
         http.cors()
                 .configurationSource(corsConfigurationSource())
                 .and()
@@ -50,6 +51,8 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
                 .csrf()
                 .disable()
                 .authorizeRequests()
+                .antMatchers(swaggerPaths)
+                .permitAll()
                 .antMatchers(securityProperties.getApiMatcher())
                 .authenticated();
     }
