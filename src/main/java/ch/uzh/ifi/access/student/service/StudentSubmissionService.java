@@ -1,9 +1,9 @@
-package ch.uzh.ifi.access.course.service;
+package ch.uzh.ifi.access.student.service;
 
-import ch.uzh.ifi.access.course.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
