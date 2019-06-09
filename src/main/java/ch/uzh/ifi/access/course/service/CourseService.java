@@ -24,7 +24,11 @@ public class CourseService {
     }
 
     public void updateCourses() {
-        courseDao.updateCourse();
+        courseDao.updateCourses();
+    }
+
+    public void updateCourseById(String id) {
+        courseDao.updateCourseById(id);
     }
 
     public List<Course> getAllCourses() {

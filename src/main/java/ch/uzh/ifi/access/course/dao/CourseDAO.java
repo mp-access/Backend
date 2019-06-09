@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.dao;
 
 import ch.uzh.ifi.access.course.RepoCacher;
+import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,7 +53,7 @@ public class CourseDAO {
                 .collect(Collectors.toUnmodifiableMap(Exercise::getId, ex -> ex));
     }
 
-    public void updateCourse() {
+    public void updateCourses() {
         ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
         if (resource.exists()) {
             try {
@@ -68,6 +69,17 @@ public class CourseDAO {
             }
         } else {
             courseList = null;
+        }
+    }
+
+    public void updateCourseById(String id){
+        Course c = selectCourseById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+        try {
+            List<Course> courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()});
+            c.update(courseUpdate.get(0));
+        }catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
