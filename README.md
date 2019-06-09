@@ -15,3 +15,10 @@ rest.security.enabled=true
 # Initialize course participants, if true, will connect to keycloak to create user accounts and course groups
 course.users.init-on-startup=false 
 ```
+
+## API Docs
+With the server application running: http://localhost:8080/api/swagger-ui.html
+
+Works also using `rest.security.enabled=true` or `rest.security.enabled=false`
+
+When the flag is set to true, click on `authorize`, for `client_id` enter `access-frontend` and click on `Authorize`
