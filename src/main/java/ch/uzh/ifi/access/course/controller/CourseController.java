@@ -47,6 +47,11 @@ public class CourseController {
         courseService.updateCourses();
     }
 
+    @GetMapping(path = "{id}/update")
+    public void updateCourse(@PathVariable("id") String id) {
+        courseService.updateCourseById(id);
+    }
+
     @GetMapping(path = "{id}")
     public CourseMetadataDTO getCourseById(@PathVariable("id") String id) {
         return new CourseMetadataDTO(courseService
