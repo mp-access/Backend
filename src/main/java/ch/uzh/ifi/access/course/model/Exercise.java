@@ -2,7 +2,10 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +14,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Data
+@Builder
+@AllArgsConstructor
 public class Exercise {
+
     private final String id;
     @JsonIgnore
     private Assignment assignment;
@@ -28,19 +34,19 @@ public class Exercise {
     private List<VirtualFile> solution_files = new ArrayList<>();
 
     private List<VirtualFile> resource_files = new ArrayList<>();
-    private List<VirtualFile> public_files= new ArrayList<>();
+    private List<VirtualFile> public_files = new ArrayList<>();
 
-    public Exercise(){
+    public Exercise() {
         this.id = new Utils().getID();
     }
 
-    public void set(Exercise other){
+    public void set(Exercise other) {
         this.type = other.type;
         this.language = other.language;
         this.question = other.question;
     }
 
-    public void update(Exercise other){
+    public void update(Exercise other) {
         set(other);
         this.gitHash = other.gitHash;
         this.private_files = other.private_files;
@@ -49,17 +55,17 @@ public class Exercise {
         this.resource_files = other.resource_files;
     }
 
-    public Optional<VirtualFile> getFileById(String id){
+    public Optional<VirtualFile> getFileById(String id) {
         //TODO: Also search in private files
         Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
-    public boolean isPastDueDate(){
+    public boolean isPastDueDate() {
         return assignment.isPastDueDate();
     }
 
-    public boolean hasChanged(Exercise other){
+    public boolean hasChanged(Exercise other) {
         return !(Objects.equals(this.type, other.type) &&
                 Objects.equals(this.language, other.language) &&
                 Objects.equals(this.question, other.question) &&
@@ -68,4 +74,5 @@ public class Exercise {
                 Objects.equals(this.resource_files, other.resource_files) &&
                 Objects.equals(this.public_files, other.public_files));
     }
+
 }
