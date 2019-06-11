@@ -31,6 +31,8 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
 
     private static final String CLIENT_NAME_ELEMENT_IN_JWT = "resource_access";
 
+    private static final String AUD_ELEMENT_IN_JWT = "aud";
+
     private static final String ROLE_ELEMENT_IN_JWT = "roles";
 
     private static final String COURSES_ELEMENT_IN_JWT = "groups";
@@ -61,8 +63,8 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         JsonNode token = mapper.convertValue(tokenMap, JsonNode.class);
 
         String subject = extractSubject(token);
-        Set<String> audienceList = extractClients(token); // extracting client names
-        List<GrantedAuthority> authorities = extractRoles(token); // extracting client roles
+        Set<String> audienceList = extractAudiences(token);
+        List<GrantedAuthority> authorities = extractRoles(token);
         Set<GrantedCourseAccess> courseAccesses = extractCourses(token);
 
         OAuth2Authentication authentication = super.extractAuthentication(tokenMap);
@@ -107,21 +109,21 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         return authorityList;
     }
 
-    private Set<String> extractClients(JsonNode jwt) {
-        logger.debug("Begin extractClients: jwt = {}", jwt);
-        if (jwt.has(CLIENT_NAME_ELEMENT_IN_JWT)) {
-            JsonNode resourceAccessJsonNode = jwt.path(CLIENT_NAME_ELEMENT_IN_JWT);
-            final Set<String> clientNames = new HashSet<>();
-            resourceAccessJsonNode.fieldNames()
-                    .forEachRemaining(clientNames::add);
+    private Set<String> extractAudiences(JsonNode jwt) {
+        logger.debug("Begin extractAudiences: jwt = {}", jwt);
 
-            logger.debug("End extractClients: clients = {}", clientNames);
-            return clientNames;
-
-        } else {
+        if (!jwt.has(AUD_ELEMENT_IN_JWT)) {
             throw new IllegalArgumentException("Expected element " +
                     CLIENT_NAME_ELEMENT_IN_JWT + " not found in token");
         }
+
+        final Set<String> audiences = new HashSet<>();
+
+        JsonNode aud = jwt.path(AUD_ELEMENT_IN_JWT);
+        aud.elements().forEachRemaining(el -> audiences.add(el.textValue()));
+
+        logger.debug("End extractCourses: clients = {}", audiences);
+        return audiences;
     }
 
     private Set<GrantedCourseAccess> extractCourses(JsonNode jwt) {
