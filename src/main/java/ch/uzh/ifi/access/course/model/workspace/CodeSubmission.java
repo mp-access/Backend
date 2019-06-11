@@ -22,6 +22,8 @@ public class CodeSubmission extends StudentSubmission {
 
     private boolean isGraded;
 
+    private ExecResults execResults;
+
     @Builder
     public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Exercise exercise, Instant timestamp, List<VirtualFile> publicFiles, boolean isGraded) {
         super(id, version, userId, commitId, exerciseId, exercise, timestamp, null);
