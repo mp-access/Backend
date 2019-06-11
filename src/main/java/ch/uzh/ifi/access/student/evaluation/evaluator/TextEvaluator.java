@@ -13,11 +13,7 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
 
     @Override
     public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
-        Assert.notNull(submission, "Submission object for evaluation cannot be null.");
-        Assert.isInstanceOf(TextSubmission.class, submission);
-
-        Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
-        Assert.isTrue(ExerciseType.text.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.text);
+        validate(submission, exercise);
 
         TextSubmission textSub = (TextSubmission) submission;
 
@@ -29,5 +25,13 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
         }
 
         return new SubmissionEvaluation(0, Instant.now());
+    }
+
+    private void validate(StudentSubmission submission, Exercise exercise) throws IllegalArgumentException {
+        Assert.notNull(submission, "Submission object for evaluation cannot be null.");
+        Assert.isInstanceOf(TextSubmission.class, submission);
+
+        Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
+        Assert.isTrue(ExerciseType.text.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.text);
     }
 }
