@@ -53,13 +53,21 @@ dependencies {
     implementation "io.springfox:springfox-swagger-ui:$swaggerVersion"
 
     // Docker runner
-    implementation "com.spotify:docker-client:8.15.1"
+    implementation "com.spotify:docker-client:8.16.0:shaded"
 }
 
 test {
     //we want display the following test events
     testLogging {
         events "PASSED", "STARTED", "FAILED", "SKIPPED"
+    }
+
+    if (project.hasProperty('excludeTests')) {
+        exclude project.property('excludeTests')
+    }
+
+    if (project.hasProperty('excludeDockerTests')) {
+        exclude '**/CodeRunnerTest.class'
     }
 }
 
