@@ -18,9 +18,9 @@ course.users.init-on-startup=false
 
 ## MongoDB
 
-- [MongoDB with Docker](https://docs.docker.com/samples/library/mongo/)
-- standard port: 27017
-- `docker pull mongo`
-- `docker run -d --name mongodb mongo:latest`
-- `docker exec -it mongodb bash`
-- docker inspect CID
+-  [MongoDB with Docker](https://docs.docker.com/samples/library/mongo/)
+-  standard port: 27017
+-  `docker pull mongo`
+-  `docker run -d --name mongodb mongo:latest`
+-  `docker exec -it mongodb bash`
+-  docker inspect CID
