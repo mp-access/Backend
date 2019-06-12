@@ -10,4 +10,5 @@ public class SubmissionEvaluation {
     private int score;
 
     private Instant timestamp;
+
 }

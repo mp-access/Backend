@@ -17,11 +17,9 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
 
         TextSubmission textSub = (TextSubmission) submission;
 
-        if (textSub.getAnswer().length() > 0) {
-            // TODO: Get correct solution from exercise.
-            if ("Abz".equalsIgnoreCase(textSub.getAnswer().trim())) {
-                return new SubmissionEvaluation(1, Instant.now());
-            }
+        // TODO: Get correct solution from exercise.
+        if ("Abz".equalsIgnoreCase(textSub.getAnswer().trim())) {
+            return new SubmissionEvaluation(1, Instant.now());
         }
 
         return new SubmissionEvaluation(0, Instant.now());

@@ -18,7 +18,7 @@ public class EvalMachineBuilderTest {
     private StateMachine stateMachine;
 
     @Before
-    public void setup() throws Exception {
+    public void setUp() throws Exception {
 
         actionHandler = new EvalActionHandler();
 
@@ -110,4 +110,5 @@ public class EvalMachineBuilderTest {
         Assertions.assertThat(actionHandler.getSubmission(sub.getId()).getResult().getScore())
                 .isEqualTo(0);
     }
+
 }
