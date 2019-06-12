@@ -55,7 +55,7 @@ public class CodeRunnerTest {
 
         File tempFile = createTempFileWithContent(code, "test.py");
 
-        RunResult runResult = runner.runCode(folder.getRoot().getPath(), tempFile.getName());
+        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), tempFile.getName());
 
         Assertions.assertThat(runResult.getOutput()).isEqualTo(expectedOutput);
     }
@@ -81,7 +81,7 @@ public class CodeRunnerTest {
         createTempFileWithContent(dependencyCode, "/a.py");
         File main = createTempFileWithContent(mainCode, "/test.py");
 
-        RunResult runResult = runner.runCode(folder.getRoot().getPath(), main.getName());
+        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName());
 
         Assertions.assertThat(runResult.getOutput()).isEqualTo(expectedOutput);
     }

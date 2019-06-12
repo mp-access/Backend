@@ -6,10 +6,10 @@ import java.time.Instant;
 
 @Value
 public final class RunResult {
+    private final String output;
+    private final Instant timestamp;
     private final double timeInSeconds;
     private final double timeInMilliseconds;
-    private final Instant timestamp;
-    private final String output;
     private final long timeInNanoseconds;
 
     public RunResult(String output, long timeInNanoseconds) {
