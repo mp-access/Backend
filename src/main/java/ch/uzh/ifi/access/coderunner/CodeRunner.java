@@ -30,6 +30,16 @@ public class CodeRunner {
         docker = DefaultDockerClient.fromEnv().build();
     }
 
+    /**
+     * Mounts the folder at path inside the container and runs the given command
+     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
+     *
+     * @param folderPath path to folder to mount inside container
+     * @param cmd        command to execute inside container
+     * @return stdout from container and execution time {@link RunResult}
+     * @throws DockerException
+     * @throws InterruptedException
+     */
     public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException {
         HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
 
@@ -38,7 +48,17 @@ public class CodeRunner {
         return createAndRunContainer(containerConfig);
     }
 
-    public RunResult runCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
+    /**
+     * Mounts the folder at path inside the container and runs the given python file
+     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
+     *
+     * @param folderPath     path to folder to mount inside container
+     * @param filenameToExec python file to run
+     * @return stdout from container and execution time {@link RunResult}
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    public RunResult runPythonCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
         HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
 
         String[] cmd = {"python", filenameToExec};
