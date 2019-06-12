@@ -61,6 +61,14 @@ test {
     testLogging {
         events "PASSED", "STARTED", "FAILED", "SKIPPED"
     }
+
+    if (project.hasProperty('excludeTests')) {
+        exclude project.property('excludeTests')
+    }
+
+    if (project.hasProperty('excludeDockerTests')) {
+        exclude '**/CodeRunnerTest.class'
+    }
 }
 
 jacocoTestReport {
