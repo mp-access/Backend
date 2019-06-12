@@ -51,6 +51,9 @@ dependencies {
     // Swagger
     implementation "io.springfox:springfox-swagger2:$swaggerVersion"
     implementation "io.springfox:springfox-swagger-ui:$swaggerVersion"
+
+    // Docker runner
+    implementation "com.spotify:docker-client:8.15.1"
 }
 
 test {
