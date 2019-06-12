@@ -9,5 +9,8 @@ public class SubmissionEvaluation {
 
     private int score;
 
+    private int maxScore;
+
     private Instant timestamp;
+
 }

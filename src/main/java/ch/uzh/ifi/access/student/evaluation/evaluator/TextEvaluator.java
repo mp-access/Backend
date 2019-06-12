@@ -20,11 +20,11 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
         if (textSub.getAnswer().length() > 0) {
             // TODO: Get correct solution from exercise.
             if ("Abz".equalsIgnoreCase(textSub.getAnswer().trim())) {
-                return new SubmissionEvaluation(1, Instant.now());
+                return new SubmissionEvaluation(1, 1, Instant.now());
             }
         }
 
-        return new SubmissionEvaluation(0, Instant.now());
+        return new SubmissionEvaluation(0, 1, Instant.now());
     }
 
     private void validate(StudentSubmission submission, Exercise exercise) throws IllegalArgumentException {
