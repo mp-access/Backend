@@ -9,16 +9,19 @@ import org.junit.Test;
 
 public class TextEvaluatorTest {
 
-
-
     @Test
     public void test() {
-        TextSubmission sub = TextSubmission.builder().answer("Abz").build();
         Exercise ex = Exercise.builder().type(ExerciseType.text).build();
 
+        TextSubmission sub = TextSubmission.builder()
+                .answer("Abz")
+                .exercise(ex)
+                .build();
+
         TextEvaluator evaluator = new TextEvaluator();
-        SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
+        SubmissionEvaluation grade = evaluator.evaluate(sub);
 
         Assert.assertEquals(1, grade.getScore());
     }
+
 }

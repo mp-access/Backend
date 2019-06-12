@@ -12,8 +12,8 @@ import java.time.Instant;
 public class TextEvaluator implements StudentSubmissionEvaluator {
 
     @Override
-    public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
-        validate(submission, exercise);
+    public SubmissionEvaluation evaluate(StudentSubmission submission) {
+        validate(submission, submission.getExercise());
 
         TextSubmission textSub = (TextSubmission) submission;
 
