@@ -1,5 +1,8 @@
 package ch.uzh.ifi.access.student.evaluation;
 
+import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.ExerciseType;
+import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,5 +87,27 @@ public class EvalMachineBuilderTest {
         stateMachine.sendEvent(EvalMachine.Events.GRADE);
         Assertions.assertThat(stateMachine.getState().getId())
                 .isEqualTo(EvalMachine.States.DELEGATED);
+    }
+
+    @Test
+    public void gradeTextSubmission() {
+
+        TextSubmission sub = TextSubmission.builder()
+                .id("1")
+                .answer("something")
+                .exercise(Exercise.builder().type(ExerciseType.text).build())
+                .build();
+
+        actionHandler.storeSubmission(sub);
+
+        stateMachine.getExtendedState().getVariables().put("id", sub.getId());
+
+        stateMachine.sendEvent(EvalMachine.Events.GRADE);
+
+        Assertions.assertThat(stateMachine.getState().getId())
+                .isEqualTo(EvalMachine.States.GRADED);
+
+        Assertions.assertThat(actionHandler.getSubmission(sub.getId()).getResult().getScore())
+                .isEqualTo(0);
     }
 }

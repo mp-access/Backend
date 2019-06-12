@@ -1,6 +1,9 @@
 package ch.uzh.ifi.access.student.evaluation;
 
 import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.course.model.workspace.SubmissionEvaluation;
+import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.evaluation.evaluator.TextEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.statemachine.StateContext;
@@ -22,8 +25,6 @@ public class EvalActionHandler {
 
     public  Action<EvalMachine.States, EvalMachine.Events> submit() {
         return ctx -> {
-//            int approvals = (int) context.getExtendedState().getVariables()
-//                    .getOrDefault("approvalCount", 0);
             logger.warn("Submitting: {}", ctx);
             System.out.println("Submitting");
         };
@@ -33,12 +34,30 @@ public class EvalActionHandler {
         return ctx -> {
             logger.warn("Grading: {}", ctx);
 
-            String id = extractSubmissionId(ctx);
-            logger.debug("submission id; "+ id);
+            StudentSubmission submission = loadSubmission(ctx);
+            if(submission instanceof TextSubmission){
+                SubmissionEvaluation grad = new TextEvaluator().evaluate(submission);
+                logger.debug("Graded result is: "+ grad.getScore());
+                submission.setResult(grad);
+                storeSubmission(submission);
+            }
+
         };
     }
 
-    private String extractSubmissionId(StateContext ctx) {
-        return ctx.getExtendedState().getVariables().getOrDefault("id", "").toString();
+    public StudentSubmission loadSubmission(StateContext ctx) {
+        String id =  ctx.getExtendedState().getVariables().getOrDefault("id", "").toString();
+        logger.debug("submission id; "+ id);
+
+        return studentCtx.get(id);
     }
+
+    public StudentSubmission getSubmission(String submissionId) {
+        return studentCtx.get(submissionId);
+    }
+
+    public void storeSubmission(StudentSubmission submission) {
+         studentCtx.put(submission.getId(), submission);
+    }
+
 }
