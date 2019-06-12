@@ -39,7 +39,7 @@ public class SubmissionCodeRunner {
         persistFilesIntoFolder(path.toString() + "/code", submission.getPublicFiles());
         persistFilesIntoFolder(path.toString() + "/test", exercise.getPrivate_files());
 
-        RunResult res = runner.runCode(path.toString(), "-m unittest test/*.py -v");
+        RunResult res = runner.runPythonCode(path.toString(), "-m unittest test/*.py -v");
         logger.debug("CodeRunner result: "+ res.getOutput());
 
         return new ExecResult(res.getOutput());
