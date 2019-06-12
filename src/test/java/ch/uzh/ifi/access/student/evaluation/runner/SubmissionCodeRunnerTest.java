@@ -9,19 +9,15 @@ import ch.uzh.ifi.access.student.model.ExecResult;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.util.FileSystemUtils;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
-
-import static org.junit.Assert.*;
 
 public class SubmissionCodeRunnerTest {
 
@@ -34,7 +30,7 @@ public class SubmissionCodeRunnerTest {
         FileSystemUtils.deleteRecursively(Paths.get("./runner/s1"));
 
         Path psrc = Paths.get("./src/test/resources/test_code/solutioncode.py");
-         src = new VirtualFile(psrc.toAbsolutePath().normalize().toString(), "");
+        src = new VirtualFile(psrc.toAbsolutePath().normalize().toString(), "");
 
         Path ptest = Paths.get("./src/test/resources/test_code/test_suite.py");
         test = new VirtualFile(ptest.toAbsolutePath().normalize().toString(), "");
@@ -60,6 +56,12 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStdout()).isNotEmpty();
+
+        Assertions.assertThat(new File("./runner/"+sub.getId()+"/code/"+src.getName()+"."+src.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/"+sub.getId()+"/code/"+init.getName()+"."+init.getExtension())).exists();
+
+        Assertions.assertThat(new File("./runner/"+sub.getId()+"/test/"+test.getName()+"."+test.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/"+sub.getId()+"/test/"+init.getName()+"."+init.getExtension())).exists();
     }
 
 }
