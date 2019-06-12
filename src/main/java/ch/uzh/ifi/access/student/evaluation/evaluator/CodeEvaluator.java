@@ -43,7 +43,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             score = nrOfTest - extractNrOfNOKTests(resultLine);
         }
 
-        return new SubmissionEvaluation(score, 0, Instant.now());
+        return new SubmissionEvaluation(score, Instant.now());
     }
 
     private int extractNrOfTests(String line) {
