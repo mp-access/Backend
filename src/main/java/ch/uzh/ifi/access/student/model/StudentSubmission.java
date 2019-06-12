@@ -1,12 +1,9 @@
-package ch.uzh.ifi.access.course.model.workspace;
+package ch.uzh.ifi.access.student.model;
 
-import ch.uzh.ifi.access.course.model.Exercise;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -28,16 +25,7 @@ public abstract class StudentSubmission {
 
     private String exerciseId;
 
-    @JsonIgnore
-    @Transient
-    private Exercise exercise;
-
     private Instant timestamp;
 
     private SubmissionEvaluation result;
-
-    public void setExercise(Exercise exercise) {
-        this.exercise = exercise;
-        this.exerciseId = exercise.getId();
-    }
 }

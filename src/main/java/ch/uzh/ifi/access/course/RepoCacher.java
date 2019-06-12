@@ -20,31 +20,29 @@ import java.time.temporal.ChronoField;
 import java.util.*;
 
 public class RepoCacher {
- 	static final String REPO_DIR = "course_repositories";
+ 	private static final String REPO_DIR = "course_repositories";
 
 	// FOLDERS
-	static final String ASSIGNMENT_FOLDER_PREFIX = "assignment";
-	static final String EXERCISE_FOLDER_PREFIX = "exercise";
-	static final String PUBLIC_FOLDER_NAME = "public";
-	static final String PRIVATE_FOLDER_NAME = "private";
-	static final String RESOURCE_FOLDER_NAME = "resource";
-	static final String SOLUTION_FOLDER_NAME = "solution";
+	private static final String ASSIGNMENT_FOLDER_PREFIX = "assignment";
+	private static final String EXERCISE_FOLDER_PREFIX = "exercise";
+	private static final String PUBLIC_FOLDER_NAME = "public";
+	private static final String PRIVATE_FOLDER_NAME = "private";
+	private static final String RESOURCE_FOLDER_NAME = "resource";
+	private static final String SOLUTION_FOLDER_NAME = "solution";
 
 	// FILES
-	static final String COURSE_FILE_NAME = "config.json";
-	static final String ASSIGNMENT_FILE_NAME = "config.json";
-	static final String EXERCISE_FILE_NAME = "config.json";
-	static final String QUESTION_FILE_NAME = "description.md";
+	private static final String COURSE_FILE_NAME = "config.json";
+	private static final String ASSIGNMENT_FILE_NAME = "config.json";
+	private static final String EXERCISE_FILE_NAME = "config.json";
+	private static final String QUESTION_FILE_NAME = "description.md";
 
-	static ObjectMapper mapper;
+	private static ObjectMapper mapper;
 
-	List<String> ignore_dir = Arrays.asList(".git");
-	List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
+	private List<String> ignore_dir = Arrays.asList(".git");
+	private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static List<Course> retrieveCourseData(String repo_urls[]) throws Exception
+    public static List<Course> retrieveCourseData(String urls[]) throws Exception
     {
-        //deleteDir(new File(REPO_DIR));
-
 		DateTimeFormatter fmt = new DateTimeFormatterBuilder()
 				.appendPattern("yyyy-MM-dd")
 				.optionalStart()
@@ -65,7 +63,7 @@ public class RepoCacher {
 		List<Course> courses = new ArrayList<>();
 
 		int i = 0;
-        for(String url : repo_urls) {
+        for(String url : urls) {
 			String hash = loadFilesFromGit(url);
 
 			RepoCacher cacher = new RepoCacher();
@@ -73,6 +71,7 @@ public class RepoCacher {
 			Course course = new Course();
 			course.setGitHash(hash);
 			course.setDirectory(repo.getAbsolutePath());
+			course.setGitURL(url);
 
 			cacher.cacheRepo(repo, course);
 			courses.add(course);

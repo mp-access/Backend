@@ -16,11 +16,9 @@ rest.security.enabled=true
 course.users.init-on-startup=false 
 ```
 
-## MongoDB
+## API Docs
+With the server application running: http://localhost:8080/api/swagger-ui.html
 
--  [MongoDB with Docker](https://docs.docker.com/samples/library/mongo/)
--  standard port: 27017
--  `docker pull mongo`
--  `docker run -d --name mongodb mongo:latest`
--  `docker exec -it mongodb bash`
--  docker inspect CID
+Works also using `rest.security.enabled=true` or `rest.security.enabled=false`
+
+When the flag is set to true, click on `authorize`, for `client_id` enter `access-frontend` and click on `Authorize`

@@ -1,15 +1,15 @@
-package ch.uzh.ifi.access.course.controller;
+package ch.uzh.ifi.access.student.controller;
 
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
-import ch.uzh.ifi.access.course.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
-import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
-import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.student.model.CodeSubmission;
+import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
+import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;

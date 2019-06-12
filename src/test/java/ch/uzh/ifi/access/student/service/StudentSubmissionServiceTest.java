@@ -1,13 +1,13 @@
-package ch.uzh.ifi.access.course.service;
+package ch.uzh.ifi.access.student.service;
 
 import ch.uzh.ifi.access.TestObjectFactory;
-import ch.uzh.ifi.access.course.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
-import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.student.model.CodeSubmission;
+import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
+import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
@@ -63,8 +63,7 @@ public class StudentSubmissionServiceTest {
     @Test
     public void saveCodeSubmission() {
         Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        CodeSubmission submittedAnswer = TestObjectFactory.createCodeAnswer();
-        submittedAnswer.setExercise(exercise);
+        CodeSubmission submittedAnswer = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
 
         CodeSubmission savedAnswer = service.saveSubmission(submittedAnswer);
 
@@ -80,8 +79,7 @@ public class StudentSubmissionServiceTest {
     @Test
     public void saveTextSubmission() {
         Exercise exercise = TestObjectFactory.createTextExercise("Hello, world?");
-        TextSubmission submittedAnswer = TestObjectFactory.createTextAnswer();
-        submittedAnswer.setExercise(exercise);
+        TextSubmission submittedAnswer = TestObjectFactory.createTextAnswerWithExercise(exercise.getId());
 
         TextSubmission savedAnswer = service.saveSubmission(submittedAnswer);
         Assertions.assertThat(savedAnswer).isNotNull();
@@ -96,8 +94,7 @@ public class StudentSubmissionServiceTest {
     @Test
     public void saveMultipleChoiceSubmission() {
         Exercise exercise = TestObjectFactory.createMultipleChoiceExercise("Hello, world?");
-        MultipleChoiceSubmission submittedAnswer = TestObjectFactory.createMultipleChoiceAnswer();
-        submittedAnswer.setExercise(exercise);
+        MultipleChoiceSubmission submittedAnswer = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise.getId());
 
         MultipleChoiceSubmission savedAnswer = service.saveSubmission(submittedAnswer);
         Assertions.assertThat(savedAnswer).isNotNull();
@@ -112,16 +109,13 @@ public class StudentSubmissionServiceTest {
     @Test
     public void findAllSubmissions() {
         Exercise codeExercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        CodeSubmission codeSubmission = TestObjectFactory.createCodeAnswer();
-        codeSubmission.setExercise(codeExercise);
+        CodeSubmission codeSubmission = TestObjectFactory.createCodeAnswerWithExercise(codeExercise.getId());
 
         Exercise textExercise = TestObjectFactory.createTextExercise("Hello, world?");
-        TextSubmission textSubmission = TestObjectFactory.createTextAnswer();
-        textSubmission.setExercise(textExercise);
+        TextSubmission textSubmission = TestObjectFactory.createTextAnswerWithExercise(textExercise.getId());
 
         Exercise multipleChoiceExercise = TestObjectFactory.createMultipleChoiceExercise("Hello, world?");
-        MultipleChoiceSubmission multipleChoiceSubmission = TestObjectFactory.createMultipleChoiceAnswer();
-        multipleChoiceSubmission.setExercise(multipleChoiceExercise);
+        MultipleChoiceSubmission multipleChoiceSubmission = TestObjectFactory.createMultipleChoiceAnswerWithExercise(multipleChoiceExercise.getId());
 
         codeSubmission = service.saveSubmission(codeSubmission);
         textSubmission = service.saveSubmission(textSubmission);
@@ -139,11 +133,11 @@ public class StudentSubmissionServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
         Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
 
-        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
 
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
-        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
-        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise);
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise.getId());
 
         // Explicitly set user ids for test
         final String userId1 = "userId-1";
@@ -192,10 +186,10 @@ public class StudentSubmissionServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
         Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
 
-        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
 
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise);
-        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise);
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise.getId());
 
         // Explicitly set user ids for test
         final String userId = "userId-1";
@@ -234,11 +228,11 @@ public class StudentSubmissionServiceTest {
         assignment.addExercise(exercise2);
         assignment.addExercise(exercise3);
 
-        CodeSubmission answer1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1);
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1);
-        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise1);
-        TextSubmission answer2 = TestObjectFactory.createTextAnswerWithExercise(exercise2);
-        MultipleChoiceSubmission answer3 = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise3);
+        CodeSubmission answer1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+        TextSubmission answer2 = TestObjectFactory.createTextAnswerWithExercise(exercise2.getId());
+        MultipleChoiceSubmission answer3 = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise3.getId());
 
         // Explicitly set user ids for test
         final String userId = "userId-1";

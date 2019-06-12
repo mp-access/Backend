@@ -1,6 +1,6 @@
-package ch.uzh.ifi.access.course.dto;
+package ch.uzh.ifi.access.student.dto;
 
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
 import lombok.Value;
 
 import java.time.Instant;

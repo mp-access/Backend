@@ -27,6 +27,7 @@ public class Exercise {
     private String language;
 
     private String question;
+    private int maxSubmits;
 
     @JsonIgnore
     private List<VirtualFile> private_files = new ArrayList<>();
@@ -44,6 +45,7 @@ public class Exercise {
         this.type = other.type;
         this.language = other.language;
         this.question = other.question;
+        this.maxSubmits = other.maxSubmits;
     }
 
     public void update(Exercise other) {
@@ -69,6 +71,7 @@ public class Exercise {
         return !(Objects.equals(this.type, other.type) &&
                 Objects.equals(this.language, other.language) &&
                 Objects.equals(this.question, other.question) &&
+                Objects.equals(this.maxSubmits, other.maxSubmits) &&
                 Objects.equals(this.private_files, other.private_files) &&
                 Objects.equals(this.solution_files, other.solution_files) &&
                 Objects.equals(this.resource_files, other.resource_files) &&

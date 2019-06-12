@@ -13,6 +13,7 @@ public class Course {
     private final String id;
 
     private String gitHash;
+    private String gitURL;
     private String directory;
 
     private String title;
@@ -32,6 +33,7 @@ public class Course {
 
     public void set(Course other) {
         //this.directory = other.directory;
+        //this.gitURL = other.gitURL;
         this.gitHash = other.gitHash;
         this.title = other.title;
         this.description = other.description;

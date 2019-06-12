@@ -1,9 +1,9 @@
 package ch.uzh.ifi.access;
 
 import ch.uzh.ifi.access.course.model.*;
-import ch.uzh.ifi.access.course.model.workspace.CodeSubmission;
-import ch.uzh.ifi.access.course.model.workspace.MultipleChoiceSubmission;
-import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.model.CodeSubmission;
+import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.student.model.TextSubmission;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -61,9 +61,9 @@ public class TestObjectFactory {
         return virtualFile;
     }
 
-    public static CodeSubmission createCodeAnswerWithExercise(Exercise exercise) {
+    public static CodeSubmission createCodeAnswerWithExercise(String exerciseId) {
         CodeSubmission answer = createCodeAnswer();
-        answer.setExercise(exercise);
+        answer.setExerciseId(exerciseId);
         return answer;
     }
 
@@ -79,10 +79,10 @@ public class TestObjectFactory {
                 .build();
     }
 
-    public static TextSubmission createTextAnswerWithExercise(Exercise exercise) {
-        TextSubmission textAnswer = createTextAnswer();
-        textAnswer.setExercise(exercise);
-        return textAnswer;
+    public static TextSubmission createTextAnswerWithExercise(String exerciseId) {
+        TextSubmission answer = createTextAnswer();
+        answer.setExerciseId(exerciseId);
+        return answer;
     }
 
     public static TextSubmission createTextAnswer() {
@@ -96,9 +96,9 @@ public class TestObjectFactory {
                 .build();
     }
 
-    public static MultipleChoiceSubmission createMultipleChoiceAnswerWithExercise(Exercise exercise) {
+    public static MultipleChoiceSubmission createMultipleChoiceAnswerWithExercise(String exerciseId) {
         MultipleChoiceSubmission multipleChoiceSubmission = createMultipleChoiceAnswer();
-        multipleChoiceSubmission.setExercise(exercise);
+        multipleChoiceSubmission.setExerciseId(exerciseId);
         return multipleChoiceSubmission;
     }
 
