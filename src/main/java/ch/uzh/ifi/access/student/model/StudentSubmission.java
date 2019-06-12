@@ -28,4 +28,5 @@ public abstract class StudentSubmission {
     private Instant timestamp;
 
     private SubmissionEvaluation result;
+
 }

@@ -2,9 +2,9 @@ package ch.uzh.ifi.access.student.evaluation.evaluator;
 
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
-import ch.uzh.ifi.access.course.model.workspace.StudentSubmission;
-import ch.uzh.ifi.access.course.model.workspace.SubmissionEvaluation;
-import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.model.StudentSubmission;
+import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
+import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -12,8 +12,8 @@ import java.time.Instant;
 public class TextEvaluator implements StudentSubmissionEvaluator {
 
     @Override
-    public SubmissionEvaluation evaluate(StudentSubmission submission) {
-        validate(submission, submission.getExercise());
+    public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
+        validate(submission, exercise);
 
         TextSubmission textSub = (TextSubmission) submission;
 

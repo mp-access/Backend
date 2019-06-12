@@ -2,17 +2,12 @@ package ch.uzh.ifi.access.student.evaluation;
 
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
-import ch.uzh.ifi.access.course.model.workspace.TextSubmission;
+import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineBuilder;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.EnumSet;
 
@@ -91,14 +86,19 @@ public class EvalMachineBuilderTest {
 
     @Test
     public void gradeTextSubmission() {
+        Exercise ex = Exercise.builder()
+                .id("e1")
+                .type(ExerciseType.text)
+                .build();
 
         TextSubmission sub = TextSubmission.builder()
                 .id("1")
                 .answer("something")
-                .exercise(Exercise.builder().type(ExerciseType.text).build())
+                .exerciseId(ex.getId())
                 .build();
 
         actionHandler.storeSubmission(sub);
+        actionHandler.storeExercise(ex);
 
         stateMachine.getExtendedState().getVariables().put("id", sub.getId());
 
