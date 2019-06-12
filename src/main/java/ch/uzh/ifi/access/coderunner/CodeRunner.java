@@ -20,7 +20,7 @@ public class CodeRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(CodeRunner.class);
 
-    private static final String DOCKER_CODE_FOLDER = "/usr/src";
+    private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
     private static final String PYTHON_DOCKER_IMAGE = "python:3.8.0a4-alpine3.9";
 
@@ -30,17 +30,30 @@ public class CodeRunner {
         docker = DefaultDockerClient.fromEnv().build();
     }
 
-    public RunResult runCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
-        String absolutePath = new FileSystemResource(folderPath).getFile().getAbsolutePath();
+    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException {
+        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
 
-        HostConfig hostConfig = hostConfigWithAttachedVolume(absolutePath);
-
-        String[] cmd = {"python", DOCKER_CODE_FOLDER + filenameToExec};
         ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
 
+        return createAndRunContainer(containerConfig);
+    }
+
+    public RunResult runCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
+        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
+
+        String[] cmd = {"python", filenameToExec};
+        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+
+        return createAndRunContainer(containerConfig);
+    }
+
+    private RunResult createAndRunContainer(ContainerConfig containerConfig) throws DockerException, InterruptedException {
         long startExecutionTime = System.nanoTime();
         ContainerCreation creation = docker.createContainer(containerConfig);
-        creation.warnings().forEach(logger::warn);
+
+        if (creation.warnings() != null) {
+            creation.warnings().forEach(logger::warn);
+        }
 
         String containerId = creation.id();
         startAndWaitContainer(containerId);
@@ -54,7 +67,8 @@ public class CodeRunner {
     }
 
     private HostConfig hostConfigWithAttachedVolume(String hostPath) {
-        return HostConfig.builder().appendBinds(new String[]{hostPath + ":" + DOCKER_CODE_FOLDER}).build();
+        String absolutePath = new FileSystemResource(hostPath).getFile().getAbsolutePath();
+        return HostConfig.builder().appendBinds(new String[]{absolutePath + ":" + DOCKER_CODE_FOLDER}).build();
     }
 
     private ContainerConfig containerConfig(HostConfig hostConfig, String[] cmd) {
@@ -63,6 +77,7 @@ public class CodeRunner {
                 .hostConfig(hostConfig)
                 .image(PYTHON_DOCKER_IMAGE)
                 .networkDisabled(true)
+                .workingDir(DOCKER_CODE_FOLDER)
                 .cmd(cmd)
                 .build();
     }
