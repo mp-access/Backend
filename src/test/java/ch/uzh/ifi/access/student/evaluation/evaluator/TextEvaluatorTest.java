@@ -24,7 +24,6 @@ public class TextEvaluatorTest {
         SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
 
         Assert.assertEquals(1, grade.getScore());
-        Assert.assertEquals(1, grade.getMaxScore());
     }
 
 }
