@@ -20,6 +20,10 @@ public class StudentSubmissionService {
         this.studentSubmissionRepository = studentSubmissionRepository;
     }
 
+    public Optional<StudentSubmission> findById(String submissionId){
+        return studentSubmissionRepository.findById(submissionId);
+    }
+
     public List<StudentSubmission> findAll() {
         return studentSubmissionRepository.findAll();
     }
