@@ -47,6 +47,11 @@ public class SubmissionCodeRunner {
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
 
+        if(files == null){
+            logger.debug("No files to persist into " + folderPath);
+            return;
+        }
+
         Path path = Paths.get(folderPath);
         logger.debug(path.toAbsolutePath().normalize().toString());
 
