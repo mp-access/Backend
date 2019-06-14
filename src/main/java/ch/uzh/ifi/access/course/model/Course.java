@@ -34,9 +34,6 @@ public class Course {
     public void set(Course other) {
         //this.directory = other.directory;
         //this.gitURL = other.gitURL;
-        if (other.gitHash != null) {
-            this.gitHash = other.gitHash;
-        }
         this.title = other.title;
         this.description = other.description;
         this.owner = other.owner;
@@ -49,6 +46,7 @@ public class Course {
 
     public void update(Course other) {
         set(other);
+        this.gitHash = other.gitHash;
         int diff = assignments.size() - other.assignments.size();
         int size = assignments.size();
 
