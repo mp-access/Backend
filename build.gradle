@@ -67,7 +67,8 @@ test {
     }
 
     if (project.hasProperty('excludeDockerTests')) {
-        exclude '**/CodeRunnerTest.class,**/SubmissionCodeRunnerTest.class,'
+        exclude '**/CodeRunnerTest.class'
+        exclude '**/SubmissionCodeRunnerTest.class'
     }
 }
 
