@@ -17,6 +17,7 @@ public class CourseMetadataDTO {
     private String title;
     private String description;
     private String owner;
+    private String gitHash;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private List<AssignmentMetadataDTO> assignments = new ArrayList<>();
@@ -26,6 +27,7 @@ public class CourseMetadataDTO {
         this.title = course.getTitle();
         this.description = course.getDescription();
         this.owner = course.getOwner();
+        this.gitHash = course.getGitHash();
         this.startDate = course.getStartDate();
         this.endDate = course.getEndDate();
 

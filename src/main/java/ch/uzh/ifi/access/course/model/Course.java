@@ -34,7 +34,9 @@ public class Course {
     public void set(Course other) {
         //this.directory = other.directory;
         //this.gitURL = other.gitURL;
-        this.gitHash = other.gitHash;
+        if (other.gitHash != null) {
+            this.gitHash = other.gitHash;
+        }
         this.title = other.title;
         this.description = other.description;
         this.owner = other.owner;
