@@ -39,15 +39,17 @@ public class SubmissionCodeRunner {
         persistFilesIntoFolder(path.toString() + "/code", submission.getPublicFiles());
         persistFilesIntoFolder(path.toString() + "/test", exercise.getPrivate_files());
 
-        RunResult res = runner.runPythonCode(path.toString(), "-m unittest test/*.py -v");
-        logger.debug("CodeRunner result: "+ res.getOutput());
+        String[] cmd = {"python", "-m", "unittest", "-v"};
+        RunResult res = runner.attachVolumeAndRunCommand(path.toString(), cmd);
 
-        return new ExecResult(res.getOutput());
+        logger.debug("CodeRunner result: " + res.getOutput());
+
+        return new ExecResult(res.getOutput(), res.getStdErr());
     }
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
 
-        if(files == null){
+        if (files == null) {
             logger.debug("No files to persist into " + folderPath);
             return;
         }
