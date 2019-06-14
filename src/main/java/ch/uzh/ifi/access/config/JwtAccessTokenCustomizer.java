@@ -63,6 +63,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         JsonNode token = mapper.convertValue(tokenMap, JsonNode.class);
 
         String subject = extractSubject(token);
+        String username = extractUsername(token);
         Set<String> audienceList = extractAudiences(token);
         List<GrantedAuthority> authorities = extractRoles(token);
         Set<GrantedCourseAccess> courseAccesses = extractCourses(token);
@@ -78,7 +79,7 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
                         audienceList, null, null, null);
 
         Authentication usernamePasswordAuthentication =
-                new UsernamePasswordAuthenticationToken(authentication.getPrincipal(),
+                new UsernamePasswordAuthenticationToken(username,
                         "N/A", authorities);
 
         logger.debug("End extractAuthentication");
@@ -88,6 +89,12 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
     String extractSubject(JsonNode jwt) {
         if (jwt.has("sub")) {
             return jwt.get("sub").asText();
+        }
+        return null;
+    }
+    String extractUsername(JsonNode jwt) {
+        if (jwt.has("preferred_username")) {
+            return jwt.get("preferred_username").asText();
         }
         return null;
     }
