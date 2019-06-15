@@ -13,7 +13,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
 import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -36,13 +38,17 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
-        resources.resourceId(resourceServerProperties.getResourceId());
+        resources
+                .resourceId(resourceServerProperties.getResourceId())
+                .authenticationManager(new HeaderApiKeyFilter.CustomAuthenticator())
+//                .tokenExtractor(tokenExtractor())
+        ;
     }
-
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
         final String[] swaggerPaths = new String[]{"/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**"};
+
         http.cors()
                 .configurationSource(corsConfigurationSource())
                 .and()
@@ -52,6 +58,7 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
                 .and()
                 .csrf()
                 .disable()
+                .addFilterAfter(headerApiKeyFilter(), AbstractPreAuthenticatedProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(swaggerPaths)
                 .permitAll()
@@ -76,5 +83,15 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
     @Bean
     public JwkTokenStore jwkTokenStore(@Value("${security.oauth2.resource.jwk.key-set-uri}") String jwkSetUrl, JwtAccessTokenCustomizer accessTokenCustomizer) {
         return new JwkTokenStore(jwkSetUrl, accessTokenCustomizer);
+    }
+
+    @Bean
+    public HeaderApiKeyFilter headerApiKeyFilter() {
+        return new HeaderApiKeyFilter();
+    }
+
+    @Bean
+    public TokenExtractor tokenExtractor() {
+        return new GithubOrBearerTokenExtractor();
     }
 }
