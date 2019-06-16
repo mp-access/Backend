@@ -1,12 +1,8 @@
 package ch.uzh.ifi.access.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -15,43 +11,43 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+@Component
 public class HeaderApiKeyFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(HeaderApiKeyFilter.class);
+    private static final String HEADER_NAME = "X-Hub-Signature";
+
+    private final ApiTokenAuthenticationProvider authenticationProvider;
+
+    public HeaderApiKeyFilter(ApiTokenAuthenticationProvider authenticationProvider) {
+        this.authenticationProvider = authenticationProvider;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof GithubHeaderAuthentication) {
-            GithubHeaderAuthentication custom = (GithubHeaderAuthentication) authentication;
-            logger.info("Found custom authentication: " + custom.getPrincipal());
-            if ("GOOD".equals(custom.getPrincipal())) {
-                authentication.setAuthenticated(true);
+        if (isSupportedPathAndMethod(request)) {
+
+            String githubWebHookHeader = request.getHeader(HEADER_NAME);
+            if (authentication == null && isSupportedHeader(githubWebHookHeader)) {
+                Authentication auth =
+                        authenticationProvider.authenticate(
+                                new ApiTokenAuthenticationProvider.GithubHeaderAuthentication(githubWebHookHeader, null));
+                SecurityContextHolder.getContext().setAuthentication(auth);
             } else {
                 SecurityContextHolder.clearContext();
             }
-        } else {
-            SecurityContextHolder.clearContext();
         }
+
         filterChain.doFilter(request, response);
     }
 
-    protected static class CustomAuthenticator extends OAuth2AuthenticationManager {
-        @Override
-        public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-            try {
-                return super.authenticate(authentication);
-            } catch (Exception e) {
-                return new GithubHeaderAuthentication("testUser", "");
-            }
-        }
+    private boolean isSupportedPathAndMethod(HttpServletRequest request) {
+        return request.getMethod().equals("POST") && request.getRequestURI().startsWith(request.getContextPath() + "/courses/update");
     }
 
-    @SuppressWarnings("serial")
-    protected static class GithubHeaderAuthentication extends PreAuthenticatedAuthenticationToken {
-        public GithubHeaderAuthentication(Object aPrincipal, Object aCredentials) {
-            super("GOOD", aCredentials);
-        }
+    private boolean isSupportedHeader(String header) {
+        return header != null && header.startsWith("sha1=");
     }
 }

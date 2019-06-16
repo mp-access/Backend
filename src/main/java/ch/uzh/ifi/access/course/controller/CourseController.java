@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.controller;
 
+import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
 import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
@@ -7,14 +8,15 @@ import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.service.CourseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +28,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
+
+    private static final Logger logger = LoggerFactory.getLogger(CourseController.class);
 
     private final CourseService courseService;
 
@@ -42,8 +46,16 @@ public class CourseController {
         return courses;
     }
 
-    @GetMapping(path = "/update")
-    public void updateCourses() {
+    @PostMapping(path = "/update")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void updateCourses(@RequestBody String json, ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
+        logger.info("Updating courses");
+
+        boolean matchers = authentication.matchesHmacSignature(json);
+        if (!matchers) {
+            throw new BadCredentialsException("Hmac signature does not match!");
+        }
+
         courseService.updateCourses();
     }
 

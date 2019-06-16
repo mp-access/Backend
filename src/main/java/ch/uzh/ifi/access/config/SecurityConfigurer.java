@@ -13,7 +13,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.authentication.TokenExtractor;
 import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -31,18 +30,17 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
 
     private final SecurityProperties securityProperties;
 
-    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties) {
+    private final HeaderApiKeyFilter filter;
+
+    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties, HeaderApiKeyFilter filter) {
         this.resourceServerProperties = resourceServerProperties;
         this.securityProperties = securityProperties;
+        this.filter = filter;
     }
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
-        resources
-                .resourceId(resourceServerProperties.getResourceId())
-                .authenticationManager(new HeaderApiKeyFilter.CustomAuthenticator())
-//                .tokenExtractor(tokenExtractor())
-        ;
+        resources.resourceId(resourceServerProperties.getResourceId());
     }
 
     @Override
@@ -58,7 +56,7 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
                 .and()
                 .csrf()
                 .disable()
-                .addFilterAfter(headerApiKeyFilter(), AbstractPreAuthenticatedProcessingFilter.class)
+                .addFilterAfter(filter, AbstractPreAuthenticatedProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(swaggerPaths)
                 .permitAll()
@@ -83,15 +81,5 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
     @Bean
     public JwkTokenStore jwkTokenStore(@Value("${security.oauth2.resource.jwk.key-set-uri}") String jwkSetUrl, JwtAccessTokenCustomizer accessTokenCustomizer) {
         return new JwkTokenStore(jwkSetUrl, accessTokenCustomizer);
-    }
-
-    @Bean
-    public HeaderApiKeyFilter headerApiKeyFilter() {
-        return new HeaderApiKeyFilter();
-    }
-
-    @Bean
-    public TokenExtractor tokenExtractor() {
-        return new GithubOrBearerTokenExtractor();
     }
 }
