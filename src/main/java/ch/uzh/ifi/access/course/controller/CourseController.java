@@ -49,18 +49,26 @@ public class CourseController {
     @PostMapping(path = "/update")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void updateCourses(@RequestBody String json, ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
-        logger.info("Updating courses");
+        logger.debug("Received web hook");
 
-        boolean matchers = authentication.matchesHmacSignature(json);
-        if (!matchers) {
+        if (!authentication.matchesHmacSignature(json)) {
             throw new BadCredentialsException("Hmac signature does not match!");
         }
 
+        logger.debug("Updating courses");
         courseService.updateCourses();
     }
 
-    @GetMapping(path = "{id}/update")
-    public void updateCourse(@PathVariable("id") String id) {
+    @PostMapping(path = "{id}/update")
+    public void updateCourse(@PathVariable("id") String id, @RequestBody String json,
+                             ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
+        logger.debug("Received web hook");
+
+        if (!authentication.matchesHmacSignature(json)) {
+            throw new BadCredentialsException("Hmac signature does not match!");
+        }
+
+        logger.debug("Updating courses");
         courseService.updateCourseById(id);
     }
 

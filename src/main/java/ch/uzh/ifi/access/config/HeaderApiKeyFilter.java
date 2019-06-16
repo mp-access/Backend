@@ -1,7 +1,9 @@
 package ch.uzh.ifi.access.config;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,6 +17,8 @@ import java.io.IOException;
 public class HeaderApiKeyFilter extends OncePerRequestFilter {
 
     private static final String HEADER_NAME = "X-Hub-Signature";
+
+    private static final AntPathRequestMatcher requestMatcher = new AntPathRequestMatcher("/courses/**/update", HttpMethod.POST.toString());
 
     private final ApiTokenAuthenticationProvider authenticationProvider;
 
@@ -44,7 +48,7 @@ public class HeaderApiKeyFilter extends OncePerRequestFilter {
     }
 
     private boolean isSupportedPathAndMethod(HttpServletRequest request) {
-        return request.getMethod().equals("POST") && request.getRequestURI().startsWith(request.getContextPath() + "/courses/update");
+        return requestMatcher.matches(request);
     }
 
     private boolean isSupportedHeader(String header) {
