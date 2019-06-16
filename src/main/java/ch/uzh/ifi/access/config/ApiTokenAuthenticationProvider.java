@@ -47,7 +47,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider, I
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if (hmacSecret == null || hmacSecret.isEmpty()) {
             throw new UnsupportedOperationException("No hmac secret set! Exiting...");
         }
@@ -62,7 +62,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider, I
 
         private HmacUtils hmacMatcher;
 
-        public GithubHeaderAuthentication(Object aPrincipal, HmacUtils hmacUtils) {
+        GithubHeaderAuthentication(Object aPrincipal, HmacUtils hmacUtils) {
             super(aPrincipal, "N/A");
             setAuthenticated(true);
             this.hmacMatcher = hmacUtils;
