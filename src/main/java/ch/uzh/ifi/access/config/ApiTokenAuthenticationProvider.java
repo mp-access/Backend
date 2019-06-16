@@ -52,7 +52,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider, I
             throw new UnsupportedOperationException("No hmac secret set! Exiting...");
         }
 
-        if (hmacSecret.equals("FALLBACK_SECRET_WHICH_SHOULD_BE_TAKEN_FROM_ENV")) {
+        if ("FALLBACK_SECRET_WHICH_SHOULD_BE_TAKEN_FROM_ENV".equals(hmacSecret)) {
             logger.warn("Using the fallback secret for development. This should never happen in production.");
         }
         hmacUtils = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, hmacSecret);
