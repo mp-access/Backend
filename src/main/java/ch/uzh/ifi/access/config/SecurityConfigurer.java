@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -29,9 +30,12 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
 
     private final SecurityProperties securityProperties;
 
-    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties) {
+    private final HeaderApiKeyFilter filter;
+
+    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties, HeaderApiKeyFilter filter) {
         this.resourceServerProperties = resourceServerProperties;
         this.securityProperties = securityProperties;
+        this.filter = filter;
     }
 
     @Override
@@ -39,10 +43,10 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
         resources.resourceId(resourceServerProperties.getResourceId());
     }
 
-
     @Override
     public void configure(final HttpSecurity http) throws Exception {
         final String[] swaggerPaths = new String[]{"/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**"};
+
         http.cors()
                 .configurationSource(corsConfigurationSource())
                 .and()
@@ -52,6 +56,7 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
                 .and()
                 .csrf()
                 .disable()
+                .addFilterAfter(filter, AbstractPreAuthenticatedProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(swaggerPaths)
                 .permitAll()
