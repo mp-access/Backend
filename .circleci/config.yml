@@ -84,7 +84,7 @@ jobs:
 
       - run:
           name: Build Docker image
-          command: docker build -t hoal/$COURSE_SERVICE_IMAGE_NAME:${CIRCLE_BRANCH} .
+          command: docker build -t hoal/$COURSE_SERVICE_IMAGE_NAME:$CIRCLE_BRANCH .
 
       - add_ssh_keys:
           fingerprints:
