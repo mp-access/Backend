@@ -94,7 +94,7 @@ public class RepoCacher {
             fis.read(data);
             fis.close();
             String content = new String(data, StandardCharsets.UTF_8);
-            logger.trace(String.format("Parsed file %s.\nContent:\n%s", file.getAbsolutePath(), content));
+            logger.trace(String.format("Parsed file %s\nContent:\n%s", file.getAbsolutePath(), content));
             return content;
         } catch (Exception e) {
             logger.warn(String.format("Failed to parse file %s", file.getAbsolutePath()), e);
