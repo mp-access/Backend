@@ -112,9 +112,11 @@ workflows:
     jobs:
       - build
       - push_to_dockerhub
+          requires:
+          - build
       - deploy:
           requires:
-            - build
+            - push_to_dockerhub
           filters:
             branches:
               only: master
