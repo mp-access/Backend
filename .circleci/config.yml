@@ -111,7 +111,7 @@ workflows:
   build-and-deploy-master:
     jobs:
       - build
-      - push_to_dockerhub
+      - push_to_dockerhub:
           requires:
           - build
       - deploy:
