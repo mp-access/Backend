@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -46,13 +45,14 @@ public class StudentSubmissionServiceTest {
     public void findById() {
         CodeSubmission submission = new CodeSubmission();
         submission.setExerciseId("123");
-        submission.setTimestamp(Instant.now());
+        submission.setUserId("456");
         submission = repository.save(submission);
 
-        Optional<? extends StudentSubmission> foundById = service.findById(submission.getId());
-        Assertions.assertThat(foundById).isPresent();
-        Assertions.assertThat(foundById.map(StudentSubmission::getExerciseId)).isEqualTo(submission.getExerciseId());
-        Assertions.assertThat(foundById.map(StudentSubmission::getTimestamp)).isEqualTo(submission.getTimestamp());
+        StudentSubmission foundById = service.findById(submission.getId()).orElse(null);
+        Assertions.assertThat(foundById).isNotNull();
+
+        Assertions.assertThat(foundById.getExerciseId()).isEqualTo(submission.getExerciseId());
+        Assertions.assertThat(foundById.getUserId()).isEqualTo(submission.getUserId());
     }
 
     @Test(expected = IllegalArgumentException.class)
