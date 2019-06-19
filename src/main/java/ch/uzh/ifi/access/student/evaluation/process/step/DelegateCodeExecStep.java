@@ -2,7 +2,7 @@ package ch.uzh.ifi.access.student.evaluation.process.step;
 
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
-import ch.uzh.ifi.access.student.evaluation.EvalMachine;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
 import ch.uzh.ifi.access.student.evaluation.runner.SubmissionCodeRunner;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;

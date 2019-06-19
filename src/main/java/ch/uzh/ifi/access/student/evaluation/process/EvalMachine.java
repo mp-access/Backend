@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.student.evaluation;
+package ch.uzh.ifi.access.student.evaluation.process;
 
 public class EvalMachine {
 
