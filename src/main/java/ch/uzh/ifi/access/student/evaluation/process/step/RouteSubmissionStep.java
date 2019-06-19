@@ -22,10 +22,8 @@ public class RouteSubmissionStep implements ProcessStep {
         EvalMachine.Events resultingEvent = EvalMachine.Events.GRADE;
 
         Optional<StudentSubmission> opt = submissionService.findById(submissionId);
-        if(opt.isPresent()){
-            if (opt.get() instanceof CodeSubmission) {
-                resultingEvent = EvalMachine.Events.DELEGATE;
-            }
+        if (opt.isPresent() && opt.get() instanceof CodeSubmission) {
+            resultingEvent = EvalMachine.Events.DELEGATE;
         }
 
         return resultingEvent;
