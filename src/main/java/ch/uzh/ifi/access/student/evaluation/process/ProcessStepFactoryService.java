@@ -1,6 +1,7 @@
-package ch.uzh.ifi.access.student.evaluation.process.step;
+package ch.uzh.ifi.access.student.evaluation.process;
 
 import ch.uzh.ifi.access.course.service.CourseService;
+import ch.uzh.ifi.access.student.evaluation.process.step.*;
 import ch.uzh.ifi.access.student.evaluation.runner.SubmissionCodeRunner;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class ProcessStepFactory {
+public class ProcessStepFactoryService {
 
     private Map<String, ProcessStep> steps;
 
@@ -19,7 +20,7 @@ public class ProcessStepFactory {
     private SubmissionCodeRunner codeRunner;
 
     @Autowired
-    public ProcessStepFactory(StudentSubmissionService submissionService, CourseService courseService, SubmissionCodeRunner codeRunner) {
+    public ProcessStepFactoryService(StudentSubmissionService submissionService, CourseService courseService, SubmissionCodeRunner codeRunner) {
         this.submissionService = submissionService;
         this.courseService = courseService;
         this.codeRunner = codeRunner;
@@ -28,6 +29,7 @@ public class ProcessStepFactory {
         steps.put(DelegateCodeExecStep.class.getName(), new DelegateCodeExecStep(submissionService, courseService, codeRunner));
         steps.put(RouteSubmissionStep.class.getName(), new RouteSubmissionStep(submissionService));
         steps.put(GradeSubmissionStep.class.getName(), new GradeSubmissionStep(submissionService, courseService));
+        steps.put(WaitForExecutedCodeStep.class.getName(), new WaitForExecutedCodeStep(submissionService));
     }
 
     public ProcessStep getStep(String key){

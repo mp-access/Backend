@@ -1,9 +1,9 @@
 package ch.uzh.ifi.access.student.evaluation.process;
 
-import ch.uzh.ifi.access.student.evaluation.EvalMachine;
 import ch.uzh.ifi.access.student.evaluation.process.step.DelegateCodeExecStep;
 import ch.uzh.ifi.access.student.evaluation.process.step.GradeSubmissionStep;
 import ch.uzh.ifi.access.student.evaluation.process.step.RouteSubmissionStep;
+import ch.uzh.ifi.access.student.evaluation.process.step.WaitForExecutedCodeStep;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.action.Action;
@@ -21,41 +21,45 @@ public class EvalMachineFactory {
         StateMachineBuilder.Builder<EvalMachine.States, EvalMachine.Events> builder
                 = StateMachineBuilder.builder();
 
+        // @formatter:off
         builder.configureStates()
                 .withStates()
-                .initial(EvalMachine.States.SUBMITTED, routeAction())
-                .end(EvalMachine.States.FINISHED)
-                .states(EnumSet.allOf(EvalMachine.States.class));
+                    .initial(EvalMachine.States.SUBMITTED, routeAction())
+                    .end(EvalMachine.States.FINISHED)
+                    .states(EnumSet.allOf(EvalMachine.States.class));
 
         builder.configureTransitions()
                 .withExternal()
-                .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.GRADING)
-                .event(EvalMachine.Events.GRADE)
-                .action(gradeAction())
-                .and()
+                    .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.GRADING)
+                    .event(EvalMachine.Events.GRADE)
+                    .action(gradeAction())
+                    .and()
                 .withExternal()
-                .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.DELEGATE)
-                .event(EvalMachine.Events.DELEGATE)
-                .action(delegateAction())
-                .and()
+                    .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.DELEGATE)
+                    .event(EvalMachine.Events.DELEGATE)
+                    .action(delegateAction())
+                    .and()
                 .withExternal()
-                .source(EvalMachine.States.DELEGATE).target(EvalMachine.States.RETURNING)
-                .event(EvalMachine.Events.RETURN)
-                .and()
+                    .source(EvalMachine.States.DELEGATE).target(EvalMachine.States.RETURNING)
+                    .event(EvalMachine.Events.RETURN)
+                    .action(waitForExecutedCodeAction())
+                    .and()
                 .withExternal()
-                .source(EvalMachine.States.RETURNING).target(EvalMachine.States.GRADING)
-                .event(EvalMachine.Events.GRADE)
-                .and()
+                    .source(EvalMachine.States.RETURNING).target(EvalMachine.States.GRADING)
+                    .event(EvalMachine.Events.GRADE)
+                    .action(gradeAction())
+                    .and()
                 .withExternal()
-                .source(EvalMachine.States.GRADING).target(EvalMachine.States.FINISHED)
-                .event(EvalMachine.Events.FINISH);
+                    .source(EvalMachine.States.GRADING).target(EvalMachine.States.FINISHED)
+                    .event(EvalMachine.Events.FINISH);
+        //@formatter:on
 
         StateMachine machine = builder.build();
         machine.getExtendedState().getVariables().put(EXTENDED_VAR_SUBMISSION_ID, submissionId);
         return machine;
     }
 
-    public static String extractProcessStep(StateMachine machine){
+    public static String extractProcessStep(StateMachine machine) {
         return machine.getExtendedState().getVariables().get(EXTENDED_VAR_NEXT_STEP).toString();
     }
 
@@ -64,7 +68,6 @@ public class EvalMachineFactory {
 
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
-                System.err.println("ZZZZ - route action");
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, RouteSubmissionStep.class.getName());
             }
         };
@@ -75,7 +78,6 @@ public class EvalMachineFactory {
 
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
-                System.err.println("ZZZZ - delegate action");
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, DelegateCodeExecStep.class.getName());
             }
         };
@@ -86,8 +88,17 @@ public class EvalMachineFactory {
 
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
-                System.err.println("ZZZZ - grade action");
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, GradeSubmissionStep.class.getName());
+            }
+        };
+    }
+
+    private static Action<EvalMachine.States, EvalMachine.Events> waitForExecutedCodeAction() {
+        return new Action<EvalMachine.States, EvalMachine.Events>() {
+
+            @Override
+            public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
+                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, WaitForExecutedCodeStep.class.getName());
             }
         };
     }
