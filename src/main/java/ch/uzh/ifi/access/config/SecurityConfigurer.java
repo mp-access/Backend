@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +13,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
+import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -27,9 +30,12 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
 
     private final SecurityProperties securityProperties;
 
-    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties) {
+    private final HeaderApiKeyFilter filter;
+
+    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties, HeaderApiKeyFilter filter) {
         this.resourceServerProperties = resourceServerProperties;
         this.securityProperties = securityProperties;
+        this.filter = filter;
     }
 
     @Override
@@ -37,10 +43,10 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
         resources.resourceId(resourceServerProperties.getResourceId());
     }
 
-
     @Override
     public void configure(final HttpSecurity http) throws Exception {
         final String[] swaggerPaths = new String[]{"/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**"};
+
         http.cors()
                 .configurationSource(corsConfigurationSource())
                 .and()
@@ -50,6 +56,7 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
                 .and()
                 .csrf()
                 .disable()
+                .addFilterAfter(filter, AbstractPreAuthenticatedProcessingFilter.class)
                 .authorizeRequests()
                 .antMatchers(swaggerPaths)
                 .permitAll()
@@ -69,5 +76,10 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
     @Bean
     public JwtAccessTokenCustomizer jwtAccessTokenCustomizer(ObjectMapper mapper) {
         return new JwtAccessTokenCustomizer(mapper);
+    }
+
+    @Bean
+    public JwkTokenStore jwkTokenStore(@Value("${security.oauth2.resource.jwk.key-set-uri}") String jwkSetUrl, JwtAccessTokenCustomizer accessTokenCustomizer) {
+        return new JwkTokenStore(jwkSetUrl, accessTokenCustomizer);
     }
 }
