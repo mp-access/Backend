@@ -28,4 +28,13 @@ public abstract class StudentSubmission {
     private Instant timestamp;
 
     private SubmissionEvaluation result;
+
+    /**
+     * Checks whether the given user id matches this submission's id.
+     *
+     * @return If this submission's user id is null, always return false, otherwise return true if ids match.
+     */
+    public boolean userIdMatches(String otherId) {
+        return this.userId != null && this.userId.equals(otherId);
+    }
 }

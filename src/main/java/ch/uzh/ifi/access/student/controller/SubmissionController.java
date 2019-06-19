@@ -33,7 +33,18 @@ public class SubmissionController {
         this.courseService = courseService;
     }
 
-    @GetMapping("/{exerciseId}")
+    @GetMapping("/{submissionId}")
+    public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String submissionId, @ApiIgnore CourseAuthentication authentication) {
+        StudentSubmission submission = studentSubmissionService.findById(submissionId).orElse(null);
+
+        if (submission == null || !submission.userIdMatches(authentication.getUserId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(submission);
+    }
+
+    @GetMapping("/exercises/{exerciseId}")
     public StudentSubmission getSubmissionByExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
         String username = authentication.getName();
@@ -46,7 +57,7 @@ public class SubmissionController {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Cannot find any submission for user %s and exercise %s", userId, exerciseId)));
     }
 
-    @PostMapping("/{exerciseId}")
+    @PostMapping("/exercises//{exerciseId}")
     public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
@@ -64,7 +75,7 @@ public class SubmissionController {
         }
     }
 
-    @GetMapping("/{exerciseId}/history")
+    @GetMapping("/exercises/{exerciseId}/history")
     public SubmissionHistoryDTO getAllSubmissionsForExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 

@@ -24,6 +24,11 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findAll();
     }
 
+    public Optional<? extends StudentSubmission> findById(String submissionId) {
+        Assert.notNull(submissionId, "Cannot get by id: id is null");
+        return studentSubmissionRepository.findById(submissionId);
+    }
+
     public <T extends StudentSubmission> List<T> findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(String exerciseId, String userId) {
         Assert.notNull(exerciseId, "exerciseId cannot be null");
         Assert.notNull(userId, "userId cannot be null");
