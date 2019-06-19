@@ -6,12 +6,16 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * In-memory cache of state machines used for the ACCESS MVP.
+ * This should be replaced with a persistent version for later use.
+ */
 @Service
-public class EvalMachineRepo {
+public class EvalMachineRepoService {
 
     private Map<String, StateMachine> machines;
 
-    public EvalMachineRepo() {
+    public EvalMachineRepoService() {
         this.machines = new HashMap<>();
     }
 

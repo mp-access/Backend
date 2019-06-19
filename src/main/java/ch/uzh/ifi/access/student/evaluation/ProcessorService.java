@@ -1,8 +1,10 @@
-package ch.uzh.ifi.access.student.evaluation.process;
+package ch.uzh.ifi.access.student.evaluation;
 
-import ch.uzh.ifi.access.student.evaluation.EvalMachine;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachineFactory;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachineRepoService;
+import ch.uzh.ifi.access.student.evaluation.process.ProcessStepFactoryService;
 import ch.uzh.ifi.access.student.evaluation.process.step.ProcessStep;
-import ch.uzh.ifi.access.student.evaluation.process.step.ProcessStepFactory;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +13,16 @@ import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
 @Service
-public class Processor {
+public class ProcessorService {
 
-    private static final Logger logger = LoggerFactory.getLogger(Processor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProcessorService.class);
 
-    private ProcessStepFactory stepFactory;
+    private ProcessStepFactoryService stepFactory;
 
-    private EvalMachineRepo machineRepo;
+    private EvalMachineRepoService machineRepo;
 
     @Autowired
-    public Processor(ProcessStepFactory stepFactory, EvalMachineRepo machineRepo) {
+    public ProcessorService(ProcessStepFactoryService stepFactory, EvalMachineRepoService machineRepo) {
         this.stepFactory = stepFactory;
         this.machineRepo = machineRepo;
     }
