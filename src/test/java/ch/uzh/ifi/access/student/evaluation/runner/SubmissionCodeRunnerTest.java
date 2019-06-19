@@ -27,7 +27,8 @@ public class SubmissionCodeRunnerTest {
 
     @Before
     public void setUp() throws IOException {
-        FileSystemUtils.deleteRecursively(Paths.get("./runner/s1"));
+        Path path = Paths.get("./runner/s1");
+        FileSystemUtils.deleteRecursively(path);
 
         Path psrc = Paths.get("./src/test/resources/test_code/solutioncode.py");
         src = new VirtualFile(psrc.toAbsolutePath().normalize().toString(), "");
@@ -35,10 +36,8 @@ public class SubmissionCodeRunnerTest {
         Path ptest = Paths.get("./src/test/resources/test_code/test_suite.py");
         test = new VirtualFile(ptest.toAbsolutePath().normalize().toString(), "");
 
-        init = new VirtualFile();
-        init.setName("__init__");
-        init.setExtension("py");
-        init.setContent("");
+        Path pInit = Paths.get("./src/test/resources/test_code/__init__.py");
+        init = new VirtualFile(pInit.toAbsolutePath().normalize().toString(), "");
     }
 
     @Test
@@ -55,13 +54,13 @@ public class SubmissionCodeRunnerTest {
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStdout()).isNotEmpty();
+        Assertions.assertThat(result.getStderr()).containsIgnoringCase("Ran 8 tests in");
 
-        Assertions.assertThat(new File("./runner/"+sub.getId()+"/code/"+src.getName()+"."+src.getExtension())).exists();
-        Assertions.assertThat(new File("./runner/"+sub.getId()+"/code/"+init.getName()+"."+init.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/code/" + src.getName() + "." + src.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/code/" + init.getName() + "." + init.getExtension())).exists();
 
-        Assertions.assertThat(new File("./runner/"+sub.getId()+"/test/"+test.getName()+"."+test.getExtension())).exists();
-        Assertions.assertThat(new File("./runner/"+sub.getId()+"/test/"+init.getName()+"."+init.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/test/" + test.getName() + "." + test.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/test/" + init.getName() + "." + init.getExtension())).exists();
     }
 
 }

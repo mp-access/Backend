@@ -78,12 +78,13 @@ public class CodeRunner {
         String containerId = creation.id();
         startAndWaitContainer(containerId);
 
-        String logs = readLogs(containerId);
+        String logs = readStdOut(containerId);
+        String stdErr = readStdErr(containerId);
         long endExecutionTime = System.nanoTime();
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(logs, endExecutionTime - startExecutionTime);
+        return new RunResult(logs, stdErr, endExecutionTime - startExecutionTime);
     }
 
     private HostConfig hostConfigWithAttachedVolume(String hostPath) {
@@ -107,8 +108,12 @@ public class CodeRunner {
         docker.waitContainer(id);
     }
 
-    private String readLogs(String containerId) throws DockerException, InterruptedException {
+    private String readStdOut(String containerId) throws DockerException, InterruptedException {
         return docker.logs(containerId, DockerClient.LogsParam.stdout()).readFully();
+    }
+
+    private String readStdErr(String containerId) throws DockerException, InterruptedException {
+        return docker.logs(containerId, DockerClient.LogsParam.stderr()).readFully();
     }
 
     private void stopAndRemoveContainer(String id) throws DockerException, InterruptedException {
