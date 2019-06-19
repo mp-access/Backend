@@ -29,39 +29,39 @@ public class Exercise {
     private List<VirtualFile> solution_files = new ArrayList<>();
 
     private List<VirtualFile> resource_files = new ArrayList<>();
-    private List<VirtualFile> public_files= new ArrayList<>();
+    private List<VirtualFile> public_files = new ArrayList<>();
 
-    public Exercise(){
+    public Exercise() {
         this.id = new Utils().getID();
     }
 
-    public void set(Exercise other){
+    public void set(Exercise other) {
         this.type = other.type;
         this.language = other.language;
-        this.question = other.question;
         this.maxSubmits = other.maxSubmits;
     }
 
-    public void update(Exercise other){
+    public void update(Exercise other) {
         set(other);
         this.gitHash = other.gitHash;
         this.private_files = other.private_files;
         this.public_files = other.public_files;
         this.solution_files = other.solution_files;
         this.resource_files = other.resource_files;
+        this.question = other.question;
     }
 
-    public Optional<VirtualFile> getFileById(String id){
+    public Optional<VirtualFile> getFileById(String id) {
         //TODO: Also search in private files
         Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
-    public boolean isPastDueDate(){
+    public boolean isPastDueDate() {
         return assignment.isPastDueDate();
     }
 
-    public boolean hasChanged(Exercise other){
+    public boolean hasChanged(Exercise other) {
         return !(Objects.equals(this.type, other.type) &&
                 Objects.equals(this.language, other.language) &&
                 Objects.equals(this.question, other.question) &&

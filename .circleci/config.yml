@@ -20,6 +20,10 @@ jobs:
       TERM: dumb
 
     steps:
+      - run:
+          name: "What branch am I on?"
+          command: echo ${CIRCLE_BRANCH}
+
       - checkout
 
       - run:
@@ -68,9 +72,10 @@ jobs:
             chmod +x codacy-coverage-reporter
             ./codacy-coverage-reporter report -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
 
-  deploy:
+  push_to_dockerhub:
     docker:
       - image: circleci/openjdk:11-jdk
+
     working_directory: ~/course_service
 
     steps:
@@ -79,8 +84,12 @@ jobs:
       - setup_remote_docker
 
       - run:
+          name: Print Docker image name
+          command: echo "hoal/$COURSE_SERVICE_IMAGE_NAME:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]')"
+
+      - run:
           name: Build Docker image
-          command: docker build -t hoal/$COURSE_SERVICE_IMAGE_NAME:latest .
+          command: docker build -t hoal/$COURSE_SERVICE_IMAGE_NAME:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]') .
 
       - add_ssh_keys:
           fingerprints:
@@ -89,7 +98,14 @@ jobs:
           name: Push Docker image
           command: |
             echo $DOCKER_PWD | docker login -u $DOCKER_LOGIN --password-stdin
-            docker push $DOCKER_USER/$COURSE_SERVICE_IMAGE_NAME:latest
+            docker push $DOCKER_USER/$COURSE_SERVICE_IMAGE_NAME:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]')
+
+  deploy:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    working_directory: ~/course_service
+
+    steps:
       - run:
           name: Deploy app to Digital Ocean Server via Docker
           command: |
@@ -100,9 +116,12 @@ workflows:
   build-and-deploy-master:
     jobs:
       - build
+      - push_to_dockerhub:
+          requires:
+          - build
       - deploy:
           requires:
-            - build
+            - push_to_dockerhub
           filters:
             branches:
               only: master
