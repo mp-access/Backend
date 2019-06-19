@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.student.evaluation;
+package ch.uzh.ifi.access.student.evaluation.process;
 
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachineFactory;
@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.statemachine.StateMachine;
 
-public class EvalMachineBuilderTest {
+public class EvalMachineFactoryTest {
 
     private String submissionId = "sub1";
 
