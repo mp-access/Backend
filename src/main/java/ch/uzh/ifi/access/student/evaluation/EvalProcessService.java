@@ -12,30 +12,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
-@Service
-public class ProcessorService {
+import java.util.UUID;
 
-    private static final Logger logger = LoggerFactory.getLogger(ProcessorService.class);
+@Service
+public class EvalProcessService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EvalProcessService.class);
 
     private ProcessStepFactoryService stepFactory;
 
     private EvalMachineRepoService machineRepo;
 
     @Autowired
-    public ProcessorService(ProcessStepFactoryService stepFactory, EvalMachineRepoService machineRepo) {
+    public EvalProcessService(ProcessStepFactoryService stepFactory, EvalMachineRepoService machineRepo) {
         this.stepFactory = stepFactory;
         this.machineRepo = machineRepo;
     }
 
-    public void startEvalProcess(StudentSubmission submission){
+    public String initEvalProcess(StudentSubmission submission){
+        String processId = UUID.randomUUID().toString();
+        StateMachine m = null;
         try {
-            StateMachine m = EvalMachineFactory.initSMForSubmission(submission.getId());
+            m = EvalMachineFactory.initSMForSubmission(submission.getId());
             m.start();
-            machineRepo.store(submission.getId(), m);
+            machineRepo.store(processId, m);
         } catch (Exception e) {
             logger.error("Could not create state machine for submission: "+ submission.getId());
             logger.error(e.getMessage());
         }
+
+        return processId;
     }
 
     public void processSubmissionStep(String submissionId){
