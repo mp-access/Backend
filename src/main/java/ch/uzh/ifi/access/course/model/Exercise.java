@@ -3,7 +3,6 @@ package ch.uzh.ifi.access.course.model;
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,11 +38,6 @@ public class Exercise {
     public void set(Exercise other) {
         this.type = other.type;
         this.language = other.language;
-
-        if (StringUtils.isEmpty(this.question)) {
-            this.question = other.question;
-        }
-
         this.maxSubmits = other.maxSubmits;
     }
 
@@ -54,6 +48,7 @@ public class Exercise {
         this.public_files = other.public_files;
         this.solution_files = other.solution_files;
         this.resource_files = other.resource_files;
+        this.question = other.question;
     }
 
     public Optional<VirtualFile> getFileById(String id) {
