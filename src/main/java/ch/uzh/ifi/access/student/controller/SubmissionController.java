@@ -6,6 +6,7 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.student.dto.SubmissionHistoryDTO;
+import ch.uzh.ifi.access.student.dto.SubmissionResult;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/submissions")
@@ -57,7 +59,7 @@ public class SubmissionController {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Cannot find any submission for user %s and exercise %s", userId, exerciseId)));
     }
 
-    @PostMapping("/exercises//{exerciseId}")
+    @PostMapping("/exercises/{exerciseId}")
     public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
@@ -69,7 +71,10 @@ public class SubmissionController {
 
         if (commitHash.isPresent()) {
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            return ResponseEntity.accepted().body(studentSubmissionService.saveSubmission(submission));
+            submission = studentSubmissionService.saveSubmission(submission);
+            SubmissionResult result = new SubmissionResult(submission.getId(), randomLogOutputForTesting());
+
+            return ResponseEntity.accepted().body(result);
         } else {
             return ResponseEntity.badRequest().body("Referenced exercise does not exist");
         }
@@ -83,5 +88,55 @@ public class SubmissionController {
 
         List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, authentication.getUserId());
         return new SubmissionHistoryDTO(submissions);
+    }
+
+    /**
+     * Just for testing
+     **/
+    @GetMapping("/{submissionId}/logs")
+    public SubmissionResult getSubmissionLogs(@PathVariable String submissionId) {
+        return new SubmissionResult(submissionId, randomLogOutputForTesting());
+    }
+
+    private String randomLogOutputForTesting() {
+        final String success = "python3 -m unittest testSuite.py -v\n" +
+                "test_aircraft_get_name (testSuite.Task1Test) ... ok\n" +
+                "test_aircraft_get_number_of_passengers (testSuite.Task1Test) ... ok\n" +
+                "test_calculate_amount_of_fuel_intercontinental (testSuite.Task1Test) ... ok\n" +
+                "test_calculate_amount_of_fuel_short_haul (testSuite.Task1Test) ... ok\n" +
+                "test_get_manifest_intercontinental (testSuite.Task1Test) ... ok\n" +
+                "test_get_manifest_short_haul (testSuite.Task1Test) ... ok\n" +
+                "test_inheritance (testSuite.Task1Test) ... ok\n" +
+                "test_list_flights (testSuite.Task1Test) ... ok\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 8 tests in 0.000s\n" +
+                "\n" +
+                "OK\n";
+
+        final String failure = "python -m unittest testSuite.py -v\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/runpy.py\", line 162, in _run_module_as_main\n" +
+                "    \"__main__\", fname, loader, pkg_name)\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/runpy.py\", line 72, in _run_code\n" +
+                "    exec code in run_globals\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/__main__.py\", line 12, in <module>\n" +
+                "    main(module=None)\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/main.py\", line 94, in __init__\n" +
+                "    self.parseArgs(argv)\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/main.py\", line 149, in parseArgs\n" +
+                "    self.createTests()\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/main.py\", line 158, in createTests\n" +
+                "    self.module)\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/loader.py\", line 130, in loadTestsFromNames\n" +
+                "    suites = [self.loadTestsFromName(name, module) for name in names]\n" +
+                "  File \"/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/unittest/loader.py\", line 91, in loadTestsFromName\n" +
+                "    module = __import__('.'.join(parts_copy))\n" +
+                "  File \"testSuite.py\", line 38\n" +
+                "    f\"Intercontinental flight intercontinental: passenger count 40, cargo load 100\")\n" +
+                "                                                                                  ^\n" +
+                "SyntaxError: invalid syntax";
+
+        return new Random().nextBoolean() ? success : failure;
     }
 }
