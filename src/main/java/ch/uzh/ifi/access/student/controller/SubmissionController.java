@@ -71,10 +71,7 @@ public class SubmissionController {
 
         if (commitHash.isPresent()) {
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            submission = studentSubmissionService.saveSubmission(submission);
-            SubmissionResult result = new SubmissionResult(submission.getId(), randomLogOutputForTesting());
-
-            return ResponseEntity.accepted().body(result);
+            return ResponseEntity.accepted().body(studentSubmissionService.saveSubmission(submission));
         } else {
             return ResponseEntity.badRequest().body("Referenced exercise does not exist");
         }
