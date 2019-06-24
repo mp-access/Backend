@@ -37,6 +37,7 @@ public class StudentAnswerDTO {
         ObjectMapper mapper = new ObjectMapper();
         switch (type) {
             case code:
+            case codeSnippet:
                 return mapper.convertValue(details, CodeSubmission.class);
             case text:
                 return mapper.convertValue(details, TextSubmission.class);
