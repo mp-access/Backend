@@ -34,7 +34,7 @@ public class CourseServiceSetup {
 
     @EventListener(ApplicationReadyEvent.class)
     @Retryable(
-            backoff = @Backoff(delay = 5000)
+            backoff = @Backoff(delay = 30000)
     )
     public void initializedCourseParticipants() {
         List<Course> courses = courseRepository.selectAllCourses();
