@@ -78,7 +78,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execWithErrors() {
         ExecResult console = new ExecResult();
-        console.setStdout(errorTestLog);
+        console.setStderr(errorTestLog);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -93,7 +93,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execWithFailures() {
         ExecResult console = new ExecResult();
-        console.setStdout(failsTestLog);
+        console.setStderr(failsTestLog);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -108,7 +108,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execOK() {
         ExecResult console = new ExecResult();
-        console.setStdout(okTestLog);
+        console.setStderr(okTestLog);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
