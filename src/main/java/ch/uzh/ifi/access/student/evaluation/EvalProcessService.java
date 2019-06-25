@@ -13,6 +13,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -46,16 +48,20 @@ public class EvalProcessService {
         return processId;
     }
 
-    public String getEvalProcessState(final String processId) {
+    public Map<String, String> getEvalProcessState(final String processId) {
+        Map<String, String> result = new HashMap<>();
         StateMachine machine = machineRepo.get(processId);
         if( machine != null ){
             if(EvalMachine.States.FINISHED == machine.getState().getId()){
-                return EvalMachineFactory.extractSubmissionId(machine);
+                result.put("status", "ok");
+                result.put("submission", EvalMachineFactory.extractSubmissionId(machine) );
             } else {
-                return "pending";
+                result.put("status", "pending");
             }
+        }else{
+            result.put("status", "unknown");
         }
-        return "unknown";
+        return result;
     }
 
     @Async
