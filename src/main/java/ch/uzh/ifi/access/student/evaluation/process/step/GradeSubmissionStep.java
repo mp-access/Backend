@@ -39,6 +39,8 @@ public class GradeSubmissionStep implements ProcessStep {
             StudentSubmission submission = opt.get();
             Optional<Exercise> exOpt = courseService.getExerciseById(submission.getExerciseId());
 
+            logger.debug(String.format("Grade submission %s for exercise %s", submission.getId(), submission.getExerciseId()));
+
             if (exOpt.isPresent()) {
                 Exercise exercise = exOpt.get();
 
@@ -48,6 +50,11 @@ public class GradeSubmissionStep implements ProcessStep {
                     submission.setResult(grad);
                     submissionService.saveSubmission(submission);
                 }else if(submission instanceof CodeSubmission){
+
+                    logger.debug("Code submission:");
+                    logger.debug(String.format(" stdout: %s", ((CodeSubmission) submission).getConsole().getStdout()));
+                    logger.debug(String.format(" sterr: %s", ((CodeSubmission) submission).getConsole().getStderr()));
+
                     SubmissionEvaluation grad = new CodeEvaluator().evaluate(submission, exercise);
                     logger.debug("Graded result is: " + grad.getScore());
                     submission.setResult(grad);
