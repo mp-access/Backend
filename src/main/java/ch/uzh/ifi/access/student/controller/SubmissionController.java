@@ -17,9 +17,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 
 @RestController
 @RequestMapping("/submissions")
@@ -63,8 +61,8 @@ public class SubmissionController {
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Cannot find any submission for user %s and exercise %s", userId, exerciseId)));
     }
 
-    @PostMapping("/evaluations/{exerciseId}")
-    public String submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) throws InterruptedException {
+    @PostMapping("/exercises/{exerciseId}")
+    public Map.Entry<String, String> submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) throws InterruptedException {
         Assert.notNull(authentication, "No authentication object found for user");
 
         String username = authentication.getName();
@@ -79,26 +77,33 @@ public class SubmissionController {
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
-        return processId;
+        return new AbstractMap.SimpleEntry("evalId", processId);
     }
 
-    @PostMapping("/exercises/{exerciseId}")
-    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
+    @GetMapping("/evals/{processId}")
+    public Map.Entry<String, String>  getEvalProcessState(@PathVariable String processId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
-
-        String username = authentication.getName();
-
-        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
-
-        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
-
-        if (commitHash.isPresent()) {
-            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            return ResponseEntity.accepted().body(studentSubmissionService.saveSubmission(submission));
-        } else {
-            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
-        }
+        Assert.notNull(processId, "No processId.");
+        return  new AbstractMap.SimpleEntry("status",  processService.getEvalProcessState(processId));
     }
+
+//    @PostMapping("/exercises/{exerciseId}")
+//    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
+//        Assert.notNull(authentication, "No authentication object found for user");
+//
+//        String username = authentication.getName();
+//
+//        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
+//
+//        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
+//
+//        if (commitHash.isPresent()) {
+//            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
+//            return ResponseEntity.accepted().body(studentSubmissionService.saveSubmission(submission));
+//        } else {
+//            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+//        }
+//    }
 
     @GetMapping("/exercises/{exerciseId}/history")
     public SubmissionHistoryDTO getAllSubmissionsForExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {

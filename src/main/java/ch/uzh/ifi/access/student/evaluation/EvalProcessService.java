@@ -46,6 +46,18 @@ public class EvalProcessService {
         return processId;
     }
 
+    public String getEvalProcessState(final String processId) {
+        StateMachine machine = machineRepo.get(processId);
+        if( machine != null ){
+            if(EvalMachine.States.FINISHED == machine.getState().getId()){
+                return EvalMachineFactory.extractSubmissionId(machine);
+            } else {
+                return "pending";
+            }
+        }
+        return "unknown";
+    }
+
     @Async
     public void fireEvalProcessExecutionAsync(final String processId) {
         StateMachine machine = machineRepo.get(processId);
