@@ -7,6 +7,7 @@ import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.student.dto.SubmissionHistoryDTO;
 import ch.uzh.ifi.access.student.dto.SubmissionResult;
+import ch.uzh.ifi.access.student.evaluation.EvalProcessService;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.slf4j.Logger;
@@ -30,9 +31,12 @@ public class SubmissionController {
 
     private final CourseService courseService;
 
-    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService) {
+    private final EvalProcessService processService;
+
+    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService, EvalProcessService processService) {
         this.studentSubmissionService = studentSubmissionService;
         this.courseService = courseService;
+        this.processService = processService;
     }
 
     @GetMapping("/{submissionId}")
@@ -57,6 +61,25 @@ public class SubmissionController {
         return studentSubmissionService
                 .findLatestExerciseSubmission(exerciseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException(String.format("Cannot find any submission for user %s and exercise %s", userId, exerciseId)));
+    }
+
+    @PostMapping("/evaluations/{exerciseId}")
+    public String submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) throws InterruptedException {
+        Assert.notNull(authentication, "No authentication object found for user");
+
+        String username = authentication.getName();
+
+        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
+
+        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
+        String processId = "N/A";
+        if (commitHash.isPresent()) {
+            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
+            submission = studentSubmissionService.saveSubmission(submission);
+            processId = processService.initEvalProcess(submission);
+            processService.fireEvalProcessExecutionAsync(processId);
+        }
+        return processId;
     }
 
     @PostMapping("/exercises/{exerciseId}")
