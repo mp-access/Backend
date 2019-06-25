@@ -4,13 +4,20 @@ import ch.uzh.ifi.access.course.RepoCacher;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Repository;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,11 +44,37 @@ public class CourseDAO {
                 courseList = RepoCacher.retrieveCourseData(conf.repositories);
                 exerciseIndex = buildExerciseIndex(courseList);
                 logger.info(String.format("Parsed %d courses", courseList.size()));
+
+                writeParseResultsToFileSystem();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
             courseList = null;
+        }
+    }
+
+    private void writeParseResultsToFileSystem() {
+        try {
+            final String directoryPath = "courses_db";
+            final String coursesFile = String.format("%s/courses.json", directoryPath);
+            final String exerciseFile = String.format("%s/exercises.json", directoryPath);
+            final Path directory = Paths.get(directoryPath).toAbsolutePath();
+            Files.createDirectories(directory);
+
+            FileOutputStream coursesJson = new FileOutputStream(coursesFile);
+            FileOutputStream exercisesJson = new FileOutputStream(exerciseFile);
+
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
+            writer.writeValue(coursesJson, courseList);
+            writer.writeValue(exercisesJson, exerciseIndex);
+
+            coursesJson.close();
+            exercisesJson.close();
+            logger.info(String.format("Written files: %s, %s", coursesFile, exerciseFile));
+        } catch (IOException e) {
+            logger.warn("Unable to write parse results to file system. Does the folder exists?");
         }
     }
 
@@ -72,13 +105,13 @@ public class CourseDAO {
         }
     }
 
-    public void updateCourseById(String id){
+    public void updateCourseById(String id) {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
         try {
             List<Course> courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()});
             c.update(courseUpdate.get(0));
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

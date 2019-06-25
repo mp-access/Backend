@@ -43,7 +43,6 @@ public class Exercise {
     public void set(Exercise other) {
         this.type = other.type;
         this.language = other.language;
-        this.question = other.question;
         this.maxSubmits = other.maxSubmits;
     }
 
@@ -54,6 +53,7 @@ public class Exercise {
         this.public_files = other.public_files;
         this.solution_files = other.solution_files;
         this.resource_files = other.resource_files;
+        this.question = other.question;
     }
 
     public Optional<VirtualFile> getFileById(String id) {

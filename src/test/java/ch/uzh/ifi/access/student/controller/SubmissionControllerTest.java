@@ -105,7 +105,7 @@ public class SubmissionControllerTest {
                 "    }\n" +
                 "}";
 
-        mvc.perform(post("/submissions/" + exerciseId)
+        mvc.perform(post("/submissions/exercises/" + exerciseId)
                 .with(csrf())
                 .with(authentication(authentication))
                 .contentType("application/json")
@@ -137,7 +137,7 @@ public class SubmissionControllerTest {
                 "    }\n" +
                 "}";
 
-        mvc.perform(post("/submissions/" + exerciseId)
+        mvc.perform(post("/submissions/exercises/" + exerciseId)
                 .with(csrf())
                 .with(authentication(authentication))
                 .contentType("application/json")
@@ -162,7 +162,7 @@ public class SubmissionControllerTest {
                 "    }\n" +
                 "}";
 
-        mvc.perform(post("/submissions/" + exerciseId)
+        mvc.perform(post("/submissions/exercises/" + exerciseId)
                 .with(csrf())
                 .with(authentication(authentication))
                 .contentType("application/json")
@@ -192,14 +192,14 @@ public class SubmissionControllerTest {
                 "    }\n" +
                 "}";
 
-        mvc.perform(post("/submissions/" + exerciseId)
+        mvc.perform(post("/submissions/exercises/" + exerciseId)
                 .with(csrf())
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload1))
                 .andExpect(status().isAccepted());
 
-        mvc.perform(get("/submissions/" + exerciseId)
+        mvc.perform(get("/submissions/exercises/" + exerciseId)
                 .with(authentication(authentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(authentication.getUserId()))
@@ -210,14 +210,14 @@ public class SubmissionControllerTest {
                 .andExpect(jsonPath("$.choices[0]").value(0))
                 .andExpect(jsonPath("$.choices[1]").value(2));
 
-        mvc.perform(post("/submissions/" + exerciseId)
+        mvc.perform(post("/submissions/exercises/" + exerciseId)
                 .with(csrf())
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload2))
                 .andExpect(status().isAccepted());
 
-        mvc.perform(get("/submissions/" + exerciseId)
+        mvc.perform(get("/submissions/exercises/" + exerciseId)
                 .with(authentication(authentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userId").value(authentication.getUserId()))
@@ -256,7 +256,7 @@ public class SubmissionControllerTest {
                 "}";
 
         for (int i = 0; i < 3; i++) {
-            mvc.perform(post("/submissions/" + exerciseId)
+            mvc.perform(post("/submissions/exercises/" + exerciseId)
                     .with(csrf())
                     .with(authentication(authentication))
                     .contentType("application/json")
@@ -264,7 +264,7 @@ public class SubmissionControllerTest {
                     .andExpect(status().isAccepted());
         }
 
-        mvc.perform(get("/submissions/" + exerciseId + "/history")
+        mvc.perform(get("/submissions/exercises/" + exerciseId + "/history")
                 .with(authentication(authentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.submissions").isArray())
@@ -298,7 +298,7 @@ public class SubmissionControllerTest {
                 "        \"graded\": \"true\"\n" +
                 "    }\n" +
                 "}";
-        mvc.perform(post("/submissions/" + UUID.randomUUID().toString())
+        mvc.perform(post("/submissions/exercises/" + UUID.randomUUID().toString())
                 .with(csrf())
                 .with(authentication(authentication))
                 .contentType("application/json")

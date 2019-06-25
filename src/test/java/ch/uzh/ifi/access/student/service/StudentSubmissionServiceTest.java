@@ -41,6 +41,25 @@ public class StudentSubmissionServiceTest {
         repository.deleteAll();
     }
 
+    @Test
+    public void findById() {
+        CodeSubmission submission = new CodeSubmission();
+        submission.setExerciseId("123");
+        submission.setUserId("456");
+        submission = repository.save(submission);
+
+        StudentSubmission foundById = service.findById(submission.getId()).orElse(null);
+        Assertions.assertThat(foundById).isNotNull();
+
+        Assertions.assertThat(foundById.getExerciseId()).isEqualTo(submission.getExerciseId());
+        Assertions.assertThat(foundById.getUserId()).isEqualTo(submission.getUserId());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void findByIdNull() {
+        service.findById(null);
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void saveNullCodeSubmission() {
         service.saveSubmission(null);
