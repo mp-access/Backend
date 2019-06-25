@@ -15,6 +15,7 @@ public class EvalMachineFactory {
 
     public static final String EXTENDED_VAR_SUBMISSION_ID = "submissionId";
     public static final String EXTENDED_VAR_NEXT_STEP = "nextStep";
+    public static final String EXTENDED_VAR_NEXT_STEP_DELAY = "nextStepDelay";
 
     public static StateMachine<EvalMachine.States, EvalMachine.Events> initSMForSubmission(String submissionId) throws Exception {
 
@@ -63,12 +64,17 @@ public class EvalMachineFactory {
         return machine.getExtendedState().getVariables().get(EXTENDED_VAR_NEXT_STEP).toString();
     }
 
+    public static int extractProcessStepDelayInS(StateMachine machine) {
+        return Integer.parseInt(machine.getExtendedState().getVariables().get(EXTENDED_VAR_NEXT_STEP_DELAY).toString()) ;
+    }
+
     private static Action<EvalMachine.States, EvalMachine.Events> routeAction() {
         return new Action<EvalMachine.States, EvalMachine.Events>() {
 
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, RouteSubmissionStep.class.getName());
+                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP_DELAY, "0");
             }
         };
     }
@@ -79,6 +85,7 @@ public class EvalMachineFactory {
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, DelegateCodeExecStep.class.getName());
+                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP_DELAY, "0");
             }
         };
     }
@@ -89,6 +96,7 @@ public class EvalMachineFactory {
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, GradeSubmissionStep.class.getName());
+                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP_DELAY, "0");
             }
         };
     }
@@ -99,6 +107,7 @@ public class EvalMachineFactory {
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, WaitForExecutedCodeStep.class.getName());
+                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP_DELAY, "5");
             }
         };
     }
