@@ -15,16 +15,8 @@ public class ProcessStepFactoryService {
 
     private Map<String, ProcessStep> steps;
 
-    private StudentSubmissionService submissionService;
-    private CourseService courseService;
-    private SubmissionCodeRunner codeRunner;
-
     @Autowired
     public ProcessStepFactoryService(StudentSubmissionService submissionService, CourseService courseService, SubmissionCodeRunner codeRunner) {
-        this.submissionService = submissionService;
-        this.courseService = courseService;
-        this.codeRunner = codeRunner;
-
         steps = new HashMap<>();
         steps.put(DelegateCodeExecStep.class.getName(), new DelegateCodeExecStep(submissionService, courseService, codeRunner));
         steps.put(RouteSubmissionStep.class.getName(), new RouteSubmissionStep(submissionService));
