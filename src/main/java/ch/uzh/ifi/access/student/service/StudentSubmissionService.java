@@ -20,15 +20,11 @@ public class StudentSubmissionService {
         this.studentSubmissionRepository = studentSubmissionRepository;
     }
 
-    public Optional<StudentSubmission> findById(String submissionId){
-        return studentSubmissionRepository.findById(submissionId);
-    }
-
     public List<StudentSubmission> findAll() {
         return studentSubmissionRepository.findAll();
     }
 
-    public Optional<? extends StudentSubmission> findById(String submissionId) {
+    public Optional<StudentSubmission> findById(String submissionId) {
         Assert.notNull(submissionId, "Cannot get by id: id is null");
         return studentSubmissionRepository.findById(submissionId);
     }
@@ -65,4 +61,5 @@ public class StudentSubmissionService {
 
         return studentSubmissionRepository.findByExerciseIdInAndUserIdOrderByVersionDesc(exerciseIds, userId);
     }
+
 }
