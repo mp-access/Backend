@@ -22,7 +22,7 @@ public class EvalProcessServiceTest {
     }
 
     @Test
-    public void initProcess_MachineCanBeFatchedFromRepo() {
+    public void initProcessMachineCanBeFatchedFromRepo() {
         Exercise cex = buildCodeExerciseStub();
         CodeSubmission csub = buildCodeSubmissionStub(cex);
 
