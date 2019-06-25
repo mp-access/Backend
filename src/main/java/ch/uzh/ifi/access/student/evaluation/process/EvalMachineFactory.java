@@ -68,6 +68,10 @@ public class EvalMachineFactory {
         return Integer.parseInt(machine.getExtendedState().getVariables().get(EXTENDED_VAR_NEXT_STEP_DELAY).toString()) ;
     }
 
+    public static String extractSubmissionId(StateMachine machine) {
+        return machine.getExtendedState().getVariables().get(EXTENDED_VAR_SUBMISSION_ID).toString();
+    }
+
     private static Action<EvalMachine.States, EvalMachine.Events> routeAction() {
         return new Action<EvalMachine.States, EvalMachine.Events>() {
 
