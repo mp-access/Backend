@@ -2,6 +2,8 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -11,7 +13,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @Data
+@Builder
+@AllArgsConstructor
 public class Exercise {
+
     private final String id;
     @JsonIgnore
     private Assignment assignment;
@@ -71,4 +76,5 @@ public class Exercise {
                 Objects.equals(this.resource_files, other.resource_files) &&
                 Objects.equals(this.public_files, other.public_files));
     }
+
 }

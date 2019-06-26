@@ -37,4 +37,5 @@ public abstract class StudentSubmission {
     public boolean userIdMatches(String otherId) {
         return this.userId != null && this.userId.equals(otherId);
     }
+
 }

@@ -24,7 +24,7 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findAll();
     }
 
-    public Optional<? extends StudentSubmission> findById(String submissionId) {
+    public Optional<StudentSubmission> findById(String submissionId) {
         Assert.notNull(submissionId, "Cannot get by id: id is null");
         return studentSubmissionRepository.findById(submissionId);
     }
@@ -61,4 +61,5 @@ public class StudentSubmissionService {
 
         return studentSubmissionRepository.findByExerciseIdInAndUserIdOrderByVersionDesc(exerciseIds, userId);
     }
+
 }

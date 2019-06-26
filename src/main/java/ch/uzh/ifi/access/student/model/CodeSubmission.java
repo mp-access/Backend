@@ -20,10 +20,13 @@ public class CodeSubmission extends StudentSubmission {
 
     private boolean isGraded;
 
+    private ExecResult console;
+
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Instant timestamp, List<VirtualFile> publicFiles, boolean isGraded) {
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Instant timestamp, List<VirtualFile> publicFiles, boolean isGraded, ExecResult console) {
         super(id, version, userId, commitId, exerciseId, timestamp, null);
         this.publicFiles = publicFiles;
         this.isGraded = isGraded;
+        this.console = console;
     }
 }
