@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -40,8 +39,9 @@ public class SubmissionCodeRunner {
 
         persistFilesIntoFolder(path.toString() + "/code", submission.getPublicFiles());
         persistFilesIntoFolder(path.toString() + "/test", exercise.getPrivate_files());
+        Files.createFile(Paths.get(path.toAbsolutePath().toString(), "__init__.py"));
 
-        String[] cmd = {"python", "-m", "unittest", "-v"};
+        String[] cmd = {"python", "-m", "unittest", "discover", "test/", "-v"};
         RunResult res = runner.attachVolumeAndRunCommand(path.toString(), cmd);
 
         logger.debug("CodeRunner result: " + res.getOutput());
@@ -62,11 +62,10 @@ public class SubmissionCodeRunner {
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
-
+                Files.createFile(Paths.get(folderPath, "__init__.py"));
                 for (VirtualFile vf : files) {
-                    File f = new File(folderPath, vf.getName() + "." + vf.getExtension());
-                    f.createNewFile();
-                    Files.writeString(Paths.get(f.getPath()), vf.getContent());
+                    Path file = Files.createFile(Paths.get(folderPath, vf.getName() + "." + vf.getExtension()));
+                    Files.writeString(file, vf.getContent());
                 }
 
             } catch (IOException e) {
