@@ -14,6 +14,11 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.StringJoiner;
+import java.util.stream.Stream;
 
 @Service
 public class CodeRunner {
@@ -40,12 +45,12 @@ public class CodeRunner {
      * @throws DockerException
      * @throws InterruptedException
      */
-    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException {
+    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException, IOException {
         HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
 
         ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
 
-        return createAndRunContainer(containerConfig);
+        return createAndRunContainer(containerConfig, folderPath);
     }
 
     /**
@@ -64,32 +69,52 @@ public class CodeRunner {
         String[] cmd = {"python", filenameToExec};
         ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
 
-        return createAndRunContainer(containerConfig);
+        return createAndRunContainer(containerConfig, folderPath);
     }
 
-    private RunResult createAndRunContainer(ContainerConfig containerConfig) throws DockerException, InterruptedException {
+    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath) throws DockerException, InterruptedException, IOException {
         long startExecutionTime = System.nanoTime();
+
         ContainerCreation creation = docker.createContainer(containerConfig);
+        String containerId = creation.id();
+        logger.trace(String.format("Created container %s", containerId));
 
         if (creation.warnings() != null) {
             creation.warnings().forEach(logger::warn);
         }
 
-        String containerId = creation.id();
+        copyDirectoryToContainer(containerId, Paths.get(folderPath));
         startAndWaitContainer(containerId);
 
         String logs = readStdOut(containerId);
         String stdErr = readStdErr(containerId);
         long endExecutionTime = System.nanoTime();
+        long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(logs, stdErr, endExecutionTime - startExecutionTime);
+        return new RunResult(logs, stdErr, executionTime);
+    }
+
+    private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {
+        docker.copyToContainer(folder, containerId, DOCKER_CODE_FOLDER);
+        StringJoiner joiner = new StringJoiner("\n", String.format("Files copied to container @%s:\n", DOCKER_CODE_FOLDER), "").setEmptyValue("No files");
+        try (Stream<Path> walk = Files.walk(folder)) {
+            walk.filter(Files::isRegularFile)
+                    .forEach(path -> joiner.add(path.toString()));
+
+        } catch (IOException e) {
+            logger.warn(e.getMessage(), e);
+        }
+        logger.trace(joiner.toString());
     }
 
     private HostConfig hostConfigWithAttachedVolume(String hostPath) {
         String absolutePath = new FileSystemResource(hostPath).getFile().getAbsolutePath();
-        return HostConfig.builder().appendBinds(new String[]{absolutePath + ":" + DOCKER_CODE_FOLDER}).build();
+        return HostConfig.builder()
+                // TODO: Bind volume or copy files to container? As a quickfix will simply copy them (slower but actually more secure)
+//                .appendBinds(new String[]{absolutePath + ":" + DOCKER_CODE_FOLDER})
+                .build();
     }
 
     private ContainerConfig containerConfig(HostConfig hostConfig, String[] cmd) {
@@ -117,7 +142,7 @@ public class CodeRunner {
     }
 
     private void stopAndRemoveContainer(String id) throws DockerException, InterruptedException {
-        logger.debug("Stopping container " + id + "...");
+        logger.debug(String.format("Stopping and removing container %s", id));
         docker.stopContainer(id, 1);
         docker.removeContainer(id);
     }
