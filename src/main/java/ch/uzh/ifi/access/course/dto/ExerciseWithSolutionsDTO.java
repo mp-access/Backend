@@ -13,6 +13,9 @@ import java.util.List;
 public class ExerciseWithSolutionsDTO {
     private final String id;
 
+    private String assignmentId;
+    private String courseId;
+
     private String gitHash;
     private ExerciseType type;
     private String language;
@@ -23,10 +26,12 @@ public class ExerciseWithSolutionsDTO {
     private List<VirtualFile> solution_files = new ArrayList<>();
 
     private List<VirtualFile> resource_files = new ArrayList<>();
-    private List<VirtualFile> public_files= new ArrayList<>();
+    private List<VirtualFile> public_files = new ArrayList<>();
 
-    public ExerciseWithSolutionsDTO(Exercise exercise){
+    public ExerciseWithSolutionsDTO(Exercise exercise) {
         this.id = exercise.getId();
+        this.assignmentId = exercise.getAssignmentId();
+        this.courseId = exercise.getCourseId();
         this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
@@ -37,7 +42,7 @@ public class ExerciseWithSolutionsDTO {
         this.public_files = exercise.getPublic_files();
     }
 
-    public ExerciseWithSolutionsDTO(){
+    public ExerciseWithSolutionsDTO() {
         this.id = new Utils().getID();
     }
 }

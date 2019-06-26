@@ -62,6 +62,14 @@ public class Exercise {
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
+    public String getAssignmentId() {
+        return assignment.getId();
+    }
+
+    public String getCourseId() {
+        return assignment.getCourse().getId();
+    }
+
     public boolean isPastDueDate() {
         return assignment.isPastDueDate();
     }
