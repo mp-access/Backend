@@ -25,6 +25,10 @@ public class SubmissionCodeRunner {
 
     private static final String LOCAL_RUNNER_DIR = "./runner";
 
+    private static final String PUBLIC_FOLDER = "public";
+
+    private static final String PRIVATE_FOLDER = "private";
+
     private CodeRunner runner;
 
     @Autowired
@@ -37,11 +41,11 @@ public class SubmissionCodeRunner {
         Path path = Paths.get(LOCAL_RUNNER_DIR + "/" + submission.getId());
         logger.debug(path.toAbsolutePath().normalize().toString());
 
-        persistFilesIntoFolder(path.toString() + "/code", submission.getPublicFiles());
-        persistFilesIntoFolder(path.toString() + "/test", exercise.getPrivate_files());
+        persistFilesIntoFolder(String.format("%s/%s", path.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        persistFilesIntoFolder(String.format("%s/%s", path.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
         Files.createFile(Paths.get(path.toAbsolutePath().toString(), "__init__.py"));
 
-        String[] cmd = {"python", "-m", "unittest", "discover", "test/", "-v"};
+        String[] cmd = {"python", "-m", "unittest", "discover", PRIVATE_FOLDER, "-v"};
         RunResult res = runner.attachVolumeAndRunCommand(path.toString(), cmd);
 
         logger.debug("CodeRunner result: " + res.getOutput());
