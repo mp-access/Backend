@@ -73,7 +73,7 @@ public class SubmissionController {
         String processId = "N/A";
         if (commitHash.isPresent()) {
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            submission = studentSubmissionService.saveSubmission(submission);
+            submission = studentSubmissionService.initSubmission(submission);
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
