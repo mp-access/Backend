@@ -166,10 +166,10 @@ public class StudentSubmissionServiceTest {
         codeSubmission3.setUserId(userId2);
         someOtherSubmission.setUserId(userId2);
 
-        codeSubmission1 = service.saveSubmission(codeSubmission1);
-        codeSubmission2 = service.saveSubmission(codeSubmission2);
-        codeSubmission3 = service.saveSubmission(codeSubmission3);
-        someOtherSubmission = service.saveSubmission(someOtherSubmission);
+        codeSubmission1 = service.initSubmission(codeSubmission1);
+        codeSubmission2 = service.initSubmission(codeSubmission2);
+        codeSubmission3 = service.initSubmission(codeSubmission3);
+        someOtherSubmission = service.initSubmission(someOtherSubmission);
 
         List<CodeSubmission> answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId1);
 
@@ -216,9 +216,9 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         someOtherSubmission.setUserId(userId);
 
-        service.saveSubmission(codeSubmission1);
-        codeSubmission2 = service.saveSubmission(codeSubmission2);
-        service.saveSubmission(someOtherSubmission);
+        service.initSubmission(codeSubmission1);
+        codeSubmission2 = service.initSubmission(codeSubmission2);
+        service.initSubmission(someOtherSubmission);
 
         Optional<StudentSubmission> latestSubmissionOptional = service.findLatestExerciseSubmission(exercise.getId(), userId);
         StudentSubmission latestSubmission = latestSubmissionOptional.orElseGet(() -> Assertions.fail("There should be 2 submissions"));
@@ -261,11 +261,11 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         codeSubmission3.setUserId(userId);
 
-        service.saveSubmission(answer1);
-        answer2 = service.saveSubmission(answer2);
-        answer3 = service.saveSubmission(answer3);
-        service.saveSubmission(codeSubmission2);
-        codeSubmission3 = service.saveSubmission(codeSubmission3);
+        service.initSubmission(answer1);
+        answer2 = service.initSubmission(answer2);
+        answer3 = service.initSubmission(answer3);
+        service.initSubmission(codeSubmission2);
+        codeSubmission3 = service.initSubmission(codeSubmission3);
 
         List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestSubmissionsByAssignment(assignment, userId);
         List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
