@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.student.dto;
 
 import ch.uzh.ifi.access.student.model.StudentSubmission;
+import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import lombok.Value;
 
 import java.time.Instant;
@@ -26,11 +27,14 @@ public class SubmissionHistoryDTO {
 
         private final String commitHash;
 
+        private SubmissionEvaluation result;
+
         SubmissionMetadata(StudentSubmission submission) {
             this.id = submission.getId();
             this.version = submission.getVersion();
             this.timestamp = submission.getTimestamp();
             this.commitHash = submission.getCommitId();
+            this.result = submission.getResult();
         }
     }
 }
