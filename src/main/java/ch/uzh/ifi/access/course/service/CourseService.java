@@ -45,6 +45,16 @@ public class CourseService {
                 .flatMap(assignment -> assignment.findExerciseById(exerciseId));
     }
 
+    public Optional<List<Exercise>> getExercisesByCourseAndAssignmentId(String courseId, String assignmentId) {
+        var optAssignment = getCourseById(courseId).flatMap(course -> course.getAssignmentById(assignmentId));
+
+        if(optAssignment.isPresent()){
+            return Optional.of(optAssignment.get().getExercises());
+        }else {
+            return Optional.empty();
+        }
+    }
+
     public Optional<Exercise> getExerciseById(String exerciseId) {
         return courseDao.selectExerciseById(exerciseId);
     }
