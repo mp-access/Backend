@@ -32,7 +32,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     private SubmissionEvaluation parseEvalFromConsoleLog(String console) {
         int score = 0;
 
-        if(console != null) {
+        if (console != null) {
             List<String> lines = Arrays.asList(console.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
@@ -43,7 +43,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             } else if (resultLine.startsWith("FAILED")) {
                 score = nrOfTest - extractNrOfNOKTests(resultLine);
             }
-        }else{
+        } else {
             logger.info("No console log to evaluate.");
         }
 
@@ -84,7 +84,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         Assert.isInstanceOf(CodeSubmission.class, submission);
 
         Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
-        Assert.isTrue(ExerciseType.code.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.code);
+        Assert.isTrue(exercise.getType().isCodeType(), String.format("Exercise object for evaluation must be of type %s or %s", ExerciseType.code, ExerciseType.codeSnippet));
     }
 
 }

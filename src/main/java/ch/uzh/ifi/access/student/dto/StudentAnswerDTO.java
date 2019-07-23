@@ -5,6 +5,7 @@ import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
@@ -34,7 +35,8 @@ public class StudentAnswerDTO {
     }
 
     public StudentSubmission createSubmission() {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
         switch (type) {
             case code:
             case codeSnippet:
