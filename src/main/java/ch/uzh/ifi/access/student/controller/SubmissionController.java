@@ -1,7 +1,6 @@
 package ch.uzh.ifi.access.student.controller;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
-import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
@@ -49,20 +48,23 @@ public class SubmissionController {
     }
 
     @GetMapping("/exercises/{exerciseId}")
-    public StudentSubmission getSubmissionByExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
+    public ResponseEntity<StudentSubmission> getSubmissionByExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
         String username = authentication.getName();
         String userId = authentication.getUserId();
 
         logger.info(String.format("Fetching submission for user %s", username));
 
-        return studentSubmissionService
-                .findLatestExerciseSubmission(exerciseId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("Cannot find any submission for user %s and exercise %s", userId, exerciseId)));
+        Optional<StudentSubmission> submission = studentSubmissionService
+                .findLatestExerciseSubmission(exerciseId, userId);
+
+        return submission
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 
     @PostMapping("/exs/{exerciseId}")
-    public Map.Entry<String, String> submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) throws InterruptedException {
+    public Map.Entry<String, String> submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         String username = authentication.getName();
@@ -77,11 +79,11 @@ public class SubmissionController {
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
-        return new AbstractMap.SimpleEntry("evalId", processId);
+        return new AbstractMap.SimpleEntry<>("evalId", processId);
     }
 
     @GetMapping("/evals/{processId}")
-    public Map<String, String>  getEvalProcessState(@PathVariable String processId, @ApiIgnore CourseAuthentication authentication) {
+    public Map<String, String> getEvalProcessState(@PathVariable String processId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
         Assert.notNull(processId, "No processId.");
         return processService.getEvalProcessState(processId);

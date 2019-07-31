@@ -4,5 +4,9 @@ public enum ExerciseType {
     multipleChoice,
     text,
     code,
-    codeSnippet,
+    codeSnippet;
+
+    public boolean isCodeType() {
+        return code.equals(this) || codeSnippet.equals(this);
+    }
 }

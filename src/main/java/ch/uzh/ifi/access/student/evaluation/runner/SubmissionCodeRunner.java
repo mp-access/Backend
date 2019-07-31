@@ -29,6 +29,8 @@ public class SubmissionCodeRunner {
 
     private static final String PRIVATE_FOLDER = "private";
 
+    private static final String INIT_FILE = "__init__.py";
+
     private CodeRunner runner;
 
     @Autowired
@@ -66,10 +68,14 @@ public class SubmissionCodeRunner {
         if (!Files.exists(path)) {
             try {
                 Files.createDirectories(path);
-                Files.createFile(Paths.get(folderPath, "__init__.py"));
+
                 for (VirtualFile vf : files) {
                     Path file = Files.createFile(Paths.get(folderPath, vf.getName() + "." + vf.getExtension()));
                     Files.writeString(file, vf.getContent());
+                }
+
+                if (!Files.exists(Paths.get(folderPath, INIT_FILE))) {
+                    Files.createFile(Paths.get(folderPath, INIT_FILE));
                 }
 
             } catch (IOException e) {

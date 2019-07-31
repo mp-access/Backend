@@ -111,7 +111,7 @@ public class EvalMachineFactory {
             @Override
             public void execute(StateContext<EvalMachine.States, EvalMachine.Events> ctx) {
                 ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP, WaitForExecutedCodeStep.class.getName());
-                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP_DELAY, "5");
+                ctx.getExtendedState().getVariables().put(EXTENDED_VAR_NEXT_STEP_DELAY, "0");
             }
         };
     }

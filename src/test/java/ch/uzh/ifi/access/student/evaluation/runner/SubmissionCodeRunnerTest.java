@@ -56,11 +56,11 @@ public class SubmissionCodeRunnerTest {
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStderr()).containsIgnoringCase("Ran 8 tests in");
 
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/code/" + src.getName() + "." + src.getExtension())).exists();
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/code/" + init.getName() + "." + init.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/public/" + src.getName() + "." + src.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/public/" + init.getName() + "." + init.getExtension())).exists();
 
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/test/" + test.getName() + "." + test.getExtension())).exists();
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/test/" + init.getName() + "." + init.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/private/" + test.getName() + "." + test.getExtension())).exists();
+        Assertions.assertThat(new File("./runner/" + sub.getId() + "/private/" + init.getName() + "." + init.getExtension())).exists();
     }
 
 }
