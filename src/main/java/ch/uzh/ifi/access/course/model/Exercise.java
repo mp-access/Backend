@@ -29,6 +29,8 @@ public class Exercise {
     private int maxSubmits;
     private List<String> solutions = new ArrayList<>();
 
+    private int maxScore;
+
     @JsonIgnore
     private List<VirtualFile> private_files = new ArrayList<>();
     @JsonIgnore
