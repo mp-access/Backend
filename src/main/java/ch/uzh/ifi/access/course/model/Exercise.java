@@ -27,6 +27,8 @@ public class Exercise {
 
     private String question;
     private int maxSubmits;
+
+    private List<String> options = new ArrayList<>();
     private List<String> solutions = new ArrayList<>();
 
     @JsonIgnore
@@ -46,6 +48,7 @@ public class Exercise {
         this.language = other.language;
         this.maxSubmits = other.maxSubmits;
         this.solutions = other.solutions;
+        this.options = other.options;
     }
 
     public void update(Exercise other) {
