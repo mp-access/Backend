@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.model;
 
 public enum ExerciseType {
+    singleChoice,
     multipleChoice,
     text,
     code,
