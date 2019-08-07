@@ -26,6 +26,10 @@ public class GrantedCourseAccess implements Serializable {
         return this.course.equals(course.getTitle());
     }
 
+    public boolean evaluateAdminAccess(Course course) {
+        return evaluateAccess(course) && isAuthor;
+    }
+
     public static GrantedCourseAccess empty() {
         return EMPTY;
     }

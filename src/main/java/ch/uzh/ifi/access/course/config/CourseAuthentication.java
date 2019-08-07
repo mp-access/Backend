@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.config;
 
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -28,6 +29,13 @@ public class CourseAuthentication extends OAuth2Authentication {
 
     public Set<GrantedCourseAccess> getCourseAccesses() {
         return courseAccesses;
+    }
+
+    public boolean hasAccess(Course course) { return courseAccesses.stream().anyMatch(access -> access.evaluateAccess(course));
+    }
+
+    public boolean hasAdminAccess(Course course) {
+        return courseAccesses.stream().anyMatch(access -> access.evaluateAdminAccess(course));
     }
 
     public String getUserId() {

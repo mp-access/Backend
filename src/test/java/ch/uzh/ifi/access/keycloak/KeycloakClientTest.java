@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.keycloak;
 
+import ch.uzh.ifi.access.KeycloakClientTestConfiguration;
 import ch.uzh.ifi.access.config.SecurityProperties;
 import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.model.Course;
@@ -12,12 +13,8 @@ import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
-import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.NotFoundException;
 import java.util.HashSet;
 import java.util.List;
@@ -26,54 +23,26 @@ import java.util.stream.Collectors;
 
 public class KeycloakClientTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(KeycloakClientTest.class);
-
     private static final String REALM_NAME = "testing";
 
     private KeycloakClient client;
 
     private RealmResource realmResource;
 
-    private CourseServiceSetup.CourseProperties courseProperties;
+    private KeycloakClientTestConfiguration testConfiguration;
 
     @Before
     public void setUp() {
-        courseProperties = new CourseServiceSetup.CourseProperties();
-        courseProperties.setInitOnStartup(false);
-        courseProperties.setDefaultPassword("test");
-        courseProperties.setUseDefaultPasswordForNewAccounts(true);
-        client = new KeycloakClient(properties(), REALM_NAME, courseProperties);
+        this.testConfiguration = new KeycloakClientTestConfiguration();
+        this.testConfiguration.createTestRealm();
 
-        // Make sure all users and groups are deleted
-        Keycloak keycloak = KeycloakClient.keycloak(properties());
-
-        RealmRepresentation testRealm = new RealmRepresentation();
-        testRealm.setEnabled(true);
-        testRealm.setRealm(REALM_NAME);
-
-//        Map<String, String> config = new HashMap<>();
-//        config.put("from", "admin@test.com");
-//        config.put("host", "mailhog");
-//        config.put("port", "1025");
-//        testRealm.setSmtpServer(config);
-        try {
-            keycloak.realms().create(testRealm);
-        } catch (ClientErrorException e) {
-            RealmResource realm = keycloak.realms().realm(REALM_NAME);
-            realm.remove();
-            keycloak.realms().create(testRealm);
-        }
-
-        realmResource = keycloak.realm(REALM_NAME);
+        this.client = testConfiguration.testClient();
+        realmResource = this.testConfiguration.getRealm();
     }
 
     @After
     public void tearDown() {
-        try {
-            this.realmResource.remove();
-        } catch (Exception e) {
-            logger.error(String.format("Failed to remove realm '%s'", REALM_NAME), e);
-        }
+        this.testConfiguration.removeTestRealm();
     }
 
     private SecurityProperties properties() {
@@ -110,6 +79,7 @@ public class KeycloakClientTest {
         Assert.assertEquals(user.getEmail(), email);
         Assert.assertEquals(user.getUsername(), email);
 
+        CourseServiceSetup.CourseProperties courseProperties = testConfiguration.courseProperties();
         if (courseProperties.isUseDefaultPasswordForNewAccounts()) {
             Assert.assertEquals(user.getCredentials().size(), 1);
             Assert.assertEquals(user.getCredentials().get(0).getValue(), courseProperties.getDefaultPassword());

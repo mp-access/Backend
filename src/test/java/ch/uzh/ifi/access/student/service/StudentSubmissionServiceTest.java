@@ -247,21 +247,26 @@ public class StudentSubmissionServiceTest {
         assignment.addExercise(exercise2);
         assignment.addExercise(exercise3);
 
-        CodeSubmission answer1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+        // Submit multiple versions of exercise 1
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
         CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
         CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+
+        // Submit once for exercise 2
         TextSubmission answer2 = TestObjectFactory.createTextAnswerWithExercise(exercise2.getId());
+
+        // Submit once for exercise 3
         MultipleChoiceSubmission answer3 = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise3.getId());
 
         // Explicitly set user ids for test
         final String userId = "userId-1";
-        answer1.setUserId(userId);
+        codeSubmission1.setUserId(userId);
         answer2.setUserId(userId);
         answer3.setUserId(userId);
         codeSubmission2.setUserId(userId);
         codeSubmission3.setUserId(userId);
 
-        service.initSubmission(answer1);
+        service.initSubmission(codeSubmission1);
         answer2 = service.initSubmission(answer2);
         answer3 = service.initSubmission(answer3);
         service.initSubmission(codeSubmission2);
@@ -269,7 +274,10 @@ public class StudentSubmissionServiceTest {
 
         List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestSubmissionsByAssignment(assignment, userId);
         List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
+        Set<String> latestSubmissionsForAssignment = Set.of(codeSubmission3.getId(), answer2.getId(), answer3.getId());
 
-        Assertions.assertThat(Set.copyOf(ids)).isEqualTo(Set.of(codeSubmission3.getId(), answer2.getId(), answer3.getId()));
+        Assertions.assertThat(Set.copyOf(ids))
+                .withFailMessage("Submissions should include one submission for each exercise and should include following versions: " + latestSubmissionsByAssignment.toString())
+                .isEqualTo(latestSubmissionsForAssignment);
     }
 }
