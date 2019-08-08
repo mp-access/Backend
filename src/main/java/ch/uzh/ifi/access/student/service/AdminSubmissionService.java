@@ -1,10 +1,11 @@
 package ch.uzh.ifi.access.student.service;
 
-import ch.uzh.ifi.access.course.dao.CourseDAO;
 import ch.uzh.ifi.access.course.model.Assignment;
-import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
-import lombok.Data;
+import ch.uzh.ifi.access.student.model.User;
+import ch.uzh.ifi.access.student.reporting.AssignmentReport;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -14,33 +15,25 @@ import java.util.Map;
 @Service
 public class AdminSubmissionService {
 
-    private final StudentSubmissionRepository repository;
+    private final StudentSubmissionService submissionService;
 
-    private final CourseDAO courseRepository;
+    private final UserService userService;
 
-    public AdminSubmissionService(StudentSubmissionRepository repository, CourseDAO courseRepository) {
-        this.repository = repository;
-        this.courseRepository = courseRepository;
+    public AdminSubmissionService(StudentSubmissionService submissionService, UserService userService) {
+        this.submissionService = submissionService;
+        this.userService = userService;
     }
 
-    public AssignmentReport generateAssignmentReport(final String courseId, final String assignmentId) {
+    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
+    public AssignmentReport generateAssignmentReport(Course course, Assignment assignment) {
+        List<User> students = userService.getCourseStudents(course);
 
-        return null;
-    }
-
-    @Data
-    public static class AssignmentReport {
-
-        private final String assignmentId;
-
-        //        private Table<String, String, StudentSubmission> submissionByExerciseIdAndUserId;
-        private Map<String, Map<String, StudentSubmission>> submissionByExerciseIdAndUserId;
-
-        public AssignmentReport(Assignment assignment, List<String> userEmailAddresses) {
-            this.assignmentId = assignment.getId();
-            this.submissionByExerciseIdAndUserId = new HashMap<>();
-
-            assignment.getExercises().forEach(exercise -> this.submissionByExerciseIdAndUserId.put(exercise.getId(), new HashMap<>()));
+        Map<User, List<StudentSubmission>> submissionsByStudent = new HashMap<>();
+        for (User student : students) {
+            List<StudentSubmission> studentSubmissionsForAssignment = submissionService.findLatestSubmissionsByAssignment(assignment, student.getId());
+            submissionsByStudent.put(student, studentSubmissionsForAssignment);
         }
+
+        return new AssignmentReport(assignment, students, submissionsByStudent);
     }
 }

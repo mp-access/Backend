@@ -4,7 +4,7 @@ import lombok.Data;
 import org.keycloak.representations.idm.UserRepresentation;
 
 @Data
-public class User {
+public class User implements Comparable<User> {
 
     private final String id;
 
@@ -12,5 +12,10 @@ public class User {
 
     public static User of(UserRepresentation userRepresentation) {
         return new User(userRepresentation.getId(), userRepresentation.getEmail());
+    }
+
+    @Override
+    public int compareTo(User o) {
+        return emailAddress.compareTo(o.emailAddress);
     }
 }
