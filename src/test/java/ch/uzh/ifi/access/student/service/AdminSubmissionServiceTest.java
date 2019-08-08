@@ -125,14 +125,14 @@ public class AdminSubmissionServiceTest {
 
         Assertions.assertThat(report).isNotNull();
         Assertions.assertThat(report.getAssignmentId()).isEqualTo(assignmentId);
-        Map<String, Map<String, SubmissionEvaluation>> submissionByExerciseIdAndUserId = report.getExercises();
+        Map<String, Map<String, SubmissionEvaluation>> submissionByExerciseIdAndUserId = report.getByExercises();
 
         // assert that there is an entry for each exercise of an assignment
         assignment.getExercises().forEach(exercise -> Assertions.assertThat(submissionByExerciseIdAndUserId).containsKey(exercise.getId()));
 
         // assert that for each exercise there is an entry for each student, regardless if the submitted or not
         for (String exerciseId : submissionByExerciseIdAndUserId.keySet()) {
-            Map<String, SubmissionEvaluation> studentSubmissions = report.getExercises().get(exerciseId);
+            Map<String, SubmissionEvaluation> studentSubmissions = report.getByExercises().get(exerciseId);
 
             students.forEach(student -> Assertions.assertThat(studentSubmissions).containsKey(student.getEmailAddress()));
         }
