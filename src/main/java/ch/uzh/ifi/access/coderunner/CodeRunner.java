@@ -33,15 +33,19 @@ public class CodeRunner {
 
     private final DockerClient docker;
 
-    public CodeRunner() throws DockerCertificateException, DockerException, InterruptedException {
+    public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
         pullImageIfNotPresent();
     }
 
-    private void pullImageIfNotPresent() throws DockerException, InterruptedException {
-        List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
-        if (images.isEmpty()) {
-            docker.pull(PYTHON_DOCKER_IMAGE);
+    private void pullImageIfNotPresent() {
+        try {
+            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
+            if (images.isEmpty()) {
+                docker.pull(PYTHON_DOCKER_IMAGE);
+            }
+        } catch (DockerException | InterruptedException e) {
+            logger.warn("Failed to pull python docker image", e);
         }
     }
 
