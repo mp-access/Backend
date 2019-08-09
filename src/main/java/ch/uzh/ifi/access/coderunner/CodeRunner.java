@@ -8,6 +8,7 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
 
@@ -41,6 +43,28 @@ public class CodeRunner {
         if (images.isEmpty()) {
             docker.pull(PYTHON_DOCKER_IMAGE);
         }
+    }
+
+    /**
+     * Mounts the folder at path inside the container and runs the given command
+     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
+     *
+     * @param folderPath path to folder to mount inside container
+     * @param bashCmd    command to execute in bash
+     * @return stdout from container and execution time {@link RunResult}
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd) throws DockerException, InterruptedException, IOException {
+        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
+
+        String[] cmd = new String[3];
+        cmd[0] = "/bin/sh";
+        cmd[1] = "-c";
+        cmd[2] = bashCmd;
+        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+
+        return createAndRunContainer(containerConfig, folderPath);
     }
 
     /**
@@ -94,7 +118,7 @@ public class CodeRunner {
         copyDirectoryToContainer(containerId, Paths.get(folderPath));
         startAndWaitContainer(containerId);
 
-        String logs = readStdOut(containerId);
+        String logs = readStdOutAndErr(containerId);
         String stdErr = readStdErr(containerId);
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
@@ -132,6 +156,8 @@ public class CodeRunner {
                 .image(PYTHON_DOCKER_IMAGE)
                 .networkDisabled(true)
                 .workingDir(DOCKER_CODE_FOLDER)
+                .attachStdout(true)
+                .attachStderr(true)
                 .cmd(cmd)
                 .build();
     }
@@ -139,6 +165,10 @@ public class CodeRunner {
     private void startAndWaitContainer(String id) throws DockerException, InterruptedException {
         docker.startContainer(id);
         docker.waitContainer(id);
+    }
+
+    private String readStdOutAndErr(String containerId) throws DockerException, InterruptedException {
+        return docker.logs(containerId, DockerClient.LogsParam.stdout(), DockerClient.LogsParam.stderr()).readFully();
     }
 
     private String readStdOut(String containerId) throws DockerException, InterruptedException {
