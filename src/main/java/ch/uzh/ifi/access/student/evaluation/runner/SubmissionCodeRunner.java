@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -52,6 +53,9 @@ public class SubmissionCodeRunner {
 
         logger.debug("CodeRunner result: " + res.getOutput());
 
+        logger.debug("Removing temp directory @ " + path);
+        removeDirectory(path);
+
         return new ExecResult(res.getOutput(), res.getStdErr());
     }
 
@@ -82,7 +86,21 @@ public class SubmissionCodeRunner {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void removeDirectory(Path path) throws IOException {
+        Files
+                .walk(path)
+                .sorted(Comparator.reverseOrder())
+                .forEach(this::removeFile);
 
     }
 
+    private void removeFile(Path path) {
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            logger.error(String.format("Failed to remove file @ %s", path), e);
+        }
+    }
 }
