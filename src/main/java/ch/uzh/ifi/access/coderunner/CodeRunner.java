@@ -27,12 +27,20 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
-    private static final String PYTHON_DOCKER_IMAGE = "python:3.8.0a4-alpine3.9";
+    private static final String PYTHON_DOCKER_IMAGE = "python:3.7-alpine";
 
     private final DockerClient docker;
 
-    public CodeRunner() throws DockerCertificateException {
+    public CodeRunner() throws DockerCertificateException, DockerException, InterruptedException {
         docker = DefaultDockerClient.fromEnv().build();
+        pullImageIfNotPresent();
+    }
+
+    private void pullImageIfNotPresent() throws DockerException, InterruptedException {
+        List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
+        if (images.isEmpty()) {
+            docker.pull(PYTHON_DOCKER_IMAGE);
+        }
     }
 
     /**
