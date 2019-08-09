@@ -103,6 +103,11 @@ public class KeycloakClient {
         return new Users(existingUsers, createdUsers);
     }
 
+    public Optional<UserRepresentation> findUsersByEmail(String emailAddress) {
+        UsersResource usersResource = realmResource.users();
+        return findUserByEmail(emailAddress, usersResource);
+    }
+
     private Optional<UserRepresentation> findUserByEmail(final String email, UsersResource usersResource) {
         List<UserRepresentation> usersByEmail = usersResource.search(null, null, null, email, 0, 10);
         if (usersByEmail.isEmpty()) {
@@ -153,7 +158,7 @@ public class KeycloakClient {
         return newUser;
     }
 
-    static Keycloak keycloak(SecurityProperties securityProperties) {
+    public static Keycloak keycloak(SecurityProperties securityProperties) {
         return KeycloakBuilder.builder()
                 .serverUrl(securityProperties.getAuthServer())
                 .realm("master")

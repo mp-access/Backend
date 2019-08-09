@@ -1,10 +1,8 @@
 package ch.uzh.ifi.access.student.dto;
 
 import ch.uzh.ifi.access.course.model.ExerciseType;
-import ch.uzh.ifi.access.student.model.CodeSubmission;
-import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
-import ch.uzh.ifi.access.student.model.StudentSubmission;
-import ch.uzh.ifi.access.student.model.TextSubmission;
+import ch.uzh.ifi.access.student.model.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +33,9 @@ public class StudentAnswerDTO {
     }
 
     public StudentSubmission createSubmission() {
-        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        ObjectMapper mapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .addMixIn(StudentSubmission.class, IgnoreSubmissionResultMixIn.class);
 
         switch (type) {
             case code:
@@ -48,5 +48,9 @@ public class StudentAnswerDTO {
             default:
                 throw new IllegalArgumentException("Cannot determine question type");
         }
+    }
+
+    @JsonIgnoreProperties(value = {"result"})
+    private static class IgnoreSubmissionResultMixIn {
     }
 }

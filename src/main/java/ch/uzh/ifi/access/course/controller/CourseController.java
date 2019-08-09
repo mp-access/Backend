@@ -8,6 +8,8 @@ import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.service.CourseService;
+import ch.uzh.ifi.access.student.model.User;
+import ch.uzh.ifi.access.student.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -33,8 +35,11 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    public CourseController(CourseService courseService) {
+    private final UserService userService;
+
+    public CourseController(CourseService courseService, UserService userService) {
         this.courseService = courseService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -125,5 +130,14 @@ public class CourseController {
                     .body(r);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{courseId}/assistants")
+    public ResponseEntity<?> getCourseAssistants(@PathVariable String courseId) {
+        Course course = courseService.getCourseById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        List<User> users = userService.getCourseAdmins(course);
+        return ResponseEntity.ok(users);
     }
 }

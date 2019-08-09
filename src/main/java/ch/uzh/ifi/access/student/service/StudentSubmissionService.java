@@ -62,6 +62,11 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, userId);
     }
 
+    /**
+     * For a given assignment and user returns the last submitted version of each exercise
+     *
+     * @return last submission of each exercise
+     */
     public List<StudentSubmission> findLatestSubmissionsByAssignment(Assignment assignment, String userId) {
         Assert.notNull(assignment, "assignment cannot be null");
         Assert.notNull(userId, "userId cannot be null");
