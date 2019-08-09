@@ -32,6 +32,9 @@ public class SubmissionCodeRunner {
 
     private static final String INIT_FILE = "__init__.py";
 
+    private static final String DELIMITER = "======================----------------------======================";
+    private static final String DELIMITER_CMD = String.format("echo \"%s\" >&2", DELIMITER);
+
     private CodeRunner runner;
 
     @Autowired
@@ -46,21 +49,25 @@ public class SubmissionCodeRunner {
 
         persistFilesIntoFolder(String.format("%s/%s", path.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         persistFilesIntoFolder(String.format("%s/%s", path.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
-        Files.createFile(Paths.get(path.toAbsolutePath().toString(), "__init__.py"));
+        Files.createFile(Paths.get(path.toAbsolutePath().toString(), INIT_FILE));
 
-        String[] cmd = {"python", "-m", "unittest", "discover", PRIVATE_FOLDER, "-v"};
-        RunResult res = runner.attachVolumeAndRunCommand(path.toString(), cmd);
+        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
+        String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
+        String testCommand = buildExecTestSuiteCommand();
 
-        logger.debug("CodeRunner result: " + res.getOutput());
+        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        RunResult res = runner
+                .attachVolumeAndRunBash(path.toString(), fullCommand)
+                .trimOutput(DELIMITER);
 
-        logger.debug("Removing temp directory @ " + path);
+        logger.debug("CodeRunner result: " + res.getCodeOutput());
+
         removeDirectory(path);
 
-        return new ExecResult(res.getOutput(), res.getStdErr());
+        return new ExecResult(res.getCodeOutput(), res.getTestOutput());
     }
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
-
         if (files == null) {
             logger.debug("No files to persist into " + folderPath);
             return;
@@ -88,7 +95,17 @@ public class SubmissionCodeRunner {
         }
     }
 
+    private String buildExecScriptCommand(VirtualFile script) {
+        final String path = String.format("%s/%s", PUBLIC_FOLDER, script.getNameWithExtension());
+        return String.format("python %s", path);
+    }
+
+    private String buildExecTestSuiteCommand() {
+        return String.format("python -m unittest discover %s -v", PRIVATE_FOLDER);
+    }
+
     private void removeDirectory(Path path) throws IOException {
+        logger.debug("Removing temp directory @ " + path);
         Files
                 .walk(path)
                 .sorted(Comparator.reverseOrder())

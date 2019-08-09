@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.util.FileSystemUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,16 +50,11 @@ public class SubmissionCodeRunnerTest {
                 .id("s1")
                 .exerciseId(ex.getId())
                 .publicFiles(Arrays.asList(init, src))
+                .selectedFile(1)
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStderr()).containsIgnoringCase("Ran 8 tests in");
-
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/public/" + src.getName() + "." + src.getExtension())).exists();
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/public/" + init.getName() + "." + init.getExtension())).exists();
-
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/private/" + test.getName() + "." + test.getExtension())).exists();
-        Assertions.assertThat(new File("./runner/" + sub.getId() + "/private/" + init.getName() + "." + init.getExtension())).exists();
     }
 
 }

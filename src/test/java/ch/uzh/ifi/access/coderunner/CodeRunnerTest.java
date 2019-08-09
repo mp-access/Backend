@@ -36,14 +36,14 @@ public class CodeRunnerTest {
         RunResult runResult1 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd1);
         RunResult runResult2 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd2);
 
-        Assertions.assertThat(runResult1.getOutput()).isEqualTo(expectedOutput1);
-        Assertions.assertThat(runResult2.getOutput()).isEqualTo(expectedOutput2);
+        Assertions.assertThat(runResult1.getCodeOutput()).isEqualTo(expectedOutput1);
+        Assertions.assertThat(runResult2.getCodeOutput()).isEqualTo(expectedOutput2);
 
 
         String[] cmd3 = new String[]{"ls", "-l"};
         RunResult runResult3 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd3);
-        Assertions.assertThat(runResult3.getOutput()).contains(tempFile1.getName());
-        Assertions.assertThat(runResult3.getOutput()).contains(tempFile2.getName());
+        Assertions.assertThat(runResult3.getCodeOutput()).contains(tempFile1.getName());
+        Assertions.assertThat(runResult3.getCodeOutput()).contains(tempFile2.getName());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class CodeRunnerTest {
 
         RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), tempFile.getName());
 
-        Assertions.assertThat(runResult.getOutput()).isEqualTo(expectedOutput);
+        Assertions.assertThat(runResult.getCodeOutput()).isEqualTo(expectedOutput);
     }
 
     @Test
@@ -83,12 +83,30 @@ public class CodeRunnerTest {
 
         RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName());
 
-        Assertions.assertThat(runResult.getOutput()).isEqualTo(expectedOutput);
+        Assertions.assertThat(runResult.getCodeOutput()).isEqualTo(expectedOutput);
     }
 
     private File createTempFileWithContent(String content, String filename) throws IOException {
         File tempFile = folder.newFile(filename);
         Files.writeString(tempFile.toPath(), content);
         return tempFile;
+    }
+
+    @Test
+    public void runMultipleCommands() throws DockerCertificateException, IOException, DockerException, InterruptedException {
+        CodeRunner runner = new CodeRunner();
+
+        final String code1 = "print('Hello 1!')";
+        final String code2 = "print('Hello 2!')";
+
+        File tempFile1 = createTempFileWithContent(code1, "test1.py");
+        File tempFile2 = createTempFileWithContent(code2, "test2.py");
+
+        final String delimiter = "======";
+        final String expectedOutput = String.format("Hello 1!\n%s\nHello 2!\n", delimiter);
+
+        RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()));
+
+        Assertions.assertThat(runResult1.getCodeOutput()).isEqualTo(expectedOutput);
     }
 }
