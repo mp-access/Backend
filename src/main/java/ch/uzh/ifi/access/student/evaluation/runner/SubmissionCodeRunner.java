@@ -33,7 +33,7 @@ public class SubmissionCodeRunner {
     private static final String INIT_FILE = "__init__.py";
 
     private static final String DELIMITER = "======================----------------------======================";
-    private static final String DELIMITER_CMD = String.format("echo \"%s\"", DELIMITER);
+    private static final String DELIMITER_CMD = String.format("echo \"%s\" >&2", DELIMITER);
 
     private CodeRunner runner;
 
@@ -56,8 +56,9 @@ public class SubmissionCodeRunner {
         String testCommand = buildExecTestSuiteCommand();
 
         final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
-        RunResult res = runner.attachVolumeAndRunBash(path.toString(), fullCommand);
-        res = res.trimCodeOutput(DELIMITER);
+        RunResult res = runner
+                .attachVolumeAndRunBash(path.toString(), fullCommand)
+                .trimOutput(DELIMITER);
 
         logger.debug("CodeRunner result: " + res.getCodeOutput());
 

@@ -119,13 +119,14 @@ public class CodeRunner {
         startAndWaitContainer(containerId);
 
         String logs = readStdOutAndErr(containerId);
+        String stdOut = readStdOut(containerId);
         String stdErr = readStdErr(containerId);
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(logs, stdErr, executionTime);
+        return new RunResult(logs, stdErr, stdOut, stdErr, executionTime);
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {
