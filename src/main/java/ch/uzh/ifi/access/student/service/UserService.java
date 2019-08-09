@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.student.service;
 
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.keycloak.KeycloakClient;
 import ch.uzh.ifi.access.student.model.User;
@@ -26,7 +25,6 @@ public class UserService {
      *
      * @param course course containing student email addresses
      * @return list of user entities
-     * @see ch.uzh.ifi.access.course.config.CoursePermissionEvaluator#hasAdminAccessToCourse(CourseAuthentication, Course)
      */
     @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
     public List<User> getCourseStudents(Course course) {
