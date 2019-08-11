@@ -1,4 +1,4 @@
-package ch.uzh.ifi.access.course;
+package ch.uzh.ifi.access.course.util;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
@@ -31,8 +31,8 @@ public class RepoCacher {
     private static final String REPO_DIR = "course_repositories";
 
     // FOLDERS
-    private static final String ASSIGNMENT_FOLDER_PREFIX = "assignment";
-    private static final String EXERCISE_FOLDER_PREFIX = "exercise";
+    private static final String ASSIGNMENT_FOLDER_PREFIX = "assignment_";
+    private static final String EXERCISE_FOLDER_PREFIX = "exercise_";
     private static final String PUBLIC_FOLDER_NAME = "public";
     private static final String PRIVATE_FOLDER_NAME = "private";
     private static final String RESOURCE_FOLDER_NAME = "resource";
@@ -109,10 +109,12 @@ public class RepoCacher {
             Object next_context = context;
             if (file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)) {
                 Assignment assignment = new Assignment();
+                assignment.setIndex(Integer.parseInt(file.getName().replace(ASSIGNMENT_FOLDER_PREFIX, "")));
                 ((Course) context).addAssignment(assignment);
                 next_context = assignment;
             } else if (file.getName().startsWith(EXERCISE_FOLDER_PREFIX)) {
                 Exercise exercise = new Exercise();
+                exercise.setIndex(Integer.parseInt(file.getName().replace(EXERCISE_FOLDER_PREFIX, "")));
                 exercise.setGitHash(((Assignment) context).getCourse().getGitHash());
                 ((Assignment) context).addExercise(exercise);
                 next_context = exercise;

@@ -18,15 +18,18 @@ import java.util.stream.Stream;
 public class Exercise {
 
     private final String id;
+    private int index;
+
     @JsonIgnore
     private Assignment assignment;
 
     private String gitHash;
     private ExerciseType type;
     private String language;
+    private Boolean isGraded = true;
 
     private String question;
-    private int maxSubmits;
+    private int maxSubmits = 1;
 
     private List<String> options = new ArrayList<>();
     private List<String> solutions = new ArrayList<>();
@@ -44,11 +47,13 @@ public class Exercise {
     }
 
     public void set(Exercise other) {
+        this.index = other.index;
         this.type = other.type;
         this.language = other.language;
         this.maxSubmits = other.maxSubmits;
         this.solutions = other.solutions;
         this.options = other.options;
+        this.isGraded = other.isGraded;
     }
 
     public void update(Exercise other) {
@@ -80,7 +85,8 @@ public class Exercise {
     }
 
     public boolean hasChanged(Exercise other) {
-        return !(Objects.equals(this.type, other.type) &&
+        return !(Objects.equals(this.index, other.index) &&
+                Objects.equals(this.type, other.type) &&
                 Objects.equals(this.language, other.language) &&
                 Objects.equals(this.question, other.question) &&
                 Objects.equals(this.maxSubmits, other.maxSubmits) &&
@@ -88,8 +94,9 @@ public class Exercise {
                 Objects.equals(this.solution_files, other.solution_files) &&
                 Objects.equals(this.resource_files, other.resource_files) &&
                 Objects.equals(this.public_files, other.public_files) &&
-                Objects.equals(this.solutions, other.solutions)
-                );
+                Objects.equals(this.solutions, other.solutions) &&
+                Objects.equals(this.isGraded, other.isGraded)
+        );
     }
 
 }

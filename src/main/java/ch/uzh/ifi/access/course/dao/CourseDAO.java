@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.RepoCacher;
+import ch.uzh.ifi.access.course.util.RepoCacher;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
