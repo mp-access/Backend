@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 public class Course {
@@ -21,18 +20,19 @@ public class Course {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    private List<String> assistants = new ArrayList<>();
-    private List<String> students = new ArrayList<>();
+    private List<String> assistants;
+    private List<String> students;
 
-    private List<Assignment> assignments = new ArrayList<>();
+    private List<Assignment> assignments;
 
-    public Course() {
-        this.id = new Utils().getID();
+    public Course(String name) {
+        this.id = new Utils().getID(name);
+        this.assistants = new ArrayList<>();
+        this.students = new ArrayList<>();
+        this.assignments = new ArrayList<>();
     }
 
     public void set(Course other) {
-        //this.directory = other.directory;
-        //this.gitURL = other.gitURL;
         this.title = other.title;
         this.description = other.description;
         this.owner = other.owner;
@@ -41,6 +41,17 @@ public class Course {
 
         this.assistants = other.assistants;
         this.students = other.students;
+    }
+
+    public void set(CourseConfig other) {
+        this.title = other.getTitle();
+        this.description = other.getDescription();
+        this.owner = other.getOwner();
+        this.startDate = other.getStartDate();
+        this.endDate = other.getEndDate();
+
+        this.assistants = other.getAssistants();
+        this.students = other.getStudents();
     }
 
     public void update(Course other) {

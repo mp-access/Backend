@@ -1,9 +1,6 @@
 package ch.uzh.ifi.access.course.util;
 
-import ch.uzh.ifi.access.course.model.Assignment;
-import ch.uzh.ifi.access.course.model.Course;
-import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.VirtualFile;
+import ch.uzh.ifi.access.course.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -75,7 +72,7 @@ public class RepoCacher {
 
             RepoCacher cacher = new RepoCacher();
             File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
-            Course course = new Course();
+            Course course = new Course(nameFromGitURL(url));
             course.setGitHash(hash);
             course.setDirectory(repo.getAbsolutePath());
             course.setGitURL(url);
@@ -137,7 +134,7 @@ public class RepoCacher {
             if (context instanceof Course) {
                 if (file.getName().equals(COURSE_FILE_NAME)) {
                     try {
-                        ((Course) context).set(mapper.readValue(file, Course.class));
+                        ((Course) context).set(mapper.readValue(file, CourseConfig.class));
                     } catch (Exception e) {
                         System.err.println("Error while parsing Course information: " + file.getName());
                         e.printStackTrace();

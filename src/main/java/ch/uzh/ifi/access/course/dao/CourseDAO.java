@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -94,9 +92,26 @@ public class CourseDAO {
                 URLList conf = mapper.readValue(resource.getFile(), URLList.class);
                 List<Course> courseUpdate = RepoCacher.retrieveCourseData(conf.repositories);
 
-                for (int i = 0; i < courseList.size(); ++i) {
-                    courseList.get(i).update(courseUpdate.get(i));
+                // Remove non existing Courses
+                for (Iterator<Course> i = courseList.iterator(); i.hasNext();) {
+                    Course a = i.next();
+                    Course b = courseUpdate.stream().filter(x -> x.getId().equals(a.getId())).findFirst().orElse(null);
+                    if(b == null){
+                        i.remove();
+                    }
                 }
+                // Update or add Courses
+                for (Iterator<Course> i = courseUpdate.iterator(); i.hasNext();) {
+                    Course b = i.next();
+                    Course a = courseList.stream().filter(x -> x.getId().equals(b.getId())).findFirst().orElse(null);
+                    if(a != null){
+                        a.update(b);
+                    }else {
+                        courseList.add(b);
+                    }
+                }
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }

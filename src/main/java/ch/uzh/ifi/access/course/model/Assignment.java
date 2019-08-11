@@ -20,10 +20,11 @@ public class Assignment {
     private LocalDateTime publishDate;
     private LocalDateTime dueDate;
 
-    private List<Exercise> exercises = new ArrayList<>();
+    private List<Exercise> exercises;
 
     public Assignment() {
         this.id = new Utils().getID();
+        this.exercises = new ArrayList<>();
     }
 
     public void set(Assignment other) {

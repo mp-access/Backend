@@ -26,24 +26,32 @@ public class Exercise {
     private String gitHash;
     private ExerciseType type;
     private String language;
-    private Boolean isGraded = true;
+    private Boolean isGraded;
 
     private String question;
-    private int maxSubmits = 1;
+    private int maxSubmits;
 
-    private List<String> options = new ArrayList<>();
-    private List<String> solutions = new ArrayList<>();
+    private List<String> options;
+    private List<String> solutions;
 
     @JsonIgnore
-    private List<VirtualFile> private_files = new ArrayList<>();
+    private List<VirtualFile> private_files;
     @JsonIgnore
-    private List<VirtualFile> solution_files = new ArrayList<>();
+    private List<VirtualFile> solution_files;
 
-    private List<VirtualFile> resource_files = new ArrayList<>();
-    private List<VirtualFile> public_files = new ArrayList<>();
+    private List<VirtualFile> resource_files;
+    private List<VirtualFile> public_files;
 
     public Exercise() {
         this.id = new Utils().getID();
+        this.isGraded = true;
+        this.maxSubmits = 1;
+        this.options = new ArrayList<>();
+        this.solutions = new ArrayList<>();
+        this.private_files = new ArrayList<>();
+        this.solution_files = new ArrayList<>();
+        this.resource_files = new ArrayList<>();
+        this.public_files = new ArrayList<>();
     }
 
     public void set(Exercise other) {
