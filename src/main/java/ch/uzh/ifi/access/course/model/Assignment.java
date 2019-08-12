@@ -37,50 +37,17 @@ public class Assignment {
     public void update(Assignment other) {
         set(other);
 
-        // Remove non existing Assignments
-        for (Iterator<Exercise> i = exercises.iterator(); i.hasNext();) {
-            Exercise a = i.next();
-            Exercise b = other.exercises.stream().filter(x -> x.getIndex() == a.getIndex()).findFirst().orElse(null);
-            if(b == null){
-                i.remove();
-            }
-        }
-        // Update or add Assignments
-        for (Iterator<Exercise> i = other.exercises.iterator(); i.hasNext();) {
-            Exercise b = i.next();
-            Exercise a = exercises.stream().filter(x -> x.getIndex() == b.getIndex()).findFirst().orElse(null);
-            if(a != null){
-                a.update(b);
-            }else {
-                exercises.add(b);
-            }
-        }
-        // Sort Assignemnts
+        // Remove from exercises if not in other.exercises
+        exercises.removeIf(a -> other.exercises.stream().noneMatch(b -> b.getIndex() == a.getIndex()));
+
+        // Update or add assignments
+        other.exercises.forEach(b -> {
+            Optional<Exercise> exercise = exercises.stream().filter(a -> a.getIndex() == b.getIndex()).findFirst();
+            exercise.ifPresentOrElse(b::update, () -> exercises.add(b));
+        });
+
+        // Sort exercises
         exercises.sort(Comparator.comparing(Exercise::getIndex));
-
-        /*
-        int diff = exercises.size() - other.exercises.size();
-        int size = exercises.size();
-        if (diff > 0) {
-            // Deleted Assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                exercises.remove(size - (i + 1));
-            }
-        } else if (diff < 0) {
-            // Added assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                Exercise e = new Exercise();
-                e.set(other.exercises.get(size + i));
-                exercises.add(e);
-            }
-        }
-
-        for (int i = 0; i < exercises.size(); ++i) {
-            if (exercises.get(i).hasChanged(other.exercises.get(i))) {
-                exercises.get(i).update(other.exercises.get(i));
-            }
-        }
-        */
     }
 
     public void addExercise(Exercise ex) {
