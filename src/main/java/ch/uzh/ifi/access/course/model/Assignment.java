@@ -43,7 +43,7 @@ public class Assignment {
         // Update or add assignments
         other.exercises.forEach(b -> {
             Optional<Exercise> exercise = exercises.stream().filter(a -> a.getIndex() == b.getIndex()).findFirst();
-            exercise.ifPresentOrElse(b::update, () -> exercises.add(b));
+            exercise.ifPresentOrElse(ex -> ex.update(b), () -> exercises.add(b));
         });
 
         // Sort exercises
