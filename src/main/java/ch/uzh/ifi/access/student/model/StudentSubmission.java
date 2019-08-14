@@ -25,6 +25,8 @@ public abstract class StudentSubmission {
 
     private String exerciseId;
 
+    private boolean graded;
+
     private Instant timestamp;
 
     private SubmissionEvaluation result;
