@@ -110,13 +110,8 @@ public class SubmissionControllerTest {
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload))
-                .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.userId").value(authentication.getUserId()))
-                .andExpect(jsonPath("$.exerciseId").value(exerciseId))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.publicFiles").isArray())
-                .andExpect(jsonPath("$.graded").value(isGraded));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evalId").exists());
 
         StudentSubmission submission = repository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, authentication.getUserId()).orElse(null);
         Assertions.assertThat(submission).isNotNull();
@@ -142,7 +137,8 @@ public class SubmissionControllerTest {
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evalId").exists());
 
         StudentSubmission submission = repository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, authentication.getUserId()).orElse(null);
         Assertions.assertThat(submission).isNotNull();
@@ -167,7 +163,8 @@ public class SubmissionControllerTest {
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evalId").exists());
 
         StudentSubmission submission = repository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, authentication.getUserId()).orElse(null);
         Assertions.assertThat(submission).isNotNull();
@@ -197,7 +194,8 @@ public class SubmissionControllerTest {
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload1))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evalId").exists());
 
         mvc.perform(get("/submissions/exercises/" + exerciseId)
                 .with(authentication(authentication)))
@@ -215,7 +213,8 @@ public class SubmissionControllerTest {
                 .with(authentication(authentication))
                 .contentType("application/json")
                 .content(payload2))
-                .andExpect(status().isAccepted());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.evalId").exists());
 
         mvc.perform(get("/submissions/exercises/" + exerciseId)
                 .with(authentication(authentication)))
@@ -261,7 +260,8 @@ public class SubmissionControllerTest {
                     .with(authentication(authentication))
                     .contentType("application/json")
                     .content(payload))
-                    .andExpect(status().isAccepted());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.evalId").exists());
         }
 
         mvc.perform(get("/submissions/exercises/" + exerciseId + "/history")
