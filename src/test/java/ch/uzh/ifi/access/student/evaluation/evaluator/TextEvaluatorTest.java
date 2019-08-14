@@ -7,12 +7,16 @@ import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 public class TextEvaluatorTest {
 
     @Test
     public void test() {
         Exercise ex = Exercise.builder()
                 .id("e1")
+                .solutions(Arrays.asList("Abz"))
+                .maxScore(1)
                 .type(ExerciseType.text).build();
 
         TextSubmission sub = TextSubmission.builder()

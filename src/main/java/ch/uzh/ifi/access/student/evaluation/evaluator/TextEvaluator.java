@@ -22,16 +22,16 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
         if(solutions != null && solutions.size()>0 && solutions.get(0).length() > 0) {
             if (solutions.get(0).trim().equalsIgnoreCase(textSub.getAnswer().trim())) {
                 return SubmissionEvaluation.builder()
-                        .correctPoints(1)
-                        .maxPoints(exercise.getMaxScore())
+                        .points(new SubmissionEvaluation.Points(1,1))
+                        .maxScore(exercise.getMaxScore())
                         .timestamp(Instant.now())
                         .build();
             }
         }
 
         return SubmissionEvaluation.builder()
-                .correctPoints(0)
-                .maxPoints(exercise.getMaxScore())
+                .points(new SubmissionEvaluation.Points(0,1))
+                .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
                 .build();
     }

@@ -31,12 +31,13 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     private SubmissionEvaluation parseEvalFromConsoleLog(String console, Exercise exercise) {
         int points = 0;
+        int nrOfTest = -1;
 
         if (console != null) {
             List<String> lines = Arrays.asList(console.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
-            int nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
+             nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
 
             if (resultLine.startsWith("OK")) {
                 points = nrOfTest;
@@ -47,7 +48,10 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             logger.info("No console log to evaluate.");
         }
 
-        return  SubmissionEvaluation.builder().correctPoints(points).maxPoints(exercise.getMaxScore()).build();
+        return  SubmissionEvaluation.builder()
+                .points(new SubmissionEvaluation.Points(points, nrOfTest))
+                .maxScore(exercise.getMaxScore())
+                .build();
     }
 
     private int extractNrOfTests(String line) {

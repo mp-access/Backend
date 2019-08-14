@@ -20,6 +20,7 @@ public class CodeEvaluatorTest {
     public void setUp() {
         exercise = Exercise.builder()
                 .id("e1")
+                .maxScore(10)
                 .type(ExerciseType.code).build();
 
         errorTestLog = "runner/test/* (unittest.loader._FailedTest) ... ERROR\n" +
@@ -102,7 +103,7 @@ public class CodeEvaluatorTest {
 
         SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
 
-        Assert.assertEquals(5, grade.getScore());
+        Assert.assertEquals(5, grade.getPoints().getCorrect());
     }
 
     @Test
@@ -117,6 +118,7 @@ public class CodeEvaluatorTest {
 
         SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
 
-        Assert.assertEquals(6, grade.getScore());
+        Assert.assertEquals(6, grade.getPoints().getCorrect());
+        Assert.assertEquals(10, grade.getScore());
     }
 }
