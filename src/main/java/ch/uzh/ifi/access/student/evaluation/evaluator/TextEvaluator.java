@@ -17,12 +17,19 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
 
         TextSubmission textSub = (TextSubmission) submission;
 
-        // TODO: Get correct solution from exercise.
-        if ("Abz".equalsIgnoreCase(textSub.getAnswer().trim())) {
-            return new SubmissionEvaluation(1, Instant.now());
+        if (exercise.getTextSolution().equalsIgnoreCase(textSub.getAnswer().trim())) {
+            return SubmissionEvaluation.builder()
+                    .points(new SubmissionEvaluation.Points(1, 1))
+                    .maxScore(exercise.getMaxScore())
+                    .timestamp(Instant.now())
+                    .build();
         }
 
-        return new SubmissionEvaluation(0, Instant.now());
+        return SubmissionEvaluation.builder()
+                .points(new SubmissionEvaluation.Points(0, 1))
+                .maxScore(exercise.getMaxScore())
+                .timestamp(Instant.now())
+                .build();
     }
 
     private void validate(StudentSubmission submission, Exercise exercise) throws IllegalArgumentException {
@@ -31,5 +38,6 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
 
         Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
         Assert.isTrue(ExerciseType.text.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.text);
+        Assert.isTrue(exercise.getSolutions() != null && exercise.getSolutions().size() > 0, "Exercise has for for submission does not provide a solution!");
     }
 }
