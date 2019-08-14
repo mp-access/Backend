@@ -74,7 +74,7 @@ public class CourseDAO {
             exercisesJson.close();
             logger.info(String.format("Written files: %s, %s", coursesFile, exerciseFile));
         } catch (IOException e) {
-            logger.warn("Unable to write parse results to file system. Does the folder exists?");
+            logger.warn("Unable to write parse results to file system. Does the folder exists?", e);
         }
     }
 
