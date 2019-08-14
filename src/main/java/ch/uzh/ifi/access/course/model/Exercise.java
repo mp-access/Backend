@@ -60,7 +60,6 @@ public class Exercise implements Indexed<Exercise> {
     }
 
     public void set(Exercise other) {
-        this.index = other.index;
         this.type = other.type;
         this.language = other.language;
         this.maxSubmits = other.maxSubmits;
