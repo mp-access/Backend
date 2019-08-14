@@ -97,6 +97,7 @@ public class Exercise implements Indexed<Exercise> {
         return assignment.isPastDueDate();
     }
 
+    @JsonIgnore
     public String getTextSolution() {
         if (ExerciseType.text.equals(type) && solutions != null && !solutions.isEmpty()) {
             String solution = solutions.get(0);
