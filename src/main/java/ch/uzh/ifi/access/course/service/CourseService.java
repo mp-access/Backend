@@ -2,6 +2,7 @@
 package ch.uzh.ifi.access.course.service;
 
 import ch.uzh.ifi.access.course.dao.CourseDAO;
+import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
@@ -43,6 +44,12 @@ public class CourseService {
         return getCourseById(courseId)
                 .flatMap(course -> course.getAssignmentById(assignmentId))
                 .flatMap(assignment -> assignment.findExerciseById(exerciseId));
+    }
+
+    public Optional<List<Exercise>> getExercisesByCourseAndAssignmentId(String courseId, String assignmentId) {
+        return getCourseById(courseId)
+                .flatMap(course -> course.getAssignmentById(assignmentId))
+                .map(Assignment::getExercises);
     }
 
     public Optional<Exercise> getExerciseById(String exerciseId) {

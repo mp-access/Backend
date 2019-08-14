@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,8 @@ public class Exercise {
 
     private List<String> options = new ArrayList<>();
     private List<String> solutions = new ArrayList<>();
+
+    private int maxScore;
 
     @JsonIgnore
     private List<VirtualFile> private_files = new ArrayList<>();
@@ -79,6 +82,15 @@ public class Exercise {
         return assignment.isPastDueDate();
     }
 
+    public String getTextSolution() {
+        if (ExerciseType.text.equals(type) && solutions != null && !solutions.isEmpty()) {
+            String solution = solutions.get(0);
+            return StringUtils.isEmpty(solution) ? "" : solution.trim();
+        }
+
+        throw new UnsupportedOperationException("Calling getTextSolution on non-text type exercise");
+    }
+
     public boolean hasChanged(Exercise other) {
         return !(Objects.equals(this.type, other.type) &&
                 Objects.equals(this.language, other.language) &&
@@ -89,7 +101,7 @@ public class Exercise {
                 Objects.equals(this.resource_files, other.resource_files) &&
                 Objects.equals(this.public_files, other.public_files) &&
                 Objects.equals(this.solutions, other.solutions)
-                );
+        );
     }
 
 }

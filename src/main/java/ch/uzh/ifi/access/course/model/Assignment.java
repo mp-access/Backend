@@ -77,5 +77,10 @@ public class Assignment {
     public boolean isPastDueDate() {
         return LocalDateTime.now().isAfter(dueDate);
     }
+
+    public int getMaxScore() {
+        return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
+    }
+
 }
 
