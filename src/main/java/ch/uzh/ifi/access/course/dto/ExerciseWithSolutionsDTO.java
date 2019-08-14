@@ -23,6 +23,9 @@ public class ExerciseWithSolutionsDTO {
     private String question;
     private int maxSubmits;
 
+    private List<String> options = new ArrayList<>();
+    private List<String> solutions = new ArrayList<>();
+
     private List<VirtualFile> solution_files = new ArrayList<>();
 
     private List<VirtualFile> resource_files = new ArrayList<>();
@@ -37,6 +40,8 @@ public class ExerciseWithSolutionsDTO {
         this.language = exercise.getLanguage();
         this.question = exercise.getQuestion();
         this.maxSubmits = exercise.getMaxSubmits();
+        this.options = exercise.getOptions();
+        this.solutions = exercise.getSolutions();
         this.solution_files = exercise.getSolution_files();
         this.resource_files = exercise.getResource_files();
         this.public_files = exercise.getPublic_files();

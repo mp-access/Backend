@@ -15,18 +15,19 @@ public class CoursePermissionEvaluator {
      * @see CourseAuthentication#getCourseAccesses()
      */
     public boolean hasAccessToCourse(CourseAuthentication authentication, Course course) {
-        return authentication.getCourseAccesses().stream().anyMatch(access -> access.evaluateAccess(course));
+        return authentication.hasAccess(course);
     }
 
     /**
      * Evaluates if current logged in user has access to a course
      *
      * @param authentication contains the information to which course a user has access to
-     * @param courseId       course to access
+     * @param course         course to access
      * @return
      * @see CourseAuthentication#getCourseAccesses()
      */
-    public boolean hasAccessToCourse(CourseAuthentication authentication, String courseId) {
-        return true;
+    public boolean hasAdminAccessToCourse(CourseAuthentication authentication, Course course) {
+        return authentication.hasAdminAccess(course);
     }
+
 }

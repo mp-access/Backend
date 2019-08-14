@@ -8,6 +8,7 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
+import com.spotify.docker.client.messages.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
 
@@ -27,12 +29,46 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
-    private static final String PYTHON_DOCKER_IMAGE = "python:3.8.0a4-alpine3.9";
+    private static final String PYTHON_DOCKER_IMAGE = "python:3.7-alpine";
 
     private final DockerClient docker;
 
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
+        pullImageIfNotPresent();
+    }
+
+    private void pullImageIfNotPresent() {
+        try {
+            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
+            if (images.isEmpty()) {
+                docker.pull(PYTHON_DOCKER_IMAGE);
+            }
+        } catch (DockerException | InterruptedException e) {
+            logger.warn("Failed to pull python docker image", e);
+        }
+    }
+
+    /**
+     * Mounts the folder at path inside the container and runs the given command
+     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
+     *
+     * @param folderPath path to folder to mount inside container
+     * @param bashCmd    command to execute in bash
+     * @return stdout from container and execution time {@link RunResult}
+     * @throws DockerException
+     * @throws InterruptedException
+     */
+    public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd) throws DockerException, InterruptedException, IOException {
+        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
+
+        String[] cmd = new String[3];
+        cmd[0] = "/bin/sh";
+        cmd[1] = "-c";
+        cmd[2] = bashCmd;
+        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+
+        return createAndRunContainer(containerConfig, folderPath);
     }
 
     /**
@@ -86,14 +122,15 @@ public class CodeRunner {
         copyDirectoryToContainer(containerId, Paths.get(folderPath));
         startAndWaitContainer(containerId);
 
-        String logs = readStdOut(containerId);
+        String logs = readStdOutAndErr(containerId);
+        String stdOut = readStdOut(containerId);
         String stdErr = readStdErr(containerId);
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(logs, stdErr, executionTime);
+        return new RunResult(logs, stdErr, stdOut, stdErr, executionTime);
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {
@@ -124,6 +161,8 @@ public class CodeRunner {
                 .image(PYTHON_DOCKER_IMAGE)
                 .networkDisabled(true)
                 .workingDir(DOCKER_CODE_FOLDER)
+                .attachStdout(true)
+                .attachStderr(true)
                 .cmd(cmd)
                 .build();
     }
@@ -131,6 +170,10 @@ public class CodeRunner {
     private void startAndWaitContainer(String id) throws DockerException, InterruptedException {
         docker.startContainer(id);
         docker.waitContainer(id);
+    }
+
+    private String readStdOutAndErr(String containerId) throws DockerException, InterruptedException {
+        return docker.logs(containerId, DockerClient.LogsParam.stdout(), DockerClient.LogsParam.stderr()).readFully();
     }
 
     private String readStdOut(String containerId) throws DockerException, InterruptedException {
