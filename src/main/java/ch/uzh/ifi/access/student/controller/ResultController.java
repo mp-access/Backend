@@ -29,8 +29,6 @@ import java.util.Map;
 @RequestMapping("/students")
 public class ResultController {
 
-    private final static Logger logger = LoggerFactory.getLogger(SubmissionController.class);
-
     private CourseService courseService;
     private StudentSubmissionService submissionService;
 
@@ -43,7 +41,6 @@ public class ResultController {
     @GetMapping("/courses/{courseId}/results")
     public ResponseEntity<List> getCourseResults(@PathVariable String courseId, @PathVariable String assignmentId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
-        String username = authentication.getName();
         String userId = authentication.getUserId();
 
         Course course = courseService
@@ -67,4 +64,5 @@ public class ResultController {
 
         return ResponseEntity.ok(courseResults);
     }
+
 }
