@@ -8,6 +8,7 @@ import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
+import java.util.List;
 
 public class TextEvaluator implements StudentSubmissionEvaluator {
 
@@ -16,13 +17,23 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
         validate(submission, exercise);
 
         TextSubmission textSub = (TextSubmission) submission;
+        List<String> solutions = exercise.getSolutions();
 
-        // TODO: Get correct solution from exercise.
-        if ("Abz".equalsIgnoreCase(textSub.getAnswer().trim())) {
-            return new SubmissionEvaluation(1, Instant.now());
+        if(solutions != null && solutions.size()>0 && solutions.get(0).length() > 0) {
+            if (solutions.get(0).trim().equalsIgnoreCase(textSub.getAnswer().trim())) {
+                return SubmissionEvaluation.builder()
+                        .correctPoints(1)
+                        .maxPoints(exercise.getMaxScore())
+                        .timestamp(Instant.now())
+                        .build();
+            }
         }
 
-        return new SubmissionEvaluation(0, Instant.now());
+        return SubmissionEvaluation.builder()
+                .correctPoints(0)
+                .maxPoints(exercise.getMaxScore())
+                .timestamp(Instant.now())
+                .build();
     }
 
     private void validate(StudentSubmission submission, Exercise exercise) throws IllegalArgumentException {
@@ -31,5 +42,6 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
 
         Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
         Assert.isTrue(ExerciseType.text.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.text);
+        Assert.isTrue(exercise.getSolutions() != null && exercise.getSolutions().size() > 0, "Exercise has for for submission does not provide a solution!");
     }
 }
