@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Data
 public class Assignment {
@@ -77,5 +78,10 @@ public class Assignment {
     public boolean isPastDueDate() {
         return LocalDateTime.now().isAfter(dueDate);
     }
+
+    public int getMaxScore() {
+        return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
+    }
+
 }
 
