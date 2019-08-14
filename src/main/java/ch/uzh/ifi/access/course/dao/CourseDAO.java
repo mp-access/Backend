@@ -1,6 +1,6 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.RepoCacher;
+import ch.uzh.ifi.access.course.util.RepoCacher;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
@@ -18,9 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -74,7 +72,7 @@ public class CourseDAO {
             exercisesJson.close();
             logger.info(String.format("Written files: %s, %s", coursesFile, exerciseFile));
         } catch (IOException e) {
-            logger.warn("Unable to write parse results to file system. Does the folder exists?");
+            logger.warn("Unable to write parse results to file system. Does the folder exists?", e);
         }
     }
 
@@ -84,25 +82,6 @@ public class CourseDAO {
                 .flatMap(c -> c.getAssignments().stream())
                 .flatMap(a -> a.getExercises().stream())
                 .collect(Collectors.toUnmodifiableMap(Exercise::getId, ex -> ex));
-    }
-
-    public void updateCourses() {
-        ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
-        if (resource.exists()) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                URLList conf = mapper.readValue(resource.getFile(), URLList.class);
-                List<Course> courseUpdate = RepoCacher.retrieveCourseData(conf.repositories);
-
-                for (int i = 0; i < courseList.size(); ++i) {
-                    courseList.get(i).update(courseUpdate.get(i));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            courseList = null;
-        }
     }
 
     public void updateCourseById(String id) {
