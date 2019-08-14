@@ -19,14 +19,15 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
         TextSubmission textSub = (TextSubmission) submission;
         List<String> solutions = exercise.getSolutions();
 
-        if(solutions != null && solutions.size()>0 && solutions.get(0).length() > 0) {
-            if (solutions.get(0).trim().equalsIgnoreCase(textSub.getAnswer().trim())) {
+        if(solutions != null
+                && solutions.size()>0
+                && solutions.get(0).length() > 0
+                && solutions.get(0).trim().equalsIgnoreCase(textSub.getAnswer().trim())) {
                 return SubmissionEvaluation.builder()
                         .points(new SubmissionEvaluation.Points(1,1))
                         .maxScore(exercise.getMaxScore())
                         .timestamp(Instant.now())
                         .build();
-            }
         }
 
         return SubmissionEvaluation.builder()
