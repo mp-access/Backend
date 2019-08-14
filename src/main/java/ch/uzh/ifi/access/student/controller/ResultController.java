@@ -6,11 +6,7 @@ import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.AssignmentResults;
-import ch.uzh.ifi.access.student.model.StudentSubmission;
-import ch.uzh.ifi.access.student.reporting.AssignmentReport;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
@@ -21,9 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/students")
