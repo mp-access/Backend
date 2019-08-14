@@ -13,7 +13,7 @@ import java.util.Set;
 public class TestObjectFactory {
 
     public static Course createCourse(String title) {
-        Course course = new Course();
+        Course course = new Course("");
         course.setTitle(title);
         return course;
     }

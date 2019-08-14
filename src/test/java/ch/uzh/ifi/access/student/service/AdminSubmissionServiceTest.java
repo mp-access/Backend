@@ -111,7 +111,7 @@ public class AdminSubmissionServiceTest {
         submissionService.initSubmission(ex2Submission1User2);
         submissionService.initSubmission(ex2Submission2User2);
 
-        Course course = new Course();
+        Course course = new Course("");
         course.addAssignment(assignment);
         final String assignmentId = assignment.getId();
 

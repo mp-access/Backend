@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
-public class Course {
+public class Course implements IndexedCollection<Assignment> {
     private final String id;
 
     private String gitHash;
@@ -57,62 +57,8 @@ public class Course {
     public void update(Course other) {
         set(other);
         this.gitHash = other.gitHash;
-        //int diff = assignments.size() - other.assignments.size();
-        //int size = assignments.size();
 
-
-        /*
-        Set<Integer> indices = assignments.stream().map(Assignment::getIndex).collect(Collectors.toSet());
-
-        other.assignments.stream()
-                .filter(assignment -> indices.contains(assignment.getIndex()))
-                .map(Assignment::update)
-                .forEach(assignments::add);
-
-        assignments.sort(Comparator.comparing(Assignment::getIndex));
-        */
-
-        // Remove non existing Assignments
-        for (Iterator<Assignment> i = assignments.iterator(); i.hasNext();) {
-            Assignment a = i.next();
-            Assignment b = other.assignments.stream().filter(x -> x.getIndex() == a.getIndex()).findFirst().orElse(null);
-            if(b == null){
-                i.remove();
-            }
-        }
-        // Update or add Assignments
-        for (Iterator<Assignment> i = other.assignments.iterator(); i.hasNext();) {
-            Assignment b = i.next();
-            Assignment a = assignments.stream().filter(x -> x.getIndex() == b.getIndex()).findFirst().orElse(null);
-            if(a != null){
-                a.update(b);
-            }else {
-                assignments.add(b);
-            }
-        }
-        // Sort Assignemnts
-        assignments.sort(Comparator.comparing(Assignment::getIndex));
-
-        /*
-        if (diff > 0) {
-            // Deleted Assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                assignments.remove(size - (i + 1));
-            }
-        } else if (diff < 0) {
-            // Added assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                Assignment a = new Assignment();
-                a.set(other.assignments.get(size + i));
-                assignments.add(a);
-            }
-        }
-
-        for (int i = 0; i < assignments.size(); ++i) {
-            assignments.get(i).update(other.assignments.get(i));
-        }
-
-       */
+        this.update(other.getIndexedItems());
     }
 
     public void addAssignment(Assignment a) {
@@ -129,5 +75,10 @@ public class Course {
 
     public Optional<Assignment> getAssignmentById(String id) {
         return assignments.stream().filter(a -> a.getId().equals(id)).findFirst();
+    }
+
+    @Override
+    public List<Assignment> getIndexedItems() {
+        return assignments;
     }
 }

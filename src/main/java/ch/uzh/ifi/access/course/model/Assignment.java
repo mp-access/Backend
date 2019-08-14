@@ -5,10 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Data
-public class Assignment {
+public class Assignment implements IndexedCollection<Exercise>, Indexed<Assignment> {
     private final String id;
     private int index;
 
@@ -36,18 +39,7 @@ public class Assignment {
 
     public void update(Assignment other) {
         set(other);
-
-        // Remove from exercises if not in other.exercises
-        exercises.removeIf(a -> other.exercises.stream().noneMatch(b -> b.getIndex() == a.getIndex()));
-
-        // Update or add assignments
-        other.exercises.forEach(b -> {
-            Optional<Exercise> exercise = exercises.stream().filter(a -> a.getIndex() == b.getIndex()).findFirst();
-            exercise.ifPresentOrElse(ex -> ex.update(b), () -> exercises.add(b));
-        });
-
-        // Sort exercises
-        exercises.sort(Comparator.comparing(Exercise::getIndex));
+        this.update(other.getIndexedItems());
     }
 
     public void addExercise(Exercise ex) {
@@ -68,6 +60,11 @@ public class Assignment {
 
     public boolean isPastDueDate() {
         return LocalDateTime.now().isAfter(dueDate);
+    }
+
+    @Override
+    public List<Exercise> getIndexedItems() {
+        return exercises;
     }
 }
 

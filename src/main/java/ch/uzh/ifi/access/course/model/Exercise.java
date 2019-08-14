@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,8 @@ import java.util.stream.Stream;
 @Data
 @Builder
 @AllArgsConstructor
-public class Exercise {
+@ToString(exclude = "assignment")
+public class Exercise implements Indexed<Exercise> {
 
     private final String id;
     private int index;
@@ -106,5 +108,4 @@ public class Exercise {
                 Objects.equals(this.isGraded, other.isGraded)
         );
     }
-
 }
