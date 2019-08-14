@@ -23,10 +23,6 @@ public class CourseService {
         this.courseDao = courseDao;
     }
 
-    public void updateCourses() {
-        courseDao.updateCourses();
-    }
-
     public void updateCourseById(String id) {
         courseDao.updateCourseById(id);
     }

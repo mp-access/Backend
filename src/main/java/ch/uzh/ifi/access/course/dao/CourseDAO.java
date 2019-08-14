@@ -84,42 +84,6 @@ public class CourseDAO {
                 .collect(Collectors.toUnmodifiableMap(Exercise::getId, ex -> ex));
     }
 
-    public void updateCourses() {
-        ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
-        if (resource.exists()) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                URLList conf = mapper.readValue(resource.getFile(), URLList.class);
-                List<Course> courseUpdate = RepoCacher.retrieveCourseData(conf.repositories);
-
-                // Remove non existing Courses
-                for (Iterator<Course> i = courseList.iterator(); i.hasNext();) {
-                    Course a = i.next();
-                    Course b = courseUpdate.stream().filter(x -> x.getId().equals(a.getId())).findFirst().orElse(null);
-                    if(b == null){
-                        i.remove();
-                    }
-                }
-                // Update or add Courses
-                for (Iterator<Course> i = courseUpdate.iterator(); i.hasNext();) {
-                    Course b = i.next();
-                    Course a = courseList.stream().filter(x -> x.getId().equals(b.getId())).findFirst().orElse(null);
-                    if(a != null){
-                        a.update(b);
-                    }else {
-                        courseList.add(b);
-                    }
-                }
-
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            courseList = null;
-        }
-    }
-
     public void updateCourseById(String id) {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
