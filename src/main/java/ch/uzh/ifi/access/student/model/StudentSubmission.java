@@ -29,6 +29,8 @@ public abstract class StudentSubmission {
 
     private SubmissionEvaluation result;
 
+    private boolean isInvalid;
+
     /**
      * Checks whether the given user id matches this submission's id.
      *

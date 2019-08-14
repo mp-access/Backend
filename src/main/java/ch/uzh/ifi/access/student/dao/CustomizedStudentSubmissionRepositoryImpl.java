@@ -1,16 +1,23 @@
 package ch.uzh.ifi.access.student.dao;
 
 import ch.uzh.ifi.access.student.model.StudentSubmission;
+import com.mongodb.client.result.UpdateResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubmissionRepository {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomizedStudentSubmissionRepositoryImpl.class);
 
     private final MongoTemplate mongoTemplate;
 
@@ -52,5 +59,14 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
         AggregationResults<StudentSubmission> results = mongoTemplate.aggregate(aggregation, "studentSubmissions", StudentSubmission.class);
 
         return results.getMappedResults();
+    }
+
+    @Override
+    public void invalidateSubmissionsByExerciseId(String exerciseId) {
+        Query query = Query.query(Criteria.where("exerciseId").is(exerciseId));
+        Update update = Update.update("isInvalid", true);
+
+        UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
+        logger.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
     }
 }

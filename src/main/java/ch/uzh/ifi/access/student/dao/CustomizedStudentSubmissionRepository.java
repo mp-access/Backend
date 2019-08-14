@@ -6,4 +6,6 @@ import java.util.List;
 
 interface CustomizedStudentSubmissionRepository {
     List<StudentSubmission> findByExerciseIdInAndUserIdOrderByVersionDesc(List<String> exerciseIds, String userId);
+
+    void invalidateSubmissionsByExerciseId(String exerciseId);
 }

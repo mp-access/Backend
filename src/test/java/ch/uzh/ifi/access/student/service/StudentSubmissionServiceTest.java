@@ -280,4 +280,30 @@ public class StudentSubmissionServiceTest {
                 .withFailMessage("Submissions should include one submission for each exercise and should include following versions: " + latestSubmissionsByAssignment.toString())
                 .isEqualTo(latestSubmissionsForAssignment);
     }
+
+    @Test
+    public void invalidateSubmission() {
+        Exercise exercise = TestObjectFactory.createCodeExercise("Exercise 1");
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+
+        final String userId = "user-1";
+        codeSubmission1.setUserId(userId);
+        codeSubmission2.setUserId(userId);
+        codeSubmission3.setUserId(userId);
+
+        service.initSubmission(codeSubmission1);
+        service.initSubmission(codeSubmission2);
+        service.initSubmission(codeSubmission3);
+
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
+        Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
+
+        service.invalidateSubmissionsByExerciseId(exercise.getId());
+
+        submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
+
+        Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
+    }
 }

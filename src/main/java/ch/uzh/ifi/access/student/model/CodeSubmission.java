@@ -25,8 +25,8 @@ public class CodeSubmission extends StudentSubmission {
     private ExecResult console;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Instant timestamp, List<VirtualFile> publicFiles, boolean graded, int selectedFile, ExecResult console) {
-        super(id, version, userId, commitId, exerciseId, timestamp, null);
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Instant timestamp, List<VirtualFile> publicFiles, boolean graded, int selectedFile, ExecResult console, boolean isInvalid) {
+        super(id, version, userId, commitId, exerciseId, timestamp, null, isInvalid);
         this.publicFiles = publicFiles;
         this.graded = graded;
         this.selectedFile = selectedFile;

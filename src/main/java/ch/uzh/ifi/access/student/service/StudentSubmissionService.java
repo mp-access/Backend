@@ -75,4 +75,8 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findByExerciseIdInAndUserIdOrderByVersionDesc(exerciseIds, userId);
     }
 
+    public void invalidateSubmissionsByExerciseId(String exerciseId) {
+        studentSubmissionRepository.invalidateSubmissionsByExerciseId(exerciseId);
+    }
+
 }
