@@ -8,7 +8,6 @@ import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
-import java.util.List;
 
 public class TextEvaluator implements StudentSubmissionEvaluator {
 
@@ -17,7 +16,6 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
         validate(submission, exercise);
 
         TextSubmission textSub = (TextSubmission) submission;
-        List<String> solutions = exercise.getSolutions();
 
         if (exercise.getTextSolution().equalsIgnoreCase(textSub.getAnswer().trim())) {
             return SubmissionEvaluation.builder()
