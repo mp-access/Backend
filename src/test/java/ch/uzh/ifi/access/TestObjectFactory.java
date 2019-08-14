@@ -33,6 +33,7 @@ public class TestObjectFactory {
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.code);
         exercise.setGitHash("0x123456");
+        exercise.setMaxScore(10);
         return exercise;
     }
 
@@ -41,6 +42,7 @@ public class TestObjectFactory {
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.text);
         exercise.setGitHash("0x123456");
+        exercise.setMaxScore(1);
         return exercise;
     }
 
@@ -49,6 +51,7 @@ public class TestObjectFactory {
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.multipleChoice);
         exercise.setGitHash("0x123456");
+        exercise.setMaxScore(3);
         return exercise;
     }
 
