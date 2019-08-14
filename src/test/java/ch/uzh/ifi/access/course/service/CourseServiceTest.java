@@ -23,7 +23,7 @@ public class CourseServiceTest {
     @Test
     public void getExercisesByCourseAndAssignmentId() {
         MockitoAnnotations.initMocks(this);
-        var course = new Course();
+        var course = new Course("");
         var a1 = new Assignment();
         a1.setCourse(course);
         a1.setExercises(Arrays.asList(new Exercise(),new Exercise(),new Exercise()));

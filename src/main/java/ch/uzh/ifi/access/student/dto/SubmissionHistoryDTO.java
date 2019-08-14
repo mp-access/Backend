@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.student.dto;
 
+import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import lombok.Value;
@@ -27,6 +28,8 @@ public class SubmissionHistoryDTO {
 
         private final String commitHash;
 
+        private final boolean graded;
+
         private SubmissionEvaluation result;
 
         SubmissionMetadata(StudentSubmission submission) {
@@ -35,6 +38,11 @@ public class SubmissionHistoryDTO {
             this.timestamp = submission.getTimestamp();
             this.commitHash = submission.getCommitId();
             this.result = submission.getResult();
+            if(submission instanceof CodeSubmission){
+                this.graded = ((CodeSubmission) submission).isGraded();
+            }else{
+                this.graded = true;
+            }
         }
     }
 }

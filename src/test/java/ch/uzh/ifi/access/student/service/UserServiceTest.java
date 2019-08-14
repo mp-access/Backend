@@ -36,7 +36,7 @@ public class UserServiceTest {
         createUserWithEmail(email2);
         createUserWithEmail(adminEmail);
 
-        Course course = new Course();
+        Course course = new Course("");
         course.setStudents(List.of(email1, email2));
         course.setAssistants(List.of(adminEmail));
         List<User> users = userService.getCourseStudents(course);
@@ -54,7 +54,7 @@ public class UserServiceTest {
         createUserWithEmail(email2);
         createUserWithEmail(adminEmail);
 
-        Course course = new Course();
+        Course course = new Course("");
         course.setStudents(List.of(email1, email2));
         course.setAssistants(List.of(adminEmail));
         List<User> users = userService.getCourseAdmins(course);
@@ -78,7 +78,7 @@ public class UserServiceTest {
                 .forEach(user -> realmResource.users().delete(user.getId()));
 
         final String nonExistingEmail = "test@email.com";
-        Course course = new Course();
+        Course course = new Course("");
         course.setStudents(List.of(nonExistingEmail));
         userService.getCourseStudents(course);
     }
