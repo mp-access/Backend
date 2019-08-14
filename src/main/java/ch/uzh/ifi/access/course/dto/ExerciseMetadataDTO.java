@@ -12,12 +12,14 @@ public class ExerciseMetadataDTO {
     private String gitHash;
     private ExerciseType type;
     private String language;
+    private Boolean isGraded;
 
     public ExerciseMetadataDTO(Exercise exercise){
         this.id = exercise.getId();
         this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
+        this.isGraded = exercise.getIsGraded();
     }
 
     public ExerciseMetadataDTO(){

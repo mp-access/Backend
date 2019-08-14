@@ -6,12 +6,15 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 @Data
-public class Assignment {
+public class Assignment implements IndexedCollection<Exercise>, Indexed<Assignment> {
     private final String id;
+    private int index;
+
     @JsonIgnore
     private Course course;
 
@@ -20,10 +23,11 @@ public class Assignment {
     private LocalDateTime publishDate;
     private LocalDateTime dueDate;
 
-    private List<Exercise> exercises = new ArrayList<>();
+    private List<Exercise> exercises;
 
     public Assignment() {
         this.id = new Utils().getID();
+        this.exercises = new ArrayList<>();
     }
 
     public void set(Assignment other) {
@@ -35,33 +39,13 @@ public class Assignment {
 
     public void update(Assignment other) {
         set(other);
-
-        int diff = exercises.size() - other.exercises.size();
-        int size = exercises.size();
-        if (diff > 0) {
-            // Deleted Assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                exercises.remove(size - (i + 1));
-            }
-        } else if (diff < 0) {
-            // Added assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                Exercise e = new Exercise();
-                e.set(other.exercises.get(size + i));
-                exercises.add(e);
-            }
-        }
-
-        for (int i = 0; i < exercises.size(); ++i) {
-            if (exercises.get(i).hasChanged(other.exercises.get(i))) {
-                exercises.get(i).update(other.exercises.get(i));
-            }
-        }
+        this.update(other.getIndexedItems());
     }
 
     public void addExercise(Exercise ex) {
         exercises.add(ex);
         ex.setAssignment(this);
+        exercises.sort(Comparator.comparing(Exercise::getIndex));
     }
 
     public void addExercises(Exercise... exercises) {
@@ -82,5 +66,10 @@ public class Assignment {
         return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
     }
 
+
+    @Override
+    public List<Exercise> getIndexedItems() {
+        return exercises;
+    }
 }
 

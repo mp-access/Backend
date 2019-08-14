@@ -19,6 +19,7 @@ public class ExerciseWithSolutionsDTO {
     private String gitHash;
     private ExerciseType type;
     private String language;
+    private Boolean isGraded;
 
     private String question;
     private int maxSubmits;
@@ -38,6 +39,7 @@ public class ExerciseWithSolutionsDTO {
         this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
+        this.isGraded = exercise.getIsGraded();
         this.question = exercise.getQuestion();
         this.maxSubmits = exercise.getMaxSubmits();
         this.options = exercise.getOptions();

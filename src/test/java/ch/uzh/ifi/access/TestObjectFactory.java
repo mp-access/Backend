@@ -13,7 +13,7 @@ import java.util.Set;
 public class TestObjectFactory {
 
     public static Course createCourse(String title) {
-        Course course = new Course();
+        Course course = new Course("");
         course.setTitle(title);
         return course;
     }
@@ -78,7 +78,7 @@ public class TestObjectFactory {
                 .exerciseId("exercise-1")
                 .timestamp(Instant.now())
                 .publicFiles(List.of(createVirtualFile("test", "py", false), createVirtualFile("test2", "py", false)))
-                .isGraded(true)
+                .graded(true)
                 .build();
     }
 
