@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -26,28 +25,32 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
         validate(submission, exercise);
         CodeSubmission codeSub = (CodeSubmission) submission;
-        return parseEvalFromConsoleLog(codeSub.getConsole().getStderr());
+        return parseEvalFromConsoleLog(codeSub.getConsole().getStderr(), exercise);
     }
 
-    private SubmissionEvaluation parseEvalFromConsoleLog(String console) {
-        int score = 0;
+    private SubmissionEvaluation parseEvalFromConsoleLog(String console, Exercise exercise) {
+        int points = 0;
+        int nrOfTest = -1;
 
         if (console != null) {
             List<String> lines = Arrays.asList(console.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
-            int nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
+             nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
 
             if (resultLine.startsWith("OK")) {
-                score = nrOfTest;
+                points = nrOfTest;
             } else if (resultLine.startsWith("FAILED")) {
-                score = nrOfTest - extractNrOfNOKTests(resultLine);
+                points = nrOfTest - extractNrOfNOKTests(resultLine);
             }
         } else {
             logger.info("No console log to evaluate.");
         }
 
-        return new SubmissionEvaluation(score, Instant.now());
+        return  SubmissionEvaluation.builder()
+                .points(new SubmissionEvaluation.Points(points, nrOfTest))
+                .maxScore(exercise.getMaxScore())
+                .build();
     }
 
     private int extractNrOfTests(String line) {

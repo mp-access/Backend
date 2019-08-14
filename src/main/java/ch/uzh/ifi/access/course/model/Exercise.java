@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,8 @@ public class Exercise implements Indexed<Exercise> {
 
     private List<String> options;
     private List<String> solutions;
+
+    private int maxScore;
 
     @JsonIgnore
     private List<VirtualFile> private_files;
@@ -92,6 +95,15 @@ public class Exercise implements Indexed<Exercise> {
 
     public boolean isPastDueDate() {
         return assignment.isPastDueDate();
+    }
+
+    public String getTextSolution() {
+        if (ExerciseType.text.equals(type) && solutions != null && !solutions.isEmpty()) {
+            String solution = solutions.get(0);
+            return StringUtils.isEmpty(solution) ? "" : solution.trim();
+        }
+
+        throw new UnsupportedOperationException("Calling getTextSolution on non-text type exercise");
     }
 
     public boolean hasChanged(Exercise other) {

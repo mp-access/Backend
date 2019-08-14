@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.awt.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -94,10 +95,12 @@ public class AdminSubmissionServiceTest {
         setUserForSubmission(List.of(ex1Submission1User1, ex1Submission2User1, ex2Submission1User1, ex2Submission2User1), user1Id);
         setUserForSubmission(List.of(ex1Submission1User2, ex1Submission2User2, ex2Submission1User2, ex2Submission2User2), user2Id);
 
-        final int ex1User1Score = 8;
-        final int ex1User2Score = 9;
-        setScoreForSubmission(ex1Submission2User1, ex1User1Score);
-        setScoreForSubmission(ex1Submission2User2, ex1User2Score);
+        final double ex1User1Score = 5.0;
+        final SubmissionEvaluation.Points ex1User1Points = new SubmissionEvaluation.Points(5,10);
+        final double ex1User2Score = 10.0;
+        final SubmissionEvaluation.Points ex1User2Points = new SubmissionEvaluation.Points(10,10);
+        setResultForSubmission(ex1Submission2User1, ex1User1Points, exercise1.getMaxScore());
+        setResultForSubmission(ex1Submission2User2, ex1User2Points, exercise1.getMaxScore());
 
         submissionService.initSubmission(ex1Submission1User1);
         submissionService.initSubmission(ex1Submission2User1);
@@ -145,7 +148,7 @@ public class AdminSubmissionServiceTest {
         submissions.forEach(submission -> submission.setUserId(userId));
     }
 
-    private void setScoreForSubmission(StudentSubmission submission, int score) {
-        submission.setResult(new SubmissionEvaluation(score, Instant.now()));
+    private void setResultForSubmission(StudentSubmission submission, SubmissionEvaluation.Points points, int maxScore ) {
+        submission.setResult( SubmissionEvaluation.builder().points(points).maxScore( maxScore).timestamp(Instant.now()).build());
     }
 }

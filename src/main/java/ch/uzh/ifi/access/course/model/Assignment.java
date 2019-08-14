@@ -62,6 +62,11 @@ public class Assignment implements IndexedCollection<Exercise>, Indexed<Assignme
         return LocalDateTime.now().isAfter(dueDate);
     }
 
+    public int getMaxScore() {
+        return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
+    }
+
+
     @Override
     public List<Exercise> getIndexedItems() {
         return exercises;
