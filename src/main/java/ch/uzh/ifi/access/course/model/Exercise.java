@@ -120,4 +120,8 @@ public class Exercise implements Indexed<Exercise> {
                 Objects.equals(this.isGraded, other.isGraded)
         );
     }
+
+    public boolean isBreakingChange(Exercise other) {
+        return !gitHash.equals(other.getGitHash());
+    }
 }
