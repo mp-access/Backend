@@ -7,12 +7,12 @@ import java.util.List;
 
 @Data
 public class CourseConfig {
-    private String title;
-    private String description;
-    private String owner;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    protected String title;
+    protected String description;
+    protected String owner;
+    protected LocalDateTime startDate;
+    protected LocalDateTime endDate;
 
-    private List<String> assistants;
-    private List<String> students;
+    protected List<String> assistants;
+    protected List<String> students;
 }

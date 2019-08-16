@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.course.model;
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,30 +12,28 @@ import java.util.List;
 import java.util.Optional;
 
 @Data
-public class Assignment implements IndexedCollection<Exercise>, Indexed<Assignment> {
+@EqualsAndHashCode(callSuper = true)
+public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment> {
     private final String id;
     private int index;
 
     @JsonIgnore
     private Course course;
 
-    private String title;
-    private String description;
-    private LocalDateTime publishDate;
-    private LocalDateTime dueDate;
-
     private List<Exercise> exercises;
 
-    public Assignment() {
-        this.id = new Utils().getID();
+    public Assignment(String name) {
+        super();
+        this.id = new Utils().getID(name);
+
         this.exercises = new ArrayList<>();
     }
 
-    public void set(Assignment other) {
-        this.title = other.title;
-        this.description = other.description;
-        this.publishDate = other.publishDate;
-        this.dueDate = other.dueDate;
+    public void set(AssignmentConfig other) {
+        this.title = other.getTitle();
+        this.description = other.getDescription();
+        this.publishDate = other.getPublishDate();
+        this.dueDate = other.getDueDate();
     }
 
     public void update(Assignment other) {
@@ -59,7 +58,7 @@ public class Assignment implements IndexedCollection<Exercise>, Indexed<Assignme
     }
 
     public boolean isPastDueDate() {
-        return LocalDateTime.now().isAfter(dueDate);
+        return LocalDateTime.now().isAfter(this.getDueDate());
     }
 
     public int getMaxScore() {
