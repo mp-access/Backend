@@ -38,10 +38,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     public Exercise(String name) {
         super();
         this.id = new Utils().getID(name);
-
-        System.out.println("Creating exercise with: " + name);
-        System.out.println("\t -> id = " + this.id);
-
+        
         this.private_files = new ArrayList<>();
         this.solution_files = new ArrayList<>();
         this.resource_files = new ArrayList<>();
