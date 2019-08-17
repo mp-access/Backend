@@ -111,7 +111,7 @@ public class Exercise implements Indexed<Exercise> {
                 && options != null && !options.isEmpty()
                 && solutions != null && !solutions.isEmpty()) {
 
-            return options.stream().filter(o -> solutions.contains(o)).map(o -> Integer.valueOf(options.indexOf(o))).collect(Collectors.toSet());
+            return options.stream().filter(o -> solutions.contains(o)).map(o -> options.indexOf(o)).collect(Collectors.toSet());
         }
 
         throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
