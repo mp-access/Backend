@@ -13,4 +13,6 @@ public interface StudentSubmissionRepository extends MongoRepository<StudentSubm
     <T extends StudentSubmission> List<T> findAllByExerciseIdAndUserIdOrderByVersionDesc(String exerciseId, String userId);
 
     <T extends StudentSubmission> Optional<T> findTopByExerciseIdAndUserIdOrderByVersionDesc(String exerciseId, String userId);
+
+    int countByExerciseIdAndUserIdAndIsInvalidFalse(String exerciseId, String userId);
 }

@@ -58,4 +58,8 @@ public class CourseService {
 
         return virtualFile.map(file -> new FileSystemResource(file.getFile()));
     }
+
+    public Optional<Integer> getExerciseMaxSubmissions(String exerciseId) {
+        return courseDao.selectExerciseById(exerciseId).map(Exercise::getMaxSubmits);
+    }
 }
