@@ -5,8 +5,8 @@ import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
+import ch.uzh.ifi.access.student.dto.SubmissionCount;
 import ch.uzh.ifi.access.student.dto.SubmissionHistoryDTO;
-import ch.uzh.ifi.access.student.dto.SubmissionResult;
 import ch.uzh.ifi.access.student.evaluation.EvalProcessService;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
@@ -17,7 +17,10 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/submissions")
