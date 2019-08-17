@@ -1,10 +1,10 @@
 package ch.uzh.ifi.access.course.dao;
 
 import ch.uzh.ifi.access.TestObjectFactory;
+import ch.uzh.ifi.access.course.event.BreakingChangeNotifier;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.service.BreakingChangeNotifier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;

@@ -1,7 +1,6 @@
-package ch.uzh.ifi.access.course.service;
+package ch.uzh.ifi.access.course.event;
 
 import ch.uzh.ifi.access.TestObjectFactory;
-import ch.uzh.ifi.access.course.event.BreakingChangeEvent;
 import ch.uzh.ifi.access.course.model.Exercise;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;

@@ -1,6 +1,5 @@
-package ch.uzh.ifi.access.course.service;
+package ch.uzh.ifi.access.course.event;
 
-import ch.uzh.ifi.access.course.event.BreakingChangeEvent;
 import ch.uzh.ifi.access.course.model.Exercise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
