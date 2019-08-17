@@ -95,15 +95,19 @@ public class CourseDAO {
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
         try {
             Course courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
-            List<Exercise> brokenExercises = lookForBreakingChanges(c, courseUpdate);
-            breakingChangeNotifier.notifyBreakingChanges(brokenExercises);
-            c.update(courseUpdate);
-
-            exerciseIndex = buildExerciseIndex(courseList);
-            writeParseResultsToFileSystem();
+            updateCourse(c, courseUpdate);
         } catch (Exception e) {
             logger.error("Failed to update course", e);
         }
+    }
+
+    void updateCourse(Course before, Course after) {
+        List<Exercise> brokenExercises = lookForBreakingChanges(before, after);
+        breakingChangeNotifier.notifyBreakingChanges(brokenExercises);
+        before.update(after);
+
+        exerciseIndex = buildExerciseIndex(courseList);
+        writeParseResultsToFileSystem();
     }
 
     /**

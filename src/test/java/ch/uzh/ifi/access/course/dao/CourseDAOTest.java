@@ -8,6 +8,7 @@ import ch.uzh.ifi.access.course.service.BreakingChangeNotifier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,8 @@ public class CourseDAOTest {
 
     @Before
     public void setUp() throws Exception {
-        BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier();
+        ApplicationEventPublisher noOpPublisher = (event) -> {};
+        BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier(noOpPublisher);
         courseDAO = new CourseDAO(breakingChangeNotifier);
     }
 
