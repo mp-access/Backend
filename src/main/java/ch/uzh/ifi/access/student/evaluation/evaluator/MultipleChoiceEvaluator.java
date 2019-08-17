@@ -5,7 +5,6 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
-import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -19,8 +18,8 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
 
         MultipleChoiceSubmission mcSub = (MultipleChoiceSubmission) submission;
 
-        Collection solution = exercise.getMultipleChoiceSolution();
-        Collection answer = mcSub.getChoices();
+        Collection<Integer> solution = exercise.getMultipleChoiceSolution();
+        Collection<Integer> answer = mcSub.getChoices();
 
         answer.retainAll(solution);
 
@@ -37,7 +36,7 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
         Assert.isInstanceOf(MultipleChoiceSubmission.class, submission);
 
         Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
-        Assert.isTrue(ExerciseType.multipleChoice.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.text);
-        Assert.isTrue(exercise.getSolutions() != null && exercise.getSolutions().size() > 0, "Exercise has for for submission does not provide a solution!");
+        Assert.isTrue(ExerciseType.multipleChoice.equals(exercise.getType()), "Exercise object for evaluation must be of type " + ExerciseType.multipleChoice);
+        Assert.isTrue(exercise.getSolutions() != null && exercise.getSolutions().size() > 0, "Exercise does not provide a solution!");
     }
 }
