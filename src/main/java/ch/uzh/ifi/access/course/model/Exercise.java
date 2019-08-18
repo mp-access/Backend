@@ -8,10 +8,8 @@ import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
@@ -104,6 +102,18 @@ public class Exercise implements Indexed<Exercise> {
         }
 
         throw new UnsupportedOperationException("Calling getTextSolution on non-text type exercise");
+    }
+
+    @JsonIgnore
+    public Set<Integer> getMultipleChoiceSolution() {
+        if (ExerciseType.multipleChoice.equals(type)
+                && options != null && !options.isEmpty()
+                && solutions != null && !solutions.isEmpty()) {
+
+            return options.stream().filter(o -> solutions.contains(o)).map(o -> options.indexOf(o)).collect(Collectors.toSet());
+        }
+
+        throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
     }
 
     public boolean hasChanged(Exercise other) {
