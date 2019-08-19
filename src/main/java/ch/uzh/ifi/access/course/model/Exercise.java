@@ -5,10 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
@@ -106,11 +104,23 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         throw new UnsupportedOperationException("Calling getTextSolution on non-text type exercise");
     }
 
-    public boolean hasBreakingChange(Exercise other) {
-        return !(
-                Objects.equals(this.getType(), other.getType()) &&
-                Objects.equals(this.getLanguage(), other.getLanguage()) &&
-                Objects.equals(this.getSolutions(), other.getSolutions()) &&
+    @JsonIgnore
+    public Set<Integer> getMultipleChoiceSolution() {
+        if (ExerciseType.multipleChoice.equals(type)
+                && options != null && !options.isEmpty()
+                && solutions != null && !solutions.isEmpty()) {
+
+            return options.stream().filter(o -> solutions.contains(o)).map(o -> options.indexOf(o)).collect(Collectors.toSet());
+        }
+
+        throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
+    }
+
+    public boolean isBreakingChange(Exercise other) {
+        return !(Objects.equals(this.gitHash, other.gitHash) &&
+                Objects.equals(this.index, other.index) &&
+                Objects.equals(this.type, other.type) &&
+                Objects.equals(this.language, other.language) &&
                 Objects.equals(this.question, other.question) &&
                 Objects.equals(this.private_files, other.private_files) &&
                 Objects.equals(this.resource_files, other.resource_files) &&

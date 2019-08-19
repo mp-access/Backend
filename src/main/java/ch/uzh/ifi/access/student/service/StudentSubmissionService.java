@@ -75,4 +75,14 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findByExerciseIdInAndUserIdOrderByVersionDesc(exerciseIds, userId);
     }
 
+    public void invalidateSubmissionsByExerciseIdIn(List<String> exerciseIds) {
+        if (exerciseIds != null) {
+            exerciseIds.forEach(this::invalidateSubmissionsByExerciseId);
+        }
+    }
+
+    public void invalidateSubmissionsByExerciseId(String exerciseId) {
+        studentSubmissionRepository.invalidateSubmissionsByExerciseId(exerciseId);
+    }
+
 }
