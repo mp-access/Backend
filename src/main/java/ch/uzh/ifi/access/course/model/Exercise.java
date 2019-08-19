@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Builder
 @AllArgsConstructor
 @ToString(exclude = "assignment")
 public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
@@ -43,6 +42,20 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.solution_files = new ArrayList<>();
         this.resource_files = new ArrayList<>();
         this.public_files = new ArrayList<>();
+    }
+
+    @Builder
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files) {
+        super(type, language, isGraded, maxScore, maxSubmits, options, solutions);
+        this.id = id;
+        this.index = index;
+        this.gitHash = gitHash;
+        this.assignment = assignment;
+        this.question = question;
+        this.private_files = private_files;
+        this.solution_files = solution_files;
+        this.resource_files = resource_files;
+        this.public_files = public_files;
     }
 
     public void set(ExerciseConfig other) {

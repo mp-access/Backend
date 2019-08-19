@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -23,10 +24,18 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
     private List<Exercise> exercises;
 
     public Assignment(String name) {
-        super();
         this.id = new Utils().getID(name);
 
         this.exercises = new ArrayList<>();
+    }
+
+    @Builder
+    private Assignment(String title, String description, LocalDateTime publishDate, LocalDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
+        super(title, description, publishDate, dueDate);
+        this.id = id;
+        this.index = index;
+        this.course = course;
+        this.exercises = exercises;
     }
 
     public void set(AssignmentConfig other) {

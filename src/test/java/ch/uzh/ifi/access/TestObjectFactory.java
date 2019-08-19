@@ -19,7 +19,7 @@ public class TestObjectFactory {
     }
 
     public static Assignment createAssignment(String title) {
-        Assignment assignment = new Assignment();
+        Assignment assignment = new Assignment("Assignment_1");
         assignment.setTitle(title);
         assignment.setDescription("Some description");
         assignment.setDueDate(LocalDateTime.now().plusDays(7));
@@ -28,7 +28,7 @@ public class TestObjectFactory {
     }
 
     public static Exercise createCodeExercise(String question) {
-        Exercise exercise = new Exercise();
+        Exercise exercise = new Exercise("Exercise_1");
         exercise.setLanguage("python");
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.code);
@@ -38,7 +38,7 @@ public class TestObjectFactory {
     }
 
     public static Exercise createTextExercise(String question) {
-        Exercise exercise = new Exercise();
+        Exercise exercise = new Exercise("Exercise_1");
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.text);
         exercise.setGitHash("0x123456");
@@ -47,7 +47,7 @@ public class TestObjectFactory {
     }
 
     public static Exercise createMultipleChoiceExercise(String question) {
-        Exercise exercise = new Exercise();
+        Exercise exercise = new Exercise("Exercise_1");
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.multipleChoice);
         exercise.setGitHash("0x123456");

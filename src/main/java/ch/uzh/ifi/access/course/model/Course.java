@@ -1,9 +1,11 @@
 package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
@@ -18,11 +20,21 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
     private List<Assignment> assignments;
 
     public Course(String name) {
-        super();
         this.id = new Utils().getID(name);
 
         this.assignments = new ArrayList<>();
     }
+
+    @Builder
+    public Course(String title, String description, String owner, LocalDateTime startDate, LocalDateTime endDate, List<String> assistants, List<String> students, String id, String gitHash, String gitURL, String directory, List<Assignment> assignments) {
+        super(title, description, owner, startDate, endDate, assistants, students);
+        this.id = id;
+        this.gitHash = gitHash;
+        this.gitURL = gitURL;
+        this.directory = directory;
+        this.assignments = assignments;
+    }
+
 
     public void set(CourseConfig other) {
         this.title = other.getTitle();
