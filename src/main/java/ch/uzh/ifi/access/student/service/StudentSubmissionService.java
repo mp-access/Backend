@@ -85,4 +85,8 @@ public class StudentSubmissionService {
         studentSubmissionRepository.invalidateSubmissionsByExerciseId(exerciseId);
     }
 
+    public int getSubmissionCountByExerciseAndUser(String exerciseId, String userId) {
+        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalse(exerciseId, userId);
+    }
+
 }
