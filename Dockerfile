@@ -11,6 +11,9 @@ RUN ./gradlew build -x test
 RUN mkdir -p build/dependency && (cd build/dependency; jar -xf ../libs/*.jar)
 
 FROM openjdk:11.0.3-jre-slim-stretch
+RUN apt-get update
+RUN apt-get -y upgrade
+RUN apt-get -y install openssh-client
 VOLUME /tmp
 ARG DEPENDENCY=/workspace/app/build/dependency
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
