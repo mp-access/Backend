@@ -14,8 +14,11 @@ public class SubmissionHistoryDTO {
 
     private final List<SubmissionMetadata> submissions;
 
-    public SubmissionHistoryDTO(List<StudentSubmission> submissions) {
+    private final SubmissionCount submissionCount;
+
+    public SubmissionHistoryDTO(List<StudentSubmission> submissions, SubmissionCount submissionCount) {
         this.submissions = submissions.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
+        this.submissionCount = submissionCount;
     }
 
     @Value
@@ -38,9 +41,9 @@ public class SubmissionHistoryDTO {
             this.timestamp = submission.getTimestamp();
             this.commitHash = submission.getCommitId();
             this.result = submission.getResult();
-            if(submission instanceof CodeSubmission){
+            if (submission instanceof CodeSubmission) {
                 this.graded = ((CodeSubmission) submission).isGraded();
-            }else{
+            } else {
                 this.graded = true;
             }
         }
