@@ -33,16 +33,13 @@ public class ResultController {
     }
 
     @GetMapping("/courses/{courseId}/results")
-    public ResponseEntity<List> getCourseResults(@PathVariable String courseId, @PathVariable String assignmentId, @ApiIgnore CourseAuthentication authentication) {
+    public ResponseEntity<List> getCourseResults(@PathVariable String courseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
         String userId = authentication.getUserId();
 
         Course course = courseService
                 .getCourseById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
-
-        Assignment assignment = course.getAssignmentById(assignmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
 
         List<AssignmentResults> courseResults = new ArrayList<>();
 
@@ -52,7 +49,7 @@ public class ResultController {
                     .assignmentId(a.getId())
                     .userId(userId)
                     .maxScore(a.getMaxScore())
-                    .gradedSubmissions(submissionService.findLatestSubmissionsByAssignment(assignment, userId))
+                    .gradedSubmissions(submissionService.findLatestSubmissionsByAssignment(a, userId))
                     .build());
         }
 
