@@ -10,8 +10,8 @@ public class IndexedCollectionTest {
 
     @Test
     public void updateOnlyExercises() {
-        Assignment assignment = new Assignment();
-        Assignment updateAssignment = new Assignment();
+        Assignment assignment = new Assignment("Assignment_1");
+        Assignment updateAssignment = new Assignment("Assignment_1");
 
         Exercise ex1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").index(0).build();
         Exercise updateEx1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
@@ -39,8 +39,8 @@ public class IndexedCollectionTest {
 
     @Test
     public void updateMixed() {
-        Assignment assignment = new Assignment();
-        Assignment updateAssignment = new Assignment();
+        Assignment assignment = new Assignment("Assignment_1");
+        Assignment updateAssignment = new Assignment("Assignment_1");
 
         Exercise ex1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").index(0).build();
         Exercise updateEx1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
@@ -71,8 +71,8 @@ public class IndexedCollectionTest {
 
     @Test
     public void updatePreviousExercisesEmpty() {
-        Assignment assignment = new Assignment();
-        Assignment updateAssignment = new Assignment();
+        Assignment assignment = new Assignment("Assignment_1");
+        Assignment updateAssignment = new Assignment("Assignment_1");
 
 
         Exercise newExercise1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
@@ -94,8 +94,8 @@ public class IndexedCollectionTest {
 
     @Test
     public void updateHasNoExercises() {
-        Assignment assignment = new Assignment();
-        Assignment updateAssignment = new Assignment();
+        Assignment assignment = new Assignment("Assignment_1");
+        Assignment updateAssignment = new Assignment("Assignment_1");
 
         Exercise exercise1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
         Exercise exercise2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).index(1).build();

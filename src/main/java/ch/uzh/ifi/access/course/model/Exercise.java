@@ -2,10 +2,7 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.*;
@@ -13,29 +10,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
-@Builder
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @ToString(exclude = "assignment")
-public class Exercise implements Indexed<Exercise> {
+public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
 
     private final String id;
     private int index;
+    private String gitHash;
 
     @JsonIgnore
     private Assignment assignment;
 
-    private String gitHash;
-    private ExerciseType type;
-    private String language;
-    private Boolean isGraded;
-
     private String question;
-    private int maxSubmits;
-
-    private List<String> options;
-    private List<String> solutions;
-
-    private int maxScore;
 
     @JsonIgnore
     private List<VirtualFile> private_files;
@@ -45,25 +32,38 @@ public class Exercise implements Indexed<Exercise> {
     private List<VirtualFile> resource_files;
     private List<VirtualFile> public_files;
 
-    public Exercise() {
-        this.id = new Utils().getID();
-        this.isGraded = true;
-        this.maxSubmits = 1;
-        this.options = new ArrayList<>();
-        this.solutions = new ArrayList<>();
+    public Exercise(String name) {
+        super();
+        this.id = new Utils().getID(name);
+        
         this.private_files = new ArrayList<>();
         this.solution_files = new ArrayList<>();
         this.resource_files = new ArrayList<>();
         this.public_files = new ArrayList<>();
     }
 
-    public void set(Exercise other) {
-        this.type = other.type;
-        this.language = other.language;
-        this.maxSubmits = other.maxSubmits;
-        this.solutions = other.solutions;
-        this.options = other.options;
-        this.isGraded = other.isGraded;
+    @Builder
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files) {
+        super(type, language, isGraded, maxScore, maxSubmits, options, solutions);
+        this.id = id;
+        this.index = index;
+        this.gitHash = gitHash;
+        this.assignment = assignment;
+        this.question = question;
+        this.private_files = private_files;
+        this.solution_files = solution_files;
+        this.resource_files = resource_files;
+        this.public_files = public_files;
+    }
+
+    public void set(ExerciseConfig other) {
+        this.type = other.getType();
+        this.language = other.getLanguage();
+        this.isGraded = other.getIsGraded();
+        this.maxScore = other.getMaxScore();
+        this.maxSubmits = other.getMaxSubmits();
+        this.options = other.getOptions();
+        this.solutions = other.getSolutions();
     }
 
     public void update(Exercise other) {
@@ -96,8 +96,8 @@ public class Exercise implements Indexed<Exercise> {
 
     @JsonIgnore
     public String getTextSolution() {
-        if (ExerciseType.text.equals(type) && solutions != null && !solutions.isEmpty()) {
-            String solution = solutions.get(0);
+        if (ExerciseType.text.equals(this.getType()) && this.getSolutions() != null && !this.getSolutions().isEmpty()) {
+            String solution = this.getSolutions().get(0);
             return StringUtils.isEmpty(solution) ? "" : solution.trim();
         }
 
@@ -116,22 +116,15 @@ public class Exercise implements Indexed<Exercise> {
         throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
     }
 
-    public boolean hasChanged(Exercise other) {
-        return !(Objects.equals(this.index, other.index) &&
+    public boolean isBreakingChange(Exercise other) {
+        return !(Objects.equals(this.gitHash, other.gitHash) &&
+                Objects.equals(this.index, other.index) &&
                 Objects.equals(this.type, other.type) &&
                 Objects.equals(this.language, other.language) &&
                 Objects.equals(this.question, other.question) &&
-                Objects.equals(this.maxSubmits, other.maxSubmits) &&
                 Objects.equals(this.private_files, other.private_files) &&
-                Objects.equals(this.solution_files, other.solution_files) &&
                 Objects.equals(this.resource_files, other.resource_files) &&
-                Objects.equals(this.public_files, other.public_files) &&
-                Objects.equals(this.solutions, other.solutions) &&
-                Objects.equals(this.isGraded, other.isGraded)
+                Objects.equals(this.public_files, other.public_files)
         );
-    }
-
-    public boolean isBreakingChange(Exercise other) {
-        return !gitHash.equals(other.getGitHash());
     }
 }

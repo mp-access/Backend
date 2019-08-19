@@ -105,15 +105,17 @@ public class RepoCacher {
 
             Object next_context = context;
             if (file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)) {
-                Assignment assignment = new Assignment();
+                Course c = ((Course) context);
+                Assignment assignment = new Assignment(c.getGitURL() + file.getName());
                 assignment.setIndex(Integer.parseInt(file.getName().replace(ASSIGNMENT_FOLDER_PREFIX, "")));
-                ((Course) context).addAssignment(assignment);
+                c.addAssignment(assignment);
                 next_context = assignment;
             } else if (file.getName().startsWith(EXERCISE_FOLDER_PREFIX)) {
-                Exercise exercise = new Exercise();
+                Assignment a = ((Assignment) context);
+                Exercise exercise = new Exercise(a.getId() + file.getName());
                 exercise.setIndex(Integer.parseInt(file.getName().replace(EXERCISE_FOLDER_PREFIX, "")));
                 exercise.setGitHash(((Assignment) context).getCourse().getGitHash());
-                ((Assignment) context).addExercise(exercise);
+                a.addExercise(exercise);
                 next_context = exercise;
             } else if (file.getName().startsWith(PUBLIC_FOLDER_NAME)) {
                 listFiles(file, ((Exercise) context).getPublic_files(), file.getPath());
@@ -143,7 +145,7 @@ public class RepoCacher {
             } else if (context instanceof Assignment) {
                 if (file.getName().equals(ASSIGNMENT_FILE_NAME)) {
                     try {
-                        ((Assignment) context).set(mapper.readValue(file, Assignment.class));
+                        ((Assignment) context).set(mapper.readValue(file, AssignmentConfig.class));
                     } catch (Exception e) {
                         System.err.println("Error while parsing Assignment information: " + file.getName());
                         e.printStackTrace();
@@ -154,7 +156,7 @@ public class RepoCacher {
                     ((Exercise) context).setQuestion(readFile(file));
                 } else if (file.getName().equals(EXERCISE_FILE_NAME)) {
                     try {
-                        ((Exercise) context).set(mapper.readValue(file, Exercise.class));
+                        ((Exercise) context).set(mapper.readValue(file, ExerciseConfig.class));
                     } catch (Exception e) {
                         System.err.println("Error while parsing Exercise information: " + file.getName());
                         e.printStackTrace();

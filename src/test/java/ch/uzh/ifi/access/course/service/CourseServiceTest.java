@@ -24,13 +24,13 @@ public class CourseServiceTest {
     public void getExercisesByCourseAndAssignmentId() {
         MockitoAnnotations.initMocks(this);
         var course = new Course("");
-        var a1 = new Assignment();
+        var a1 = new Assignment("Assignment_1");
         a1.setCourse(course);
-        a1.setExercises(Arrays.asList(new Exercise(),new Exercise(),new Exercise()));
+        a1.setExercises(Arrays.asList(new Exercise("Exercise_1"),new Exercise("Exercise_2"),new Exercise("Exercise_3")));
 
-        var a2 = new Assignment();
+        var a2 = new Assignment("Assignment_2");
         a2.setCourse(course);
-        a2.setExercises(Arrays.asList(new Exercise(),new Exercise()));
+        a2.setExercises(Arrays.asList(new Exercise("Exercise_1"),new Exercise("Exercise_2")));
 
         course.addAssignment(a1);
         course.addAssignment(a2);
