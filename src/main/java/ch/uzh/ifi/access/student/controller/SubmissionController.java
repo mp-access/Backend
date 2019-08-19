@@ -118,7 +118,8 @@ public class SubmissionController {
         logger.info(String.format("Fetching all submission for user %s and exercise %s", authentication.getName(), exerciseId));
 
         List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, authentication.getUserId());
-        return new SubmissionHistoryDTO(submissions);
+        SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
+        return new SubmissionHistoryDTO(submissions, submissionCount);
     }
 
     @GetMapping("/attempts/exercises/{exerciseId}/")
