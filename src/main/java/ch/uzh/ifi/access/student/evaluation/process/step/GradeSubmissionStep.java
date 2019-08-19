@@ -2,10 +2,7 @@ package ch.uzh.ifi.access.student.evaluation.process.step;
 
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
-import ch.uzh.ifi.access.student.evaluation.evaluator.CodeEvaluator;
-import ch.uzh.ifi.access.student.evaluation.evaluator.MultipleChoiceEvaluator;
-import ch.uzh.ifi.access.student.evaluation.evaluator.StudentSubmissionEvaluator;
-import ch.uzh.ifi.access.student.evaluation.evaluator.TextEvaluator;
+import ch.uzh.ifi.access.student.evaluation.evaluator.*;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
 import ch.uzh.ifi.access.student.model.*;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
@@ -56,7 +53,11 @@ public class GradeSubmissionStep implements ProcessStep {
             return new TextEvaluator();
         } else if (submission instanceof MultipleChoiceSubmission) {
             return new MultipleChoiceEvaluator();
-        } else if (submission instanceof CodeSubmission) {
+        } else if (submission instanceof SingleChoiceSubmission) {
+            return new SingleChoiceEvaluator();
+        }
+
+        else if (submission instanceof CodeSubmission) {
             return new CodeEvaluator();
         }
 

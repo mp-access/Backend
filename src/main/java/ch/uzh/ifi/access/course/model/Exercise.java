@@ -35,7 +35,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     public Exercise(String name) {
         super();
         this.id = new Utils().getID(name);
-        
+
         this.private_files = new ArrayList<>();
         this.solution_files = new ArrayList<>();
         this.resource_files = new ArrayList<>();
@@ -115,6 +115,19 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
 
         throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
     }
+
+    @JsonIgnore
+    public Integer getSingleChoiceSolution() {
+        if (ExerciseType.singleChoice.equals(type)
+                && options != null && !options.isEmpty()
+                && solutions != null && solutions.size() == 1
+        ) {
+            return options.stream().filter(o -> solutions.contains(o)).map(o -> options.indexOf(o)).findFirst().orElseThrow();
+        }
+
+        throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
+    }
+
 
     public boolean isBreakingChange(Exercise other) {
         return !(Objects.equals(this.gitHash, other.gitHash) &&
