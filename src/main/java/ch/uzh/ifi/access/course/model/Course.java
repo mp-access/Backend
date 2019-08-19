@@ -1,10 +1,15 @@
 package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Data
 public class Course implements IndexedCollection<Assignment> {
@@ -77,8 +82,14 @@ public class Course implements IndexedCollection<Assignment> {
         return assignments.stream().filter(a -> a.getId().equals(id)).findFirst();
     }
 
+    @JsonIgnore
     @Override
     public List<Assignment> getIndexedItems() {
         return assignments;
+    }
+
+    @JsonIgnore
+    public List<Exercise> getExercises() {
+        return assignments.stream().flatMap(assignment -> assignment.getExercises().stream()).collect(Collectors.toList());
     }
 }

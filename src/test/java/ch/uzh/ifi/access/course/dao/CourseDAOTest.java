@@ -1,11 +1,14 @@
 package ch.uzh.ifi.access.course.dao;
 
 import ch.uzh.ifi.access.TestObjectFactory;
+import ch.uzh.ifi.access.course.event.BreakingChangeNotifier;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +16,14 @@ import java.util.Map;
 
 public class CourseDAOTest {
 
-    private CourseDAO courseDAO = new CourseDAO();
+    private CourseDAO courseDAO;
+
+    @Before
+    public void setUp() throws Exception {
+        ApplicationEventPublisher noOpPublisher = (event) -> {};
+        BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier(noOpPublisher);
+        courseDAO = new CourseDAO(breakingChangeNotifier);
+    }
 
     @Test
     public void emptyExerciseIndex() {
@@ -62,5 +72,98 @@ public class CourseDAOTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void lookForBreakingChangesSingleExerciseBroken() {
+        Course before = TestObjectFactory.createCourse("title");
+        Course after = TestObjectFactory.createCourse(before.getTitle());
+        Assignment assignmentBefore = TestObjectFactory.createAssignment("assignment");
+        Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
+        Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
+        exerciseBefore1.setGitHash("ex1");
+        exerciseBefore1.setIndex(0);
+        exerciseAfter1.setGitHash("ex1.1");
+        exerciseAfter1.setIndex(exerciseBefore1.getIndex());
+
+        Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
+        exerciseBefore2.setGitHash("ex2");
+        exerciseBefore2.setIndex(1);
+        exerciseAfter2.setGitHash(exerciseBefore2.getGitHash());
+        exerciseAfter2.setIndex(exerciseBefore2.getIndex());
+
+        before.addAssignment(assignmentBefore);
+        assignmentBefore.addExercise(exerciseBefore1);
+        assignmentBefore.addExercise(exerciseBefore2);
+
+        after.addAssignment(assignmentAfter);
+        assignmentAfter.addExercise(exerciseAfter1);
+        assignmentAfter.addExercise(exerciseAfter2);
+
+        List<Exercise> breakingChanges = courseDAO.lookForBreakingChanges(before, after);
+
+        Assertions.assertThat(breakingChanges).size().isEqualTo(1);
+        Assertions.assertThat(breakingChanges).contains(exerciseBefore1);
+    }
+
+    @Test
+    public void lookForBreakingChangesTwoExerciseBroken() {
+        Course before = TestObjectFactory.createCourse("title");
+        Course after = TestObjectFactory.createCourse(before.getTitle());
+        Assignment assignmentBefore = TestObjectFactory.createAssignment("assignment");
+        Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
+        Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
+        exerciseBefore1.setGitHash("ex1");
+        exerciseAfter1.setGitHash("ex1.1");
+
+        Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
+        exerciseBefore2.setGitHash("ex2");
+        exerciseAfter2.setGitHash("ex2.1");
+
+        before.addAssignment(assignmentBefore);
+        assignmentBefore.addExercise(exerciseBefore1);
+        assignmentBefore.addExercise(exerciseBefore2);
+
+        after.addAssignment(assignmentAfter);
+        assignmentAfter.addExercise(exerciseAfter1);
+        assignmentAfter.addExercise(exerciseAfter2);
+
+        List<Exercise> breakingChanges = courseDAO.lookForBreakingChanges(before, after);
+
+        Assertions.assertThat(breakingChanges).size().isEqualTo(2);
+        Assertions.assertThat(breakingChanges).contains(exerciseBefore1);
+        Assertions.assertThat(breakingChanges).contains(exerciseBefore2);
+    }
+
+    @Test
+    public void lookForBreakingChangesExerciseWasRemovedExerciseWasUpdated() {
+        Course before = TestObjectFactory.createCourse("title");
+        Course after = TestObjectFactory.createCourse(before.getTitle());
+        Assignment assignmentBefore = TestObjectFactory.createAssignment("assignment");
+        Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
+        Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
+        exerciseBefore1.setGitHash("ex1");
+        exerciseAfter1.setGitHash("ex1.1");
+
+        Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
+        exerciseBefore2.setGitHash("ex2");
+
+        before.addAssignment(assignmentBefore);
+        assignmentBefore.addExercise(exerciseBefore1);
+        assignmentBefore.addExercise(exerciseBefore2);
+
+        after.addAssignment(assignmentAfter);
+        assignmentAfter.addExercise(exerciseAfter1);
+
+        List<Exercise> breakingChanges = courseDAO.lookForBreakingChanges(before, after);
+
+        Assertions.assertThat(breakingChanges).size().isEqualTo(2);
+        Assertions.assertThat(breakingChanges).contains(exerciseBefore1);
+        Assertions.assertThat(breakingChanges).contains(exerciseBefore2);
     }
 }
