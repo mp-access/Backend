@@ -46,7 +46,7 @@ public class RepoCacher {
     private List<String> ignore_dir = Arrays.asList(".git");
     private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static List<Course> retrieveCourseData(String urls[]) throws Exception {
+    public static List<Course> retrieveCourseData(String urls[]) {
         DateTimeFormatter fmt = new DateTimeFormatterBuilder()
                 .appendPattern("yyyy-MM-dd")
                 .optionalStart()
@@ -68,17 +68,21 @@ public class RepoCacher {
 
         int i = 0;
         for (String url : urls) {
-            String hash = loadFilesFromGit(url);
+            try {
+                String hash = loadFilesFromGit(url);
 
-            RepoCacher cacher = new RepoCacher();
-            File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
-            Course course = new Course(nameFromGitURL(url));
-            course.setGitHash(hash);
-            course.setDirectory(repo.getAbsolutePath());
-            course.setGitURL(url);
+                RepoCacher cacher = new RepoCacher();
+                File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
+                Course course = new Course(nameFromGitURL(url));
+                course.setGitHash(hash);
+                course.setDirectory(repo.getAbsolutePath());
+                course.setGitURL(url);
 
-            cacher.cacheRepo(repo, course);
-            courses.add(course);
+                cacher.cacheRepo(repo, course);
+                courses.add(course);
+            } catch (Exception e) {
+                logger.error(String.format("Failed to pull repository: %s", url), e);
+            }
         }
         return courses;
     }
