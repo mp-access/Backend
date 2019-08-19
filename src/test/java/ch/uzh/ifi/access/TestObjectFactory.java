@@ -9,17 +9,18 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class TestObjectFactory {
 
     public static Course createCourse(String title) {
-        Course course = new Course("");
+        Course course = new Course(UUID.randomUUID().toString());
         course.setTitle(title);
         return course;
     }
 
     public static Assignment createAssignment(String title) {
-        Assignment assignment = new Assignment("Assignment_1");
+        Assignment assignment = new Assignment(UUID.randomUUID().toString());
         assignment.setTitle(title);
         assignment.setDescription("Some description");
         assignment.setDueDate(LocalDateTime.now().plusDays(7));
@@ -28,7 +29,7 @@ public class TestObjectFactory {
     }
 
     public static Exercise createCodeExercise(String question) {
-        Exercise exercise = new Exercise("Exercise_1");
+        Exercise exercise = new Exercise(UUID.randomUUID().toString());
         exercise.setLanguage("python");
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.code);
@@ -38,7 +39,7 @@ public class TestObjectFactory {
     }
 
     public static Exercise createTextExercise(String question) {
-        Exercise exercise = new Exercise("Exercise_1");
+        Exercise exercise = new Exercise(UUID.randomUUID().toString());
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.text);
         exercise.setGitHash("0x123456");
@@ -47,7 +48,7 @@ public class TestObjectFactory {
     }
 
     public static Exercise createMultipleChoiceExercise(String question) {
-        Exercise exercise = new Exercise("Exercise_1");
+        Exercise exercise = new Exercise(UUID.randomUUID().toString());
         exercise.setQuestion(question);
         exercise.setType(ExerciseType.multipleChoice);
         exercise.setGitHash("0x123456");
