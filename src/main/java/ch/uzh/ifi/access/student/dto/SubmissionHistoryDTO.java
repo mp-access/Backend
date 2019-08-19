@@ -33,6 +33,8 @@ public class SubmissionHistoryDTO {
 
         private final boolean graded;
 
+        private final boolean isInvalid;
+
         private SubmissionEvaluation result;
 
         SubmissionMetadata(StudentSubmission submission) {
@@ -41,6 +43,8 @@ public class SubmissionHistoryDTO {
             this.timestamp = submission.getTimestamp();
             this.commitHash = submission.getCommitId();
             this.result = submission.getResult();
+            this.isInvalid = submission.isInvalid();
+
             if (submission instanceof CodeSubmission) {
                 this.graded = ((CodeSubmission) submission).isGraded();
             } else {
