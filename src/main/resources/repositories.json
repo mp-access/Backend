@@ -2,6 +2,6 @@
     "repositories": [
         "https://github.com/mp-access/course_structure.git",
         "https://github.com/mp-access/Course2.git",
-        "git@github.com:mech-studi/IntroductionToPython.git"
+        "https://github.com/mp-access/NonTechPythonIntro.git"
     ]
 }
