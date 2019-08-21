@@ -20,7 +20,9 @@ public class AssignmentResults {
     private List<StudentSubmission> gradedSubmissions;
 
     public double getStudentScore() {
-        return gradedSubmissions.stream().mapToDouble(sub -> sub.getResult().getScore()).sum();
+        return gradedSubmissions != null && gradedSubmissions.size() > 0
+                ? gradedSubmissions.stream().mapToDouble(sub -> sub.getResult()!=null ? sub.getResult().getScore(): 0.0).sum()
+                : 0.0;
     }
 
 }
