@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.1.4.RELEASE'
     id 'java'
     id 'jacoco'
+    id "com.github.lkishalmi.gatling" version "3.0.2"
 }
 
 apply plugin: 'io.spring.dependency-management'
@@ -54,6 +55,9 @@ dependencies {
 
     // Docker runner
     implementation "com.spotify:docker-client:8.16.0:shaded"
+
+    // Gatling
+    implementation 'io.gatling.highcharts:gatling-charts-highcharts:3.0.3'
 }
 
 test {
