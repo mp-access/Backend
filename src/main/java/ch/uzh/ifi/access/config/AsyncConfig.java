@@ -21,7 +21,7 @@ public class AsyncConfig {
     public Executor getAsyncExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(THREAD_POOL_SIZE);
-        executor.setThreadNamePrefix("evaluation-worker-");
+        executor.setThreadNamePrefix("eval-worker-");
         executor.initialize();
         return executor;
     }
