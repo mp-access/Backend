@@ -64,7 +64,7 @@ public class EvalProcessService {
         return result;
     }
 
-    @Async
+    @Async("evalWorkerExecutor")
     public void fireEvalProcessExecutionAsync(final String processId) {
         StateMachine machine = machineRepo.get(processId);
         try {
