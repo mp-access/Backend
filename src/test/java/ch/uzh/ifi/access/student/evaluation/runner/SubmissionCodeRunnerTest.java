@@ -53,7 +53,7 @@ public class SubmissionCodeRunnerTest {
                 .selectedFile(1)
                 .build();
 
-        ExecResult result = new SubmissionCodeRunner(new CodeRunner("")).execSubmissionForExercise(sub, ex);
+        ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStderr()).containsIgnoringCase("Ran 8 tests in");
     }
 
