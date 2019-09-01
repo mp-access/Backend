@@ -19,7 +19,7 @@ public class CodeRunnerTest {
 
     @Test
     public void runCommand() throws DockerCertificateException, IOException, DockerException, InterruptedException {
-        CodeRunner runner = new CodeRunner();
+        CodeRunner runner = new CodeRunner("");
 
         final String code1 = "print('Hello 1!')";
         final String expectedOutput1 = "Hello 1!\n";
@@ -48,7 +48,7 @@ public class CodeRunnerTest {
 
     @Test
     public void runCode() throws DockerCertificateException, IOException, DockerException, InterruptedException {
-        CodeRunner runner = new CodeRunner();
+        CodeRunner runner = new CodeRunner("");
 
         final String code = "print('Hello, world!')";
         final String expectedOutput = "Hello, world!\n";
@@ -62,7 +62,7 @@ public class CodeRunnerTest {
 
     @Test
     public void runMultipleFilesCode() throws IOException, DockerCertificateException, DockerException, InterruptedException {
-        CodeRunner runner = new CodeRunner();
+        CodeRunner runner = new CodeRunner("");
 
         String dependencyCode = "class A:\n" +
                 "    def __init__(self, a):\n" +
@@ -94,7 +94,7 @@ public class CodeRunnerTest {
 
     @Test
     public void runMultipleCommands() throws DockerCertificateException, IOException, DockerException, InterruptedException {
-        CodeRunner runner = new CodeRunner();
+        CodeRunner runner = new CodeRunner("");
 
         final String code1 = "print('Hello 1!')";
         final String code2 = "print('Hello 2!')";
