@@ -25,7 +25,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
         validate(submission, exercise);
         CodeSubmission codeSub = (CodeSubmission) submission;
-        return parseEvalFromConsoleLog(codeSub.getConsole().getStderr(), exercise);
+        return parseEvalFromConsoleLog(codeSub.getConsole().getTestlog(), exercise);
     }
 
     private SubmissionEvaluation parseEvalFromConsoleLog(String console, Exercise exercise) {

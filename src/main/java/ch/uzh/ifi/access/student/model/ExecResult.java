@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ExecResult {
 
-    private String stdout;
-    private String stderr;
+    private String out;
 
     @JsonIgnore
     private String testlog;

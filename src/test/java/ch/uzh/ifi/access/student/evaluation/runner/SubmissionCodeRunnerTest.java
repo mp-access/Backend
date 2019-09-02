@@ -40,7 +40,7 @@ public class SubmissionCodeRunnerTest {
     }
 
     @Test
-    public void test() throws DockerCertificateException, InterruptedException, DockerException, IOException {
+    public void testSubmission() throws DockerCertificateException, InterruptedException, DockerException, IOException {
         Exercise ex = Exercise.builder()
                 .id("e1")
                 .private_files(Arrays.asList(init, test))
@@ -51,10 +51,32 @@ public class SubmissionCodeRunnerTest {
                 .exerciseId(ex.getId())
                 .publicFiles(Arrays.asList(init, src))
                 .selectedFile(1)
+                .isGraded(true)
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStderr()).containsIgnoringCase("Ran 8 tests in");
+        Assertions.assertThat(result.getOut()).containsIgnoringCase("Intercontinental flight Boeing-747");
+        Assertions.assertThat(result.getTestlog()).containsIgnoringCase("Ran 8 tests in");
     }
 
+
+    @Test
+    public void testSmoketest() throws DockerCertificateException, InterruptedException, DockerException, IOException {
+        Exercise ex = Exercise.builder()
+                .id("e1")
+                .private_files(Arrays.asList(init, test))
+                .type(ExerciseType.code).build();
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .id("s1")
+                .exerciseId(ex.getId())
+                .publicFiles(Arrays.asList(init, src))
+                .selectedFile(1)
+                .isGraded(false)
+                .build();
+
+        ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
+        Assertions.assertThat(result.getOut()).containsIgnoringCase("Intercontinental flight Boeing-747");
+        Assertions.assertThat(result.getTestlog()).isEmpty();
+    }
 }
