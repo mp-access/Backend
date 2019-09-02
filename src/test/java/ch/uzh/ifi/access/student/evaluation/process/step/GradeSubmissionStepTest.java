@@ -35,4 +35,5 @@ public class GradeSubmissionStepTest {
         StudentSubmissionEvaluator evaluator = gradeSubmissionStep.evaluator(new CodeSubmission());
         Assertions.assertThat(evaluator).isExactlyInstanceOf(CodeEvaluator.class);
     }
+
 }

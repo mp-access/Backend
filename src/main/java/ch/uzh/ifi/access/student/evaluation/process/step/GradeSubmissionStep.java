@@ -27,22 +27,27 @@ public class GradeSubmissionStep implements ProcessStep {
     }
 
     @Override
-    public EvalMachine.Events execute(String submissionId) {
+        public EvalMachine.Events execute(String submissionId) {
 
         Optional<StudentSubmission> optSub = submissionService.findById(submissionId);
         optSub.ifPresentOrElse(submission -> {
             logger.debug(String.format("Grade submission %s for exercise %s", submission.getId(), submission.getExerciseId()));
 
-            Optional<Exercise> optEx = courseService.getExerciseById(submission.getExerciseId());
-            optEx.ifPresent(exercise -> {
-                StudentSubmissionEvaluator evaluator = evaluator(submission);
-                if (evaluator != null) {
-                    SubmissionEvaluation grade = evaluator.evaluate(submission, exercise);
-                    logger.debug("Graded result is: " + grade.getScore());
-                    submission.setResult(grade);
-                    submissionService.saveSubmission(submission);
-                }
-            });
+
+            if (submission.isGraded()) {
+                Optional<Exercise> optEx = courseService.getExerciseById(submission.getExerciseId());
+                optEx.ifPresent(exercise -> {
+                    StudentSubmissionEvaluator evaluator = evaluator(submission);
+                    if (evaluator != null) {
+                        SubmissionEvaluation grade = evaluator.evaluate(submission, exercise);
+                        logger.debug("Graded result is: " + grade.getScore());
+                        submission.setResult(grade);
+                        submissionService.saveSubmission(submission);
+                    }
+                });
+            } else {
+                logger.info("Submission not meant for grading ...");
+            }
         }, () -> logger.error("No submission found (submissionId: " + submissionId + "),"));
 
         return EvalMachine.Events.FINISH;
@@ -55,9 +60,7 @@ public class GradeSubmissionStep implements ProcessStep {
             return new MultipleChoiceEvaluator();
         } else if (submission instanceof SingleChoiceSubmission) {
             return new SingleChoiceEvaluator();
-        }
-
-        else if (submission instanceof CodeSubmission) {
+        } else if (submission instanceof CodeSubmission) {
             return new CodeEvaluator();
         }
 

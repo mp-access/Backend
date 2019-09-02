@@ -32,7 +32,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         int points = 0;
         int nrOfTest = -1;
 
-        if (console != null) {
+        if (console != null && !console.isEmpty()) {
             List<String> lines = Arrays.asList(console.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
