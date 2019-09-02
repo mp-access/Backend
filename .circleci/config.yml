@@ -49,6 +49,17 @@ jobs:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
+      - run:
+          name: Save docker certs to home directory
+          command: |
+            echo $DOCKER_CLIENT_CA_CERT | base64 --decode > ./ca.pem
+            echo $DOCKER_CLIENT_CERT | base64 --decode > ./cert.pem
+            echo $DOCKER_CLIENT_PRIVATE_KEY | base64 --decode > ./key.pem
+            DOCKER_HOST=tcp://167.71.53.88:2376
+            DOCKER_CERT_PATH=$(pwd)
+            echo $DOCKER_HOST
+            echo $DOCKER_CERT_PATH
+
       - run: gradle test -PexcludeDockerTests
 
       - run: gradle jacocoTestReport
