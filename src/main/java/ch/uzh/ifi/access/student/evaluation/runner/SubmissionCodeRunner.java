@@ -85,9 +85,10 @@ public class SubmissionCodeRunner {
         int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
 
         final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
-        final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER+"\n", "");
+        final String trimmedErrorOutput = runResult.getStdErr().substring(0, indexOfDelimiterStdErr);
+        final String trimmedEvalOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER+"\n", "");
 
-        return new ExecResult(trimmedConsoleOutput, trimmedTestOutput);
+        return new ExecResult(trimmedConsoleOutput, trimmedErrorOutput, trimmedEvalOutput);
     }
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {

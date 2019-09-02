@@ -25,7 +25,7 @@ public class WaitForExecutedCodeStep implements ProcessStep {
         Optional<StudentSubmission> opt = submissionService.findById(submissionId);
         if (opt.isPresent() && opt.get() instanceof CodeSubmission) {
             CodeSubmission submission = (CodeSubmission) opt.get();
-            if(submission.getConsole() == null || submission.getConsole().getOut() == null){
+            if(submission.getConsole() == null || submission.getConsole().getStdout() == null){
                 // Submission has no execution result yet --> wait.
                 logger.debug(String.format("Wait a bit ... no execution result found for submission %s.", submissionId));
                 return EvalMachine.Events.RETURN;
