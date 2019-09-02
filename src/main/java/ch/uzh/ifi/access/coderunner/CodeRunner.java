@@ -30,16 +30,20 @@ public class CodeRunner {
 
     private DockerClient docker;
 
-    public CodeRunner() throws DockerCertificateException, DockerException, InterruptedException {
+    public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
         logDebugInfo();
         pullImageIfNotPresent();
     }
 
-    private void logDebugInfo() throws DockerException, InterruptedException {
-        Info info = docker.info();
-        logger.debug("Connected to docker daemon @ " + docker.getHost());
-        logger.debug("Docker info:\n" + info.toString());
+    private void logDebugInfo() {
+        try {
+            Info info = docker.info();
+            logger.debug("Connected to docker daemon @ " + docker.getHost());
+            logger.debug("Docker info:\n" + info.toString());
+        } catch (DockerException | InterruptedException e) {
+            logger.warn("Failed to connect to docker daemon", e);
+        }
     }
 
     private void pullImageIfNotPresent() {
