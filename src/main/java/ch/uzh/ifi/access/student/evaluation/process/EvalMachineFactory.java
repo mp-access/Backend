@@ -25,37 +25,37 @@ public class EvalMachineFactory {
         // @formatter:off
         builder.configureStates()
                 .withStates()
-                    .initial(EvalMachine.States.SUBMITTED, routeAction())
-                    .end(EvalMachine.States.FINISHED)
-                    .states(EnumSet.allOf(EvalMachine.States.class));
+                .initial(EvalMachine.States.SUBMITTED, routeAction())
+                .end(EvalMachine.States.FINISHED)
+                .states(EnumSet.allOf(EvalMachine.States.class));
 
         builder.configureTransitions()
                 .withExternal()
-                    .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.GRADING)
-                    .event(EvalMachine.Events.GRADE)
-                    .action(gradeAction())
-                    .and()
+                .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.GRADING)
+                .event(EvalMachine.Events.GRADE)
+                .action(gradeAction())
+                .and()
                 .withExternal()
-                    .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.DELEGATE)
-                    .event(EvalMachine.Events.DELEGATE)
-                    .action(delegateAction())
-                    .and()
+                .source(EvalMachine.States.SUBMITTED).target(EvalMachine.States.DELEGATE)
+                .event(EvalMachine.Events.DELEGATE)
+                .action(delegateAction())
+                .and()
                 .withExternal()
-                    .source(EvalMachine.States.DELEGATE).target(EvalMachine.States.RETURNING)
-                    .event(EvalMachine.Events.RETURN)
-                    .action(waitForExecutedCodeAction())
-                    .and()
+                .source(EvalMachine.States.DELEGATE).target(EvalMachine.States.RETURNING)
+                .event(EvalMachine.Events.RETURN)
+                .action(waitForExecutedCodeAction())
+                .and()
                 .withExternal()
-                    .source(EvalMachine.States.RETURNING).target(EvalMachine.States.GRADING)
-                    .event(EvalMachine.Events.GRADE)
-                    .action(gradeAction())
-                    .and()
+                .source(EvalMachine.States.RETURNING).target(EvalMachine.States.GRADING)
+                .event(EvalMachine.Events.GRADE)
+                .action(gradeAction())
+                .and()
                 .withExternal()
-                    .source(EvalMachine.States.GRADING).target(EvalMachine.States.FINISHED)
-                    .event(EvalMachine.Events.FINISH);
+                .source(EvalMachine.States.GRADING).target(EvalMachine.States.FINISHED)
+                .event(EvalMachine.Events.FINISH);
         //@formatter:on
 
-        StateMachine machine = builder.build();
+        StateMachine<EvalMachine.States, EvalMachine.Events> machine = builder.build();
         machine.getExtendedState().getVariables().put(EXTENDED_VAR_SUBMISSION_ID, submissionId);
         return machine;
     }
@@ -65,7 +65,7 @@ public class EvalMachineFactory {
     }
 
     public static int extractProcessStepDelayInS(StateMachine machine) {
-        return Integer.parseInt(machine.getExtendedState().getVariables().get(EXTENDED_VAR_NEXT_STEP_DELAY).toString()) ;
+        return Integer.parseInt(machine.getExtendedState().getVariables().get(EXTENDED_VAR_NEXT_STEP_DELAY).toString());
     }
 
     public static String extractSubmissionId(StateMachine machine) {

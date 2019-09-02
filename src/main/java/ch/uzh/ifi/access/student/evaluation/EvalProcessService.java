@@ -66,7 +66,7 @@ public class EvalProcessService {
 
     @Async("evalWorkerExecutor")
     public void fireEvalProcessExecutionAsync(final String processId) {
-        StateMachine machine = machineRepo.get(processId);
+        StateMachine<EvalMachine.States, EvalMachine.Events> machine = machineRepo.get(processId);
         try {
 
             while (EvalMachine.States.FINISHED != machine.getState().getId()) {
@@ -82,7 +82,7 @@ public class EvalProcessService {
 
     }
 
-    private StateMachine executeStep(StateMachine machine) throws InterruptedException {
+    private StateMachine executeStep(StateMachine<EvalMachine.States, EvalMachine.Events> machine) throws InterruptedException {
         String step = EvalMachineFactory.extractProcessStep(machine);
         int stepDelayInS = EvalMachineFactory.extractProcessStepDelayInS(machine);
         String submissionId = EvalMachineFactory.extractSubmissionId(machine);

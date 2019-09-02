@@ -1,7 +1,5 @@
 package ch.uzh.ifi.access.student.evaluation.process;
 
-import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
-import ch.uzh.ifi.access.student.evaluation.process.EvalMachineFactory;
 import ch.uzh.ifi.access.student.evaluation.process.step.DelegateCodeExecStep;
 import ch.uzh.ifi.access.student.evaluation.process.step.GradeSubmissionStep;
 import ch.uzh.ifi.access.student.evaluation.process.step.RouteSubmissionStep;
@@ -15,7 +13,7 @@ public class EvalMachineFactoryTest {
 
     private String submissionId = "sub1";
 
-    private StateMachine stateMachine;
+    private StateMachine<EvalMachine.States, EvalMachine.Events> stateMachine;
 
     @Before
     public void setUp() throws Exception {
@@ -24,7 +22,7 @@ public class EvalMachineFactoryTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         stateMachine = null;
     }
 

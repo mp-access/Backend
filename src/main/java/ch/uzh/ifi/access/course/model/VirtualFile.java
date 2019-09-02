@@ -4,10 +4,10 @@ package ch.uzh.ifi.access.course.model;
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.annotation.Transient;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.Transient;
 
 import java.io.File;
 import java.io.IOException;

@@ -4,7 +4,6 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
-import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.junit.Assert;
 import org.junit.Test;
 
