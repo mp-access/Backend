@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.student.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,5 +12,8 @@ public class ExecResult {
 
     private String stdout;
     private String stderr;
+
+    @JsonIgnore
+    private String testlog;
 
 }
