@@ -84,35 +84,7 @@ public class SubmissionController {
         String processId = "N/A";
         if (commitHash.isPresent()) {
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            submission = studentSubmissionService.initSubmission(submission, true);
-            processId = processService.initEvalProcess(submission);
-            processService.fireEvalProcessExecutionAsync(processId);
-        }
-        return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
-    }
-
-    @PostMapping("/exercises/{exerciseId}/run")
-    public ResponseEntity<?> run(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-
-        String username = authentication.getName();
-
-        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
-
-
-        if(!(ExerciseType.code.equals(submissionDTO.getType()) || ExerciseType.codeSnippet.equals(submissionDTO.getType()))){
-            throw new IllegalArgumentException("Run submissions only for code or code snippet types.");
-        }
-
-        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
-        if(!commitHash.isPresent()) {
-            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
-        }
-
-        String processId = "N/A";
-        if (commitHash.isPresent()) {
-            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            submission = studentSubmissionService.initSubmission(submission, false);
+            submission = studentSubmissionService.initSubmission(submission, submission.isGraded());
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
