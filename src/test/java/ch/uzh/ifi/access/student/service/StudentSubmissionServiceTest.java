@@ -166,10 +166,10 @@ public class StudentSubmissionServiceTest {
         codeSubmission3.setUserId(userId2);
         someOtherSubmission.setUserId(userId2);
 
-        codeSubmission1 = service.initSubmission(codeSubmission1);
-        codeSubmission2 = service.initSubmission(codeSubmission2);
-        codeSubmission3 = service.initSubmission(codeSubmission3);
-        someOtherSubmission = service.initSubmission(someOtherSubmission);
+        codeSubmission1 = service.initSubmission(codeSubmission1, true);
+        codeSubmission2 = service.initSubmission(codeSubmission2, true);
+        codeSubmission3 = service.initSubmission(codeSubmission3, true);
+        someOtherSubmission = service.initSubmission(someOtherSubmission, true);
 
         List<CodeSubmission> answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId1);
 
@@ -216,9 +216,9 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         someOtherSubmission.setUserId(userId);
 
-        service.initSubmission(codeSubmission1);
-        codeSubmission2 = service.initSubmission(codeSubmission2);
-        service.initSubmission(someOtherSubmission);
+        service.initSubmission(codeSubmission1, true);
+        codeSubmission2 = service.initSubmission(codeSubmission2, true);
+        service.initSubmission(someOtherSubmission, true);
 
         Optional<StudentSubmission> latestSubmissionOptional = service.findLatestExerciseSubmission(exercise.getId(), userId);
         StudentSubmission latestSubmission = latestSubmissionOptional.orElseGet(() -> Assertions.fail("There should be 2 submissions"));
@@ -266,11 +266,11 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         codeSubmission3.setUserId(userId);
 
-        service.initSubmission(codeSubmission1);
-        answer2 = service.initSubmission(answer2);
-        answer3 = service.initSubmission(answer3);
-        service.initSubmission(codeSubmission2);
-        codeSubmission3 = service.initSubmission(codeSubmission3);
+        service.initSubmission(codeSubmission1, true);
+        answer2 = service.initSubmission(answer2, true);
+        answer3 = service.initSubmission(answer3, true);
+        service.initSubmission(codeSubmission2, true);
+        codeSubmission3 = service.initSubmission(codeSubmission3, true);
 
         List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestSubmissionsByAssignment(assignment, userId);
         List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
@@ -293,9 +293,9 @@ public class StudentSubmissionServiceTest {
         codeSubmission2.setUserId(userId);
         codeSubmission3.setUserId(userId);
 
-        service.initSubmission(codeSubmission1);
-        service.initSubmission(codeSubmission2);
-        service.initSubmission(codeSubmission3);
+        service.initSubmission(codeSubmission1, true);
+        service.initSubmission(codeSubmission2, true);
+        service.initSubmission(codeSubmission3, true);
 
         List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
         Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
@@ -311,9 +311,9 @@ public class StudentSubmissionServiceTest {
     public void getSubmissionCountByExerciseAndUserAllValid() {
         final String exerciseId = "123";
         final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
         List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
         Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
 
@@ -325,9 +325,9 @@ public class StudentSubmissionServiceTest {
     public void getSubmissionCountByExerciseAndUserOneInvalid() {
         final String exerciseId = "123";
         final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
         codeSubmission1.setInvalid(true);
         service.saveSubmission(codeSubmission1);
         List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
@@ -343,9 +343,9 @@ public class StudentSubmissionServiceTest {
     public void getSubmissionCountByExerciseAndUserTwoInvalid() {
         final String exerciseId = "123";
         final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
         codeSubmission1.setInvalid(true);
         service.saveSubmission(codeSubmission1);
         codeSubmission2.setInvalid(true);
@@ -363,9 +363,9 @@ public class StudentSubmissionServiceTest {
     public void getSubmissionCountByExerciseAndUserNoneValid() {
         final String exerciseId = "123";
         final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId), true);
         List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
         submissions.forEach(submission -> {
             submission.setInvalid(true);

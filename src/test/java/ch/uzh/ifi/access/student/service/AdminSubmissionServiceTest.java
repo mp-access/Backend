@@ -101,17 +101,18 @@ public class AdminSubmissionServiceTest {
         setResultForSubmission(ex1Submission2User1, ex1User1Points, exercise1.getMaxScore());
         setResultForSubmission(ex1Submission2User2, ex1User2Points, exercise1.getMaxScore());
 
-        submissionService.initSubmission(ex1Submission1User1);
-        submissionService.initSubmission(ex1Submission2User1);
+        boolean isGradedSubmission = true;
+        submissionService.initSubmission(ex1Submission1User1, isGradedSubmission);
+        submissionService.initSubmission(ex1Submission2User1, isGradedSubmission);
 
-        submissionService.initSubmission(ex1Submission1User2);
-        submissionService.initSubmission(ex1Submission2User2);
+        submissionService.initSubmission(ex1Submission1User2, isGradedSubmission);
+        submissionService.initSubmission(ex1Submission2User2, isGradedSubmission);
 
-        submissionService.initSubmission(ex2Submission1User1);
-        submissionService.initSubmission(ex2Submission2User1);
+        submissionService.initSubmission(ex2Submission1User1, isGradedSubmission);
+        submissionService.initSubmission(ex2Submission2User1, isGradedSubmission);
 
-        submissionService.initSubmission(ex2Submission1User2);
-        submissionService.initSubmission(ex2Submission2User2);
+        submissionService.initSubmission(ex2Submission1User2, isGradedSubmission);
+        submissionService.initSubmission(ex2Submission2User2, isGradedSubmission);
 
         Course course = new Course("");
         course.addAssignment(assignment);
