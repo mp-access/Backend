@@ -51,14 +51,14 @@ public class EvalProcessService {
     public Map<String, String> getEvalProcessState(final String processId) {
         Map<String, String> result = new HashMap<>();
         StateMachine machine = machineRepo.get(processId);
-        if( machine != null ){
-            if(EvalMachine.States.FINISHED == machine.getState().getId()){
+        if (machine != null) {
+            if (EvalMachine.States.FINISHED == machine.getState().getId()) {
                 result.put("status", "ok");
-                result.put("submission", EvalMachineFactory.extractSubmissionId(machine) );
+                result.put("submission", EvalMachineFactory.extractSubmissionId(machine));
             } else {
                 result.put("status", "pending");
             }
-        }else{
+        } else {
             result.put("status", "unknown");
         }
         return result;
@@ -82,7 +82,7 @@ public class EvalProcessService {
 
     }
 
-    private StateMachine executeStep(StateMachine<EvalMachine.States, EvalMachine.Events> machine) throws InterruptedException {
+    private StateMachine<EvalMachine.States, EvalMachine.Events> executeStep(StateMachine<EvalMachine.States, EvalMachine.Events> machine) throws InterruptedException {
         String step = EvalMachineFactory.extractProcessStep(machine);
         int stepDelayInS = EvalMachineFactory.extractProcessStepDelayInS(machine);
         String submissionId = EvalMachineFactory.extractSubmissionId(machine);
@@ -96,7 +96,7 @@ public class EvalProcessService {
         }
 
         ProcessStep stepObj = stepFactory.getStep(step);
-        if(stepObj  != null){
+        if (stepObj != null) {
             EvalMachine.Events nextEvent = stepObj.execute(submissionId);
             machine.sendEvent(nextEvent);
         }
