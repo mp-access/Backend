@@ -25,11 +25,13 @@ public abstract class StudentSubmission {
 
     private String exerciseId;
 
-    private boolean graded;
+    private boolean isGraded;
 
     private Instant timestamp;
 
     private SubmissionEvaluation result;
+
+    private boolean isInvalid;
 
     /**
      * Checks whether the given user id matches this submission's id.
@@ -40,4 +42,12 @@ public abstract class StudentSubmission {
         return this.userId != null && this.userId.equals(otherId);
     }
 
+    /**
+     * Returns the final score of this submission.
+     *
+     * @return 0 if submission was not graded (result == null) or score
+     */
+    public double getScore() {
+        return result == null ? 0.0 : result.getScore();
+    }
 }

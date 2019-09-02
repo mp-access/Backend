@@ -1,0 +1,10 @@
+{
+  "simulation": "ch.minimal.RecordedSimulation",
+  "simulationId": "recordedsimulation",
+  "start": 1567269468588,
+  "description": "",
+  "scenarios": ["RecordedSimulation2"],
+  "assertions": [
+
+  ]
+}

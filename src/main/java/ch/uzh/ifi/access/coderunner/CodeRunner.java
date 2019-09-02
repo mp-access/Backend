@@ -5,10 +5,7 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -31,17 +28,29 @@ public class CodeRunner {
 
     private static final String PYTHON_DOCKER_IMAGE = "python:3.7-alpine";
 
-    private final DockerClient docker;
+    private DockerClient docker;
 
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
+        logDebugInfo();
         pullImageIfNotPresent();
+    }
+
+    private void logDebugInfo() {
+        try {
+            Info info = docker.info();
+            logger.debug("Connected to docker daemon @ " + docker.getHost());
+            logger.debug("Docker info:\n" + info.toString());
+        } catch (DockerException | InterruptedException e) {
+            logger.warn("Failed to connect to docker daemon", e);
+        }
     }
 
     private void pullImageIfNotPresent() {
         try {
             List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
             if (images.isEmpty()) {
+                logger.debug(String.format("No suitable python image found (searched for %s), pulling new image from registry", PYTHON_DOCKER_IMAGE));
                 docker.pull(PYTHON_DOCKER_IMAGE);
             }
         } catch (DockerException | InterruptedException e) {

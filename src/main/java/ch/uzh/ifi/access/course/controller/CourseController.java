@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -49,19 +48,6 @@ public class CourseController {
             courses.add(new CourseMetadataDTO(c));
         }
         return courses;
-    }
-
-    @PostMapping(path = "/update")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateCourses(@RequestBody String json, ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
-        logger.debug("Received web hook");
-
-        if (!authentication.matchesHmacSignature(json)) {
-            throw new BadCredentialsException("Hmac signature does not match!");
-        }
-
-        logger.debug("Updating courses");
-        courseService.updateCourses();
     }
 
     @PostMapping(path = "{id}/update")

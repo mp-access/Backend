@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.awt.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +113,7 @@ public class AdminSubmissionServiceTest {
         submissionService.initSubmission(ex2Submission1User2);
         submissionService.initSubmission(ex2Submission2User2);
 
-        Course course = new Course();
+        Course course = new Course("");
         course.addAssignment(assignment);
         final String assignmentId = assignment.getId();
 

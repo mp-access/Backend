@@ -6,6 +6,6 @@ import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 
 public interface StudentSubmissionEvaluator {
 
-    public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise);
+    SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise);
 
 }

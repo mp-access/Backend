@@ -51,11 +51,7 @@ public class DelegateCodeExecStep implements ProcessStep {
                         submission.setConsole(execResult);
                         submissionService.saveSubmission(submission);
 
-                    } catch (InterruptedException e) {
-                        logger.error(e.getMessage());
-                    } catch (DockerException e) {
-                        logger.error(e.getMessage());
-                    } catch (IOException e) {
+                    } catch (InterruptedException | DockerException | IOException e) {
                         logger.error(e.getMessage());
                     }
                 } else {

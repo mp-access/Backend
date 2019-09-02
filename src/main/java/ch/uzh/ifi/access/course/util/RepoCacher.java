@@ -1,9 +1,6 @@
-package ch.uzh.ifi.access.course;
+package ch.uzh.ifi.access.course.util;
 
-import ch.uzh.ifi.access.course.model.Assignment;
-import ch.uzh.ifi.access.course.model.Course;
-import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.VirtualFile;
+import ch.uzh.ifi.access.course.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -31,8 +28,8 @@ public class RepoCacher {
     private static final String REPO_DIR = "course_repositories";
 
     // FOLDERS
-    private static final String ASSIGNMENT_FOLDER_PREFIX = "assignment";
-    private static final String EXERCISE_FOLDER_PREFIX = "exercise";
+    private static final String ASSIGNMENT_FOLDER_PREFIX = "assignment_";
+    private static final String EXERCISE_FOLDER_PREFIX = "exercise_";
     private static final String PUBLIC_FOLDER_NAME = "public";
     private static final String PRIVATE_FOLDER_NAME = "private";
     private static final String RESOURCE_FOLDER_NAME = "resource";
@@ -49,7 +46,7 @@ public class RepoCacher {
     private List<String> ignore_dir = Arrays.asList(".git");
     private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static List<Course> retrieveCourseData(String urls[]) throws Exception {
+    public static List<Course> retrieveCourseData(String urls[]) {
         DateTimeFormatter fmt = new DateTimeFormatterBuilder()
                 .appendPattern("yyyy-MM-dd")
                 .optionalStart()
@@ -71,17 +68,21 @@ public class RepoCacher {
 
         int i = 0;
         for (String url : urls) {
-            String hash = loadFilesFromGit(url);
+            try {
+                String hash = loadFilesFromGit(url);
 
-            RepoCacher cacher = new RepoCacher();
-            File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
-            Course course = new Course();
-            course.setGitHash(hash);
-            course.setDirectory(repo.getAbsolutePath());
-            course.setGitURL(url);
+                RepoCacher cacher = new RepoCacher();
+                File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
+                Course course = new Course(nameFromGitURL(url));
+                course.setGitHash(hash);
+                course.setDirectory(repo.getAbsolutePath());
+                course.setGitURL(url);
 
-            cacher.cacheRepo(repo, course);
-            courses.add(course);
+                cacher.cacheRepo(repo, course);
+                courses.add(course);
+            } catch (Exception e) {
+                logger.error(String.format("Failed to pull repository: %s", url), e);
+            }
         }
         return courses;
     }
@@ -108,13 +109,17 @@ public class RepoCacher {
 
             Object next_context = context;
             if (file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)) {
-                Assignment assignment = new Assignment();
-                ((Course) context).addAssignment(assignment);
+                Course c = ((Course) context);
+                Assignment assignment = new Assignment(c.getGitURL() + file.getName());
+                assignment.setIndex(Integer.parseInt(file.getName().replace(ASSIGNMENT_FOLDER_PREFIX, "")));
+                c.addAssignment(assignment);
                 next_context = assignment;
             } else if (file.getName().startsWith(EXERCISE_FOLDER_PREFIX)) {
-                Exercise exercise = new Exercise();
+                Assignment a = ((Assignment) context);
+                Exercise exercise = new Exercise(a.getId() + file.getName());
+                exercise.setIndex(Integer.parseInt(file.getName().replace(EXERCISE_FOLDER_PREFIX, "")));
                 exercise.setGitHash(((Assignment) context).getCourse().getGitHash());
-                ((Assignment) context).addExercise(exercise);
+                a.addExercise(exercise);
                 next_context = exercise;
             } else if (file.getName().startsWith(PUBLIC_FOLDER_NAME)) {
                 listFiles(file, ((Exercise) context).getPublic_files(), file.getPath());
@@ -135,7 +140,7 @@ public class RepoCacher {
             if (context instanceof Course) {
                 if (file.getName().equals(COURSE_FILE_NAME)) {
                     try {
-                        ((Course) context).set(mapper.readValue(file, Course.class));
+                        ((Course) context).set(mapper.readValue(file, CourseConfig.class));
                     } catch (Exception e) {
                         System.err.println("Error while parsing Course information: " + file.getName());
                         e.printStackTrace();
@@ -144,7 +149,7 @@ public class RepoCacher {
             } else if (context instanceof Assignment) {
                 if (file.getName().equals(ASSIGNMENT_FILE_NAME)) {
                     try {
-                        ((Assignment) context).set(mapper.readValue(file, Assignment.class));
+                        ((Assignment) context).set(mapper.readValue(file, AssignmentConfig.class));
                     } catch (Exception e) {
                         System.err.println("Error while parsing Assignment information: " + file.getName());
                         e.printStackTrace();
@@ -155,7 +160,7 @@ public class RepoCacher {
                     ((Exercise) context).setQuestion(readFile(file));
                 } else if (file.getName().equals(EXERCISE_FILE_NAME)) {
                     try {
-                        ((Exercise) context).set(mapper.readValue(file, Exercise.class));
+                        ((Exercise) context).set(mapper.readValue(file, ExerciseConfig.class));
                     } catch (Exception e) {
                         System.err.println("Error while parsing Exercise information: " + file.getName());
                         e.printStackTrace();

@@ -45,6 +45,8 @@ public class StudentAnswerDTO {
                 return mapper.convertValue(details, TextSubmission.class);
             case multipleChoice:
                 return mapper.convertValue(details, MultipleChoiceSubmission.class);
+            case singleChoice:
+                return mapper.convertValue(details, SingleChoiceSubmission.class);
             default:
                 throw new IllegalArgumentException("Cannot determine question type");
         }

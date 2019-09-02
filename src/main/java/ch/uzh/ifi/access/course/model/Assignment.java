@@ -2,66 +2,58 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 @Data
-public class Assignment {
+@EqualsAndHashCode(callSuper = true)
+public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment> {
     private final String id;
+    private int index;
+
     @JsonIgnore
     private Course course;
 
-    private String title;
-    private String description;
-    private LocalDateTime publishDate;
-    private LocalDateTime dueDate;
+    private List<Exercise> exercises;
 
-    private List<Exercise> exercises = new ArrayList<>();
+    public Assignment(String name) {
+        this.id = new Utils().getID(name);
 
-    public Assignment() {
-        this.id = new Utils().getID();
+        this.exercises = new ArrayList<>();
     }
 
-    public void set(Assignment other) {
-        this.title = other.title;
-        this.description = other.description;
-        this.publishDate = other.publishDate;
-        this.dueDate = other.dueDate;
+    @Builder
+    private Assignment(String title, String description, LocalDateTime publishDate, LocalDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
+        super(title, description, publishDate, dueDate);
+        this.id = id;
+        this.index = index;
+        this.course = course;
+        this.exercises = exercises;
+    }
+
+    public void set(AssignmentConfig other) {
+        this.title = other.getTitle();
+        this.description = other.getDescription();
+        this.publishDate = other.getPublishDate();
+        this.dueDate = other.getDueDate();
     }
 
     public void update(Assignment other) {
         set(other);
-
-        int diff = exercises.size() - other.exercises.size();
-        int size = exercises.size();
-        if (diff > 0) {
-            // Deleted Assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                exercises.remove(size - (i + 1));
-            }
-        } else if (diff < 0) {
-            // Added assignment
-            for (int i = 0; i < Math.abs(diff); ++i) {
-                Exercise e = new Exercise();
-                e.set(other.exercises.get(size + i));
-                exercises.add(e);
-            }
-        }
-
-        for (int i = 0; i < exercises.size(); ++i) {
-            if (exercises.get(i).hasChanged(other.exercises.get(i))) {
-                exercises.get(i).update(other.exercises.get(i));
-            }
-        }
+        this.update(other.getIndexedItems());
     }
 
     public void addExercise(Exercise ex) {
         exercises.add(ex);
         ex.setAssignment(this);
+        exercises.sort(Comparator.comparing(Exercise::getIndex));
     }
 
     public void addExercises(Exercise... exercises) {
@@ -75,12 +67,17 @@ public class Assignment {
     }
 
     public boolean isPastDueDate() {
-        return LocalDateTime.now().isAfter(dueDate);
+        return LocalDateTime.now().isAfter(this.getDueDate());
     }
 
     public int getMaxScore() {
         return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
     }
 
+
+    @Override
+    public List<Exercise> getIndexedItems() {
+        return exercises;
+    }
 }
 

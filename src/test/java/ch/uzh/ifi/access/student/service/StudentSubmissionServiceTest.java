@@ -280,4 +280,112 @@ public class StudentSubmissionServiceTest {
                 .withFailMessage("Submissions should include one submission for each exercise and should include following versions: " + latestSubmissionsByAssignment.toString())
                 .isEqualTo(latestSubmissionsForAssignment);
     }
+
+    @Test
+    public void invalidateSubmission() {
+        Exercise exercise = TestObjectFactory.createCodeExercise("Exercise 1");
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
+
+        final String userId = "user-1";
+        codeSubmission1.setUserId(userId);
+        codeSubmission2.setUserId(userId);
+        codeSubmission3.setUserId(userId);
+
+        service.initSubmission(codeSubmission1);
+        service.initSubmission(codeSubmission2);
+        service.initSubmission(codeSubmission3);
+
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
+        Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
+
+        service.invalidateSubmissionsByExerciseId(exercise.getId());
+
+        submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
+
+        Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
+    }
+
+    @Test
+    public void getSubmissionCountByExerciseAndUserAllValid() {
+        final String exerciseId = "123";
+        final String userId = "user-1";
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
+
+        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
+        Assertions.assertThat(validSubmissionCount).isEqualTo(3);
+    }
+
+    @Test
+    public void getSubmissionCountByExerciseAndUserOneInvalid() {
+        final String exerciseId = "123";
+        final String userId = "user-1";
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        codeSubmission1.setInvalid(true);
+        service.saveSubmission(codeSubmission1);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        Assertions.assertThat(codeSubmission1.isInvalid()).isTrue();
+        Assertions.assertThat(codeSubmission2.isInvalid()).isFalse();
+        Assertions.assertThat(codeSubmission3.isInvalid()).isFalse();
+
+        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
+        Assertions.assertThat(validSubmissionCount).isEqualTo(2);
+    }
+
+    @Test
+    public void getSubmissionCountByExerciseAndUserTwoInvalid() {
+        final String exerciseId = "123";
+        final String userId = "user-1";
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        codeSubmission1.setInvalid(true);
+        service.saveSubmission(codeSubmission1);
+        codeSubmission2.setInvalid(true);
+        service.saveSubmission(codeSubmission2);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        Assertions.assertThat(codeSubmission1.isInvalid()).isTrue();
+        Assertions.assertThat(codeSubmission2.isInvalid()).isTrue();
+        Assertions.assertThat(codeSubmission3.isInvalid()).isFalse();
+
+        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
+        Assertions.assertThat(validSubmissionCount).isEqualTo(1);
+    }
+
+    @Test
+    public void getSubmissionCountByExerciseAndUserNoneValid() {
+        final String exerciseId = "123";
+        final String userId = "user-1";
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        submissions.forEach(submission -> {
+            submission.setInvalid(true);
+            service.saveSubmission(submission);
+        });
+        submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
+
+        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
+        Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    }
+
+    @Test
+    public void getSubmissionCountByExerciseAndUserNoSubmissionsYet() {
+        final String exerciseId = "123";
+        final String userId = "user-1";
+
+        repository.deleteAll();
+
+        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
+        Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    }
 }

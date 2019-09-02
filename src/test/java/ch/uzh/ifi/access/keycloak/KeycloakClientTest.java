@@ -98,7 +98,7 @@ public class KeycloakClientTest {
 
     @Test
     public void enrollUsersInCourse() {
-        Course course = new Course();
+        Course course = new Course("");
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
         course.setAssistants(List.of("ta@uzh.ch", "dr.prof@uzh.ch"));
@@ -117,7 +117,7 @@ public class KeycloakClientTest {
     public void enrollUsersAlreadyEnrolledInAnotherCourse() {
         final String emailAddressStudentAndTa = "ta-student@uzh.ch";
         // Enroll users in a first course
-        Course course = new Course();
+        Course course = new Course("");
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
         course.setAssistants(List.of(emailAddressStudentAndTa, "dr.prof@uzh.ch"));
@@ -133,7 +133,7 @@ public class KeycloakClientTest {
 
 
         // Enrolling them in a second course should not remove them from the first one
-        Course course2 = new Course();
+        Course course2 = new Course("");
         course2.setTitle("DBS");
         course2.setStudents(List.of("alice@example.com", "bob@example.com", emailAddressStudentAndTa));
         course2.setAssistants(List.of("dr.prof@uzh.ch"));

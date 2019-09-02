@@ -1,9 +1,10 @@
 package ch.uzh.ifi.access.course.dao;
 
-import ch.uzh.ifi.access.course.RepoCacher;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
+import ch.uzh.ifi.access.course.event.BreakingChangeNotifier;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.util.RepoCacher;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -35,7 +36,11 @@ public class CourseDAO {
 
     private Map<String, Exercise> exerciseIndex;
 
-    public CourseDAO() {
+    private BreakingChangeNotifier breakingChangeNotifier;
+
+    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier) {
+        this.breakingChangeNotifier = breakingChangeNotifier;
+
         ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
         if (resource.exists()) {
             try {
@@ -74,46 +79,59 @@ public class CourseDAO {
             exercisesJson.close();
             logger.info(String.format("Written files: %s, %s", coursesFile, exerciseFile));
         } catch (IOException e) {
-            logger.warn("Unable to write parse results to file system. Does the folder exists?");
+            logger.warn("Unable to write parse results to file system. Does the folder exists?", e);
         }
     }
 
     protected Map<String, Exercise> buildExerciseIndex(List<Course> courses) {
         return courses
                 .stream()
-                .flatMap(c -> c.getAssignments().stream())
-                .flatMap(a -> a.getExercises().stream())
+                .flatMap(course -> course.getExercises().stream())
                 .collect(Collectors.toUnmodifiableMap(Exercise::getId, ex -> ex));
-    }
-
-    public void updateCourses() {
-        ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
-        if (resource.exists()) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                URLList conf = mapper.readValue(resource.getFile(), URLList.class);
-                List<Course> courseUpdate = RepoCacher.retrieveCourseData(conf.repositories);
-
-                for (int i = 0; i < courseList.size(); ++i) {
-                    courseList.get(i).update(courseUpdate.get(i));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            courseList = null;
-        }
     }
 
     public void updateCourseById(String id) {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
         try {
-            List<Course> courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()});
-            c.update(courseUpdate.get(0));
+            Course courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
+            updateCourse(c, courseUpdate);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to update course", e);
         }
+    }
+
+    void updateCourse(Course before, Course after) {
+        List<Exercise> brokenExercises = lookForBreakingChanges(before, after);
+        breakingChangeNotifier.notifyBreakingChanges(brokenExercises);
+        before.update(after);
+
+        exerciseIndex = buildExerciseIndex(courseList);
+        writeParseResultsToFileSystem();
+    }
+
+    /**
+     * A breaking change is any of the following changes in the assignment exercises
+     * <p>
+     * 1. An exercise was present before but was deleted
+     * 2. An exercise is present both before and after but was updated
+     *
+     * @param before state of the course before the update
+     * @param after  state of the course after the update
+     * @return list of exercises which are breaking changes
+     */
+    List<Exercise> lookForBreakingChanges(Course before, Course after) {
+        List<Exercise> beforeExercises = before.getExercises();
+        List<Exercise> afterExercises = after.getExercises();
+
+        return beforeExercises
+                .stream()
+                .filter(beforeExercise -> {
+                    Optional<Exercise> optAfterExercise = afterExercises.stream().filter(afterExercise -> afterExercise.hasSameIndex(beforeExercise)).findFirst();
+                    // if an exercise is found, check if it is a breaking change, else exercise was removed and is considered a breaking change
+                    return optAfterExercise.map(beforeExercise::isBreakingChange).orElse(true);
+                })
+                .collect(Collectors.toList());
     }
 
     public List<Course> selectAllCourses() {

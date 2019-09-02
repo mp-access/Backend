@@ -24,10 +24,6 @@ public class CourseService {
         this.courseDao = courseDao;
     }
 
-    public void updateCourses() {
-        courseDao.updateCourses();
-    }
-
     public void updateCourseById(String id) {
         courseDao.updateCourseById(id);
     }
@@ -61,5 +57,9 @@ public class CourseService {
         Optional<VirtualFile> virtualFile = exercise.flatMap(e -> e.getFileById(fileId));
 
         return virtualFile.map(file -> new FileSystemResource(file.getFile()));
+    }
+
+    public Optional<Integer> getExerciseMaxSubmissions(String exerciseId) {
+        return courseDao.selectExerciseById(exerciseId).map(Exercise::getMaxSubmits);
     }
 }
