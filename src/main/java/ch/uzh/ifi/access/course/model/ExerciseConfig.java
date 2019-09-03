@@ -16,6 +16,7 @@ public class ExerciseConfig {
 
     protected List<String> options;
     protected List<String> solutions;
+    protected List<String> hints;
 
     public ExerciseConfig(){
         this.isGraded = true;
