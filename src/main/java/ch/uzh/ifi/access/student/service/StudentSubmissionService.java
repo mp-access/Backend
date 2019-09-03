@@ -33,7 +33,7 @@ public class StudentSubmissionService {
         Assert.notNull(exerciseId, "exerciseId cannot be null");
         Assert.notNull(userId, "userId cannot be null");
 
-        return studentSubmissionRepository.findAllByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, userId);
+        return studentSubmissionRepository.findAllByExerciseIdAndUserIdAndIsGradedTrueOrderByVersionDesc(exerciseId, userId);
     }
 
     public <T extends StudentSubmission> T saveSubmission(T answer) {
@@ -87,7 +87,7 @@ public class StudentSubmissionService {
     }
 
     public int getSubmissionCountByExerciseAndUser(String exerciseId, String userId) {
-        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalse(exerciseId, userId);
+        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(exerciseId, userId);
     }
 
 }

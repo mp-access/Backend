@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface StudentSubmissionRepository extends MongoRepository<StudentSubmission, String>, CustomizedStudentSubmissionRepository {
 
-    <T extends StudentSubmission> List<T> findAllByExerciseIdAndUserIdOrderByVersionDesc(String exerciseId, String userId);
+    <T extends StudentSubmission> List<T> findAllByExerciseIdAndUserIdAndIsGradedTrueOrderByVersionDesc(String exerciseId, String userId);
 
     <T extends StudentSubmission> Optional<T> findTopByExerciseIdAndUserIdOrderByVersionDesc(String exerciseId, String userId);
 
-    int countByExerciseIdAndUserIdAndIsInvalidFalse(String exerciseId, String userId);
+    int countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(String exerciseId, String userId);
 }
