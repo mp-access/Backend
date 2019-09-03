@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%blue[%thread]] %highlight(%-5level) %logger{36} - %msg%n</pattern>
+            <immediateFlush>false</immediateFlush>
+        </encoder>
+    </appender>
+    <root level="${logLevel}">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <logger name="io.gatling.http" level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </logger>
+</configuration>
