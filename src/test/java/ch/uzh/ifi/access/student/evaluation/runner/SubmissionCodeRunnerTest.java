@@ -56,6 +56,7 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStdout()).containsIgnoringCase("Intercontinental flight Boeing-747");
+        Assertions.assertThat(result.getTestLog()).isEmpty();
         Assertions.assertThat(result.getEvalLog()).containsIgnoringCase("Ran 8 tests in");
     }
 
@@ -77,6 +78,7 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStdout()).containsIgnoringCase("Intercontinental flight Boeing-747");
+        Assertions.assertThat(result.getTestLog()).isNotEmpty();
         Assertions.assertThat(result.getEvalLog()).isEmpty();
     }
 }

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class ExecResult {
 
     private String stdout;
-    private String stderr;
+    private String testLog;
 
     @JsonIgnore
     private String evalLog;
