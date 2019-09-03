@@ -29,12 +29,14 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
         var calc = correctAnswers - wrongAnswers;
         var points = calc < 0 ?  0 : calc;
 
+        var hints = points < solution.size() ? exercise.getHints() : null;
+
         return SubmissionEvaluation.builder()
                 .points(new SubmissionEvaluation.Points(points, solution.size()))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
+                .hints(hints)
                 .build();
-
     }
 
     private int getNrCorrectAnswers(final Collection<Integer> answers, final Collection<Integer> solutions) {

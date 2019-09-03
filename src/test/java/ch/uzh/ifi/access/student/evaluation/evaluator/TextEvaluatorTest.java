@@ -50,7 +50,7 @@ public class TextEvaluatorTest {
     }
 
     @Test
-    public void incorrectAnswerWithHints() {
+    public void wrongAnswerShowsHint() {
         Exercise ex = Exercise.builder()
                 .id("e1")
                 .solutions(Arrays.asList("Abz"))

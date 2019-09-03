@@ -73,6 +73,28 @@ public class MultipleChoiceEvaluatorTest {
     }
 
     @Test
+    public void wrongAnswerShowsHint() {
+        Exercise ex = Exercise.builder()
+                .id("e1")
+                .options(Arrays.asList("Hans", "Peter", "Frieda", "Gretel"))
+                .solutions(Arrays.asList("Hans", "Peter"))
+                .maxScore(2)
+                .hints(Arrays.asList("Hinweis"))
+                .type(ExerciseType.multipleChoice).build();
+
+        MultipleChoiceSubmission sub = MultipleChoiceSubmission.builder()
+                .choices(new HashSet<>(Arrays.asList(2, 3)))
+                .exerciseId(ex.getId())
+                .build();
+
+        MultipleChoiceEvaluator evaluator = new MultipleChoiceEvaluator();
+        SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
+
+        Assert.assertNotNull("Has hints.", grade.getHints());
+        Assert.assertTrue("Contains cartain hint.", grade.getHints().contains("Hinweis"));
+    }
+
+    @Test
     public void XOR() {
         Exercise ex = Exercise.builder()
                 .id("e1")
