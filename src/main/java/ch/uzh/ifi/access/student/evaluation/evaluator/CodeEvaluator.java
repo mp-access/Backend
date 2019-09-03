@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -18,22 +19,51 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     private static final Logger logger = LoggerFactory.getLogger(CodeEvaluator.class);
 
+    private static final String HINT_ANNOTATION = "@#@";
+    private static final String HINT_PATTERN = HINT_ANNOTATION+".*"+HINT_ANNOTATION;
+
     private final String runNTestPattern = "^Ran (\\d++) test.*";
     private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
+
+    private Pattern hintPattern;
+
+    public CodeEvaluator() {
+        this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE);
+        //this.hintPattern = Pattern.compile(HINT_PATTERN);
+    }
 
     @Override
     public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
         validate(submission, exercise);
         CodeSubmission codeSub = (CodeSubmission) submission;
-        return parseEvalFromConsoleLog(codeSub.getConsole().getEvalLog(), exercise);
+
+        SubmissionEvaluation.Points scoredPoints = parseScoreFromLog(codeSub.getConsole().getEvalLog());
+        List<String> hints = parseHintsFromLog(codeSub.getConsole().getEvalLog());
+
+        return  SubmissionEvaluation.builder()
+                .points(scoredPoints)
+                .maxScore(exercise.getMaxScore())
+                .hints(hints)
+                .build();
     }
 
-    private SubmissionEvaluation parseEvalFromConsoleLog(String console, Exercise exercise) {
+    private List<String> parseHintsFromLog(String evalLog) {
+        List<String> hints = new ArrayList<>();
+
+        Matcher matcher = hintPattern.matcher(evalLog);
+        while (matcher.find()) {
+            hints.add(matcher.group(0).replace(HINT_ANNOTATION, ""));
+        }
+
+        return hints;
+    }
+
+    private SubmissionEvaluation.Points parseScoreFromLog(String log) {
         int points = 0;
         int nrOfTest = -1;
 
-        if (console != null && !console.isEmpty()) {
-            List<String> lines = Arrays.asList(console.split("\n"));
+        if (log != null && !log.isEmpty()) {
+            List<String> lines = Arrays.asList(log.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
              nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
@@ -47,10 +77,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             logger.info("No console log to evaluate.");
         }
 
-        return  SubmissionEvaluation.builder()
-                .points(new SubmissionEvaluation.Points(points, nrOfTest))
-                .maxScore(exercise.getMaxScore())
-                .build();
+        return new SubmissionEvaluation.Points(points, nrOfTest);
     }
 
     private int extractNrOfTests(String line) {
