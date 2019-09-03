@@ -9,6 +9,9 @@ import org.springframework.util.Assert;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
 
@@ -17,18 +20,33 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
         validate(submission, exercise);
 
         MultipleChoiceSubmission mcSub = (MultipleChoiceSubmission) submission;
+        var solution =  exercise.getMultipleChoiceSolution();
+        var answer = mcSub.getChoices();
 
-        Collection<Integer> solution = exercise.getMultipleChoiceSolution();
-        Collection<Integer> answer = mcSub.getChoices();
+        var correctAnswers = getNrCorrectAnswers(answer, solution);
+        var wrongAnswers = getNrWrongAnswers(answer, solution);
 
-        answer.retainAll(solution);
+        var calc = correctAnswers - wrongAnswers;
+        var points = calc < 0 ?  0 : calc;
 
         return SubmissionEvaluation.builder()
-                .points(new SubmissionEvaluation.Points(answer.size(), solution.size()))
+                .points(new SubmissionEvaluation.Points(points, solution.size()))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
                 .build();
 
+    }
+
+    private int getNrCorrectAnswers(final Collection<Integer> answers, final Collection<Integer> solutions) {
+        var ans = answers.stream().collect(Collectors.toSet());
+        ans.retainAll(solutions);
+        return ans.size();
+    }
+
+    private int getNrWrongAnswers(final Collection<Integer> answers, final Collection<Integer> solutions) {
+        var ans = answers.stream().collect(Collectors.toSet());
+        ans.removeAll(solutions);
+        return ans.size();
     }
 
     private void validate(StudentSubmission submission, Exercise exercise) throws IllegalArgumentException {
