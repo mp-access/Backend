@@ -8,6 +8,7 @@ import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
+import java.util.Collections;
 
 public class SingleChoiceEvaluator implements StudentSubmissionEvaluator {
 
@@ -20,11 +21,13 @@ public class SingleChoiceEvaluator implements StudentSubmissionEvaluator {
         Integer solution = exercise.getSingleChoiceSolution();
         Integer answer = sub.getChoice();
         var point = solution.equals(answer) ? 1 : 0;
+        var hints = point != 1 ? exercise.getHints() : null;
 
         return SubmissionEvaluation.builder()
                 .points(new SubmissionEvaluation.Points(point, 1))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
+                .hints(hints)
                 .build();
     }
 
