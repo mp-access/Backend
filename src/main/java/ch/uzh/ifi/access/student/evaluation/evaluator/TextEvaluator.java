@@ -29,6 +29,7 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
                 .points(new SubmissionEvaluation.Points(0, 1))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
+                .hints(exercise.getHints())
                 .build();
     }
 

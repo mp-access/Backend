@@ -48,4 +48,48 @@ public class TextEvaluatorTest {
 
         Assert.assertEquals(0.0, grade.getScore(), 0.25);
     }
+
+    @Test
+    public void incorrectAnswerWithHints() {
+        Exercise ex = Exercise.builder()
+                .id("e1")
+                .solutions(Arrays.asList("Abz"))
+                .maxScore(1)
+                .hints(Arrays.asList("Hinweis 1", "Hinweis 2"))
+                .type(ExerciseType.text).build();
+
+        TextSubmission sub = TextSubmission.builder()
+                .answer("a")
+                .exerciseId(ex.getId())
+                .build();
+
+        TextEvaluator evaluator = new TextEvaluator();
+        SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
+
+        Assert.assertEquals(0.0, grade.getScore(), 0.25);
+        Assert.assertNotNull("Hints not empty", grade.getHints());
+        Assert.assertTrue("Contains a certain hint.", grade.getHints().contains("Hinweis 1"));
+    }
+
+    @Test
+    public void exerciseHasNoHints() {
+        Exercise ex = Exercise.builder()
+                .id("e1")
+                .solutions(Arrays.asList("Abz"))
+                .maxScore(1)
+                .type(ExerciseType.text).build();
+
+        TextSubmission sub = TextSubmission.builder()
+                .answer("a")
+                .exerciseId(ex.getId())
+                .build();
+
+        TextEvaluator evaluator = new TextEvaluator();
+        SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
+
+        Assert.assertEquals(0.0, grade.getScore(), 0.25);
+        Assert.assertNull(grade.getHints());
+    }
+
+
 }
