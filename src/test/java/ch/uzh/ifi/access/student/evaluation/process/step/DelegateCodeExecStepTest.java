@@ -11,6 +11,7 @@ import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +49,11 @@ public class DelegateCodeExecStepTest {
         MockitoAnnotations.initMocks(this);
         submissionService = new StudentSubmissionService(repository);
         courseService = new CourseService(courseDAO);
+    }
+
+    @After
+    public void tearDown() {
+        repository.deleteAll();
     }
 
     @Test

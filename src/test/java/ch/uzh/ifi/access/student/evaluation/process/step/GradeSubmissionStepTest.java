@@ -1,11 +1,9 @@
 package ch.uzh.ifi.access.student.evaluation.process.step;
 
-import ch.uzh.ifi.access.student.evaluation.evaluator.CodeEvaluator;
-import ch.uzh.ifi.access.student.evaluation.evaluator.MultipleChoiceEvaluator;
-import ch.uzh.ifi.access.student.evaluation.evaluator.StudentSubmissionEvaluator;
-import ch.uzh.ifi.access.student.evaluation.evaluator.TextEvaluator;
+import ch.uzh.ifi.access.student.evaluation.evaluator.*;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
+import ch.uzh.ifi.access.student.model.SingleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -34,6 +32,14 @@ public class GradeSubmissionStepTest {
 
         StudentSubmissionEvaluator evaluator = gradeSubmissionStep.evaluator(new CodeSubmission());
         Assertions.assertThat(evaluator).isExactlyInstanceOf(CodeEvaluator.class);
+    }
+
+    @Test
+    public void singleChoiceEvaluator() {
+        GradeSubmissionStep gradeSubmissionStep = new GradeSubmissionStep(null, null);
+
+        StudentSubmissionEvaluator evaluator = gradeSubmissionStep.evaluator(new SingleChoiceSubmission());
+        Assertions.assertThat(evaluator).isExactlyInstanceOf(SingleChoiceEvaluator.class);
     }
 
 }
