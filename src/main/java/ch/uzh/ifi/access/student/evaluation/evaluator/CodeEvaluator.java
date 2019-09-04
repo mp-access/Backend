@@ -25,14 +25,14 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     public SubmissionEvaluation evaluate(StudentSubmission submission, Exercise exercise) {
         validate(submission, exercise);
         CodeSubmission codeSub = (CodeSubmission) submission;
-        return parseEvalFromConsoleLog(codeSub.getConsole().getStderr(), exercise);
+        return parseEvalFromConsoleLog(codeSub.getConsole().getEvalLog(), exercise);
     }
 
     private SubmissionEvaluation parseEvalFromConsoleLog(String console, Exercise exercise) {
         int points = 0;
         int nrOfTest = -1;
 
-        if (console != null) {
+        if (console != null && !console.isEmpty()) {
             List<String> lines = Arrays.asList(console.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 

@@ -41,4 +41,5 @@ public class GradeSubmissionStepTest {
         StudentSubmissionEvaluator evaluator = gradeSubmissionStep.evaluator(new SingleChoiceSubmission());
         Assertions.assertThat(evaluator).isExactlyInstanceOf(SingleChoiceEvaluator.class);
     }
+
 }

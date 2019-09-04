@@ -67,8 +67,8 @@ public class SubmissionController {
                 .orElse(ResponseEntity.noContent().build());
     }
 
-    @PostMapping("/exs/{exerciseId}")
-    public Map.Entry<String, String> submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
+    @PostMapping("/exercises/{exerciseId}")
+    public ResponseEntity<?> submit(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         String username = authentication.getName();
@@ -76,14 +76,20 @@ public class SubmissionController {
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
         Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
+        if(!commitHash.isPresent()) {
+            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+        }
+
         String processId = "N/A";
         if (commitHash.isPresent()) {
+            // Weird stuff going on here: isGraded in SubmissionDTO does not match isGraded from the JSON Payload ...
+            // The isGraded from SubmissionDTO.createSubmission matches the JSON Payload.
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
             submission = studentSubmissionService.initSubmission(submission);
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
-        return new AbstractMap.SimpleEntry<>("evalId", processId);
+        return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
     }
 
     @GetMapping("/evals/{processId}")
@@ -91,24 +97,6 @@ public class SubmissionController {
         Assert.notNull(authentication, "No authentication object found for user");
         Assert.notNull(processId, "No processId.");
         return processService.getEvalProcessState(processId);
-    }
-
-    @PostMapping("/exercises/{exerciseId}")
-    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-
-        String username = authentication.getName();
-
-        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
-
-        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
-
-        if (commitHash.isPresent()) {
-            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            return ResponseEntity.accepted().body(studentSubmissionService.initSubmission(submission));
-        } else {
-            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
-        }
     }
 
     @GetMapping("/exercises/{exerciseId}/history")
@@ -133,4 +121,5 @@ public class SubmissionController {
         int validSubmissionCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
         return new SubmissionCount(maxSubmissions, validSubmissionCount);
     }
+
 }
