@@ -84,8 +84,8 @@ public class BreakingChangeIntegrationTest {
 
         // Begin actual test
         // Submit answers for each exercise
-        submissionService.initSubmission(submission1, true);
-        submissionService.initSubmission(submission2, true);
+        submissionService.initSubmission(submission1);
+        submissionService.initSubmission(submission2);
 
         // Make sure they are both valid
         List<StudentSubmission> all = repository.findAll();

@@ -250,7 +250,7 @@ public class SubmissionControllerTest {
                 "                \"isMediaType\": false\n" +
                 "            }\n" +
                 "        ],\n" +
-                "        \"graded\": \"true\"\n" +
+                "        \"graded\": true\n" +
                 "    }\n" +
                 "}";
 

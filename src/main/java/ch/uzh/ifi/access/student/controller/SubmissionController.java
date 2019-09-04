@@ -3,7 +3,6 @@ package ch.uzh.ifi.access.student.controller;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.student.dto.SubmissionCount;
@@ -83,8 +82,10 @@ public class SubmissionController {
 
         String processId = "N/A";
         if (commitHash.isPresent()) {
+            // Weird stuff going on here: isGraded in SubmissionDTO does not match isGraded from the JSON Payload ...
+            // The isGraded from SubmissionDTO.createSubmission matches the JSON Payload.
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            submission = studentSubmissionService.initSubmission(submission, submissionDTO.isGraded());
+            submission = studentSubmissionService.initSubmission(submission);
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
