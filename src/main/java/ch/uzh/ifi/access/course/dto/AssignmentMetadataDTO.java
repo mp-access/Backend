@@ -31,8 +31,4 @@ public class AssignmentMetadataDTO {
             this.exercises.add(new ExerciseMetadataDTO(e));
         }
     }
-
-    public AssignmentMetadataDTO(){
-        this.id = new Utils().getID();
-    }
 }
