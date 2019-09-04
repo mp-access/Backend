@@ -44,14 +44,13 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.save(answer);
     }
 
-    public <T extends StudentSubmission> T initSubmission(T answer, boolean isGraded) {
+    public <T extends StudentSubmission> T initSubmission(T answer) {
         Assert.notNull(answer, "answer cannot be null");
         Assert.notNull(answer.getExerciseId(), "exerciseId cannot be null");
         Assert.notNull(answer.getUserId(), "userId cannot be null");
 
         Optional<StudentSubmission> previousSubmissions = findLatestExerciseSubmission(answer.getExerciseId(), answer.getUserId());
         previousSubmissions.ifPresent(prev -> answer.setVersion(prev.getVersion() + 1));
-        answer.setGraded(isGraded);
 
         return studentSubmissionRepository.save(answer);
     }
