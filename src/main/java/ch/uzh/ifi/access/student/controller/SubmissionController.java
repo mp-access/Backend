@@ -3,7 +3,6 @@ package ch.uzh.ifi.access.student.controller;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
 import ch.uzh.ifi.access.student.dto.SubmissionCount;
