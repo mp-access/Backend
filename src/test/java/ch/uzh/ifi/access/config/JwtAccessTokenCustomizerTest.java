@@ -61,7 +61,7 @@ public class JwtAccessTokenCustomizerTest {
             "  \"email_verified\": false," +
             "  \"user_name\": \"carl-friedlich.abel@uzh.ch\"," +
             "  \"groups\": [" +
-            "    \"/Informatics 2/students\"" +
+            "    \"/b75be786-f1c1-32d3-99fc-8af4ff155ade/students\"" +
             "  ]," +
             "  \"preferred_username\": \"carl-friedlich.abel@uzh.ch\"," +
             "  \"email\": \"carl-friedlich.abel@uzh.ch\"" +
@@ -77,7 +77,7 @@ public class JwtAccessTokenCustomizerTest {
 
         Assert.assertEquals(authentication.getUserId(), "e095b656-f219-4e13-bc39-c6329f725cc1");
         Assert.assertEquals(authentication.getName(), "carl-friedlich.abel@uzh.ch");
-        Assert.assertEquals(authentication.getCourseAccesses(), Set.of(new GrantedCourseAccess("Informatics 2", true, false)));
+        Assert.assertEquals(authentication.getCourseAccesses(), Set.of(new GrantedCourseAccess("b75be786-f1c1-32d3-99fc-8af4ff155ade", true, false)));
     }
 
     @Test

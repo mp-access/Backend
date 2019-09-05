@@ -4,6 +4,7 @@ import ch.uzh.ifi.access.KeycloakClientTestConfiguration;
 import ch.uzh.ifi.access.config.SecurityProperties;
 import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.model.Course;
+import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -19,6 +20,7 @@ import javax.ws.rs.NotFoundException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class KeycloakClientTest {
@@ -108,7 +110,7 @@ public class KeycloakClientTest {
         List<String> studentEmails = group.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> assistantsEmails = group.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
-        Assert.assertEquals(group.getName(), course.getTitle());
+        Assert.assertEquals(group.getName(), course.getId());
         Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
         Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
     }
@@ -117,7 +119,7 @@ public class KeycloakClientTest {
     public void enrollUsersAlreadyEnrolledInAnotherCourse() {
         final String emailAddressStudentAndTa = "ta-student@uzh.ch";
         // Enroll users in a first course
-        Course course = new Course("");
+        Course course = new Course(UUID.randomUUID().toString());
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
         course.setAssistants(List.of(emailAddressStudentAndTa, "dr.prof@uzh.ch"));
@@ -127,13 +129,13 @@ public class KeycloakClientTest {
         List<String> studentEmails = info1.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> assistantsEmails = info1.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
-        Assert.assertEquals(info1.getName(), course.getTitle());
+        Assert.assertEquals(info1.getName(), course.getId());
         Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
         Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
 
 
         // Enrolling them in a second course should not remove them from the first one
-        Course course2 = new Course("");
+        Course course2 = new Course(UUID.randomUUID().toString());
         course2.setTitle("DBS");
         course2.setStudents(List.of("alice@example.com", "bob@example.com", emailAddressStudentAndTa));
         course2.setAssistants(List.of("dr.prof@uzh.ch"));
@@ -142,7 +144,7 @@ public class KeycloakClientTest {
         studentEmails = dbs.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         assistantsEmails = dbs.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
-        Assert.assertEquals(course2.getTitle(), dbs.getName());
+        Assert.assertEquals(course2.getId(), dbs.getName());
         Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course2.getStudents()));
         Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course2.getAssistants()));
 
@@ -169,10 +171,16 @@ public class KeycloakClientTest {
         UserRepresentation taStudent = users.stream().filter(u -> u.getEmail().equals(emailAddressStudentAndTa)).findFirst().orElseThrow();
         List<GroupRepresentation> groups = realmResource.users().get(taStudent.getId()).groups();
         for (GroupRepresentation group : groups) {
-            if (group.getPath().contains(course.getTitle())) {
-                Assert.assertEquals(String.format("ta-student should be an 'author' of course '%s'", course.getTitle()), "authors", group.getName());
+            if (group.getPath().contains(course.getId())) {
+                Assertions
+                        .assertThat(group.getName())
+                        .withFailMessage(String.format("ta-student should be an 'author' of course '%s'", course.getId()))
+                        .contains("authors");
             } else {
-                Assert.assertEquals(String.format("ta-student should be a 'student' of course '%s'", course2.getTitle()), "students", group.getName());
+                Assertions
+                        .assertThat(group.getName())
+                        .withFailMessage(String.format("ta-student should be a 'student' of course '%s'", course2.getId()))
+                        .contains("students");
             }
         }
     }

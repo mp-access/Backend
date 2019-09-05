@@ -64,7 +64,7 @@ public class KeycloakClient {
 
         if (course.getTitle() != null && !course.getTitle().isEmpty()) {
             // A group can only be initialized with a title
-            Group courseGroup = removeIfExistsAndCreateGroup(course.getTitle());
+            Group courseGroup = removeIfExistsAndCreateGroup(course.getId(), course.getTitle());
 
             UsersResource usersResource = realmResource.users();
             students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);
@@ -77,16 +77,16 @@ public class KeycloakClient {
         return null;
     }
 
-    private Group removeIfExistsAndCreateGroup(final String title) {
+    private Group removeIfExistsAndCreateGroup(final String courseId, String title) {
         try {
-            GroupRepresentation groupRepresentation = realmResource.getGroupByPath(title);
-            logger.info(String.format("Found existing group: %s.\nRemoving it...", groupRepresentation.getName()));
+            GroupRepresentation groupRepresentation = realmResource.getGroupByPath(courseId);
+            logger.info(String.format("Found existing group: %s.\nRemoving it and creating it anew", groupRepresentation.getName()));
             realmResource.groups().group(groupRepresentation.getId()).remove();
         } catch (NotFoundException e) {
-            logger.info("Did not find any groups. Creating new group...", e);
+            logger.debug("Did not find any groups. Creating new group...", e);
         }
 
-        return Group.create(title, realmResource.groups());
+        return Group.create(courseId, title, realmResource.groups());
     }
 
     Users getUsersIfExistOrCreateUsers(List<String> emailAddresses) {
@@ -144,7 +144,7 @@ public class KeycloakClient {
         if (!smtpConfig.isEmpty()) {
             userResource.executeActionsEmail(emailActionsAfterCreation);
         } else {
-            logger.warn("No smtp server configured. Cannot send out verification emails.");
+            logger.warn("No SMTP server configured. Cannot send out verification emails.");
         }
         return userResource.toRepresentation();
     }
@@ -168,8 +168,8 @@ public class KeycloakClient {
         return KeycloakBuilder.builder()
                 .serverUrl(securityProperties.getAuthServer())
                 .realm("master")
-                .username("admin")
-                .password("admin")
+                .username(securityProperties.getKeycloakApiAdmin())
+                .password(securityProperties.getKeycloakApiPassword())
                 .clientId(ADMIN_CLIENT_ID)
                 .resteasyClient(
                         new ResteasyClientBuilder().connectionPoolSize(10).build()
