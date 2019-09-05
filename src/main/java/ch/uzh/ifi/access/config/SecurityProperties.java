@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.config;
 
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,12 @@ public class SecurityProperties {
     private String tokenEndpoint;
 
     private String authorizationEndpoint;
+
+    @Value("${KEYCLOAK_USER:admin}")
+    private String keycloakApiAdmin = "admin";
+
+    @Value("${KEYCLOAK_PASSWORD:admin}")
+    private String keycloakApiPassword = "admin";
 
     public CorsConfiguration getCorsConfiguration() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
