@@ -95,9 +95,9 @@ public class JwtAccessTokenCustomizerTest {
     public void parseCourseAccessStudent() {
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
 
-        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/Informatics 1/students");
+        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - students");
 
-        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourse());
+        Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
         Assert.assertTrue(grantedCourseAccess.isStudent());
         Assert.assertFalse(grantedCourseAccess.isAuthor());
     }
@@ -106,9 +106,9 @@ public class JwtAccessTokenCustomizerTest {
     public void parseCourseAccessAuthor() {
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
 
-        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/Informatics 1/authors");
+        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - authors");
 
-        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourse());
+        Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
         Assert.assertFalse(grantedCourseAccess.isStudent());
         Assert.assertTrue(grantedCourseAccess.isAuthor());
     }
@@ -117,11 +117,7 @@ public class JwtAccessTokenCustomizerTest {
     public void parseCourseAccessMissingSubgroup() {
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
 
-        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/Informatics 1/");
-
-        Assert.assertEquals("Informatics 1", grantedCourseAccess.getCourse());
-        Assert.assertFalse(grantedCourseAccess.isStudent());
-        Assert.assertTrue(grantedCourseAccess.isAuthor());
+        tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/");
     }
 
     @Test
