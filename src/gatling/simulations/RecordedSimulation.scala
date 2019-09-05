@@ -90,7 +90,7 @@ class RecordedSimulation extends Simulation {
         .saveAs("authorizationCode"))
       .check(header("Location").saveAs("nextPage"))
     )
-    .exec(http("GET fetch token")
+    .exec(http("POST fetch token")
       .post(tokenUri)
       .headers(json_headers)
       .header("Referer", "uri3")
@@ -167,7 +167,7 @@ class RecordedSimulation extends Simulation {
           .headers(headers_5)))
     .pause(2)
     .exec(http("POST submission")
-      .post("/api/submissions/exs/8e989eea-2a38-3147-a03f-d0c300f8c99d")
+      .post("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
       .headers(headers_27)
       .body(RawFileBody("RecordedSimulation2_0027_request.txt"))
       .check(jsonPath("$.evalId").saveAs("evalId"))
@@ -183,5 +183,5 @@ class RecordedSimulation extends Simulation {
 //        .pause(1)
 //    }
 
-  setUp(scn.inject(atOnceUsers(100))).protocols(httpProtocol)
+  setUp(scn.inject(atOnceUsers(1000))).protocols(httpProtocol)
 }
