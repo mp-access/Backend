@@ -7,6 +7,7 @@ import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.service.CourseService;
+import ch.uzh.ifi.access.course.util.CoursePermissionEnforcer;
 import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.service.UserService;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,9 +32,12 @@ public class CourseController {
 
     private final UserService userService;
 
-    public CourseController(CourseService courseService, UserService userService) {
+    private final CoursePermissionEnforcer permissionEnforcer;
+
+    public CourseController(CourseService courseService, UserService userService, CoursePermissionEnforcer permissionEnforcer) {
         this.courseService = courseService;
         this.userService = userService;
+        this.permissionEnforcer = permissionEnforcer;
     }
 
     @FilterByPublishingDate
@@ -60,16 +65,15 @@ public class CourseController {
 
     @FilterByPublishingDate
     @GetMapping("/{courseId}/assignments/{assignmentId}")
-    public ResponseEntity<AssignmentMetadataDTO> getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId, CourseAuthentication authentication) {
+    public ResponseEntity<AssignmentMetadataDTO> getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId, @ApiIgnore CourseAuthentication authentication) {
         AssignmentMetadataDTO assignment = courseService.getCourseById(courseId)
                 .flatMap(course -> course.getAssignmentById(assignmentId))
                 .map(AssignmentMetadataDTO::new)
                 .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
 
-        if (assignment.isPublished() || authentication.hasAdminAccess(courseId)) {
-            return ResponseEntity.ok(assignment);
-        }
-        return ResponseEntity.notFound().build();
+        return permissionEnforcer.shouldAccessAssignment(assignment, courseId, authentication)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{courseId}/assistants")
