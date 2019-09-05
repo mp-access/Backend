@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.controller;
 
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springfox.documentation.annotations.ApiIgnore;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,14 +31,16 @@ public class ExerciseController {
 
     @GetMapping("/{exerciseId}")
     public ResponseEntity<?> getExerciseByCourseAndAssignment(
-            @PathVariable("exerciseId") String exerciseId) {
-        Exercise ex = courseService.getExerciseById(exerciseId)
+            @PathVariable("exerciseId") String exerciseId, @ApiIgnore CourseAuthentication authentication) {
+        Exercise exercise = courseService.getExerciseById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-        if (ex.isPastDueDate()) {
-            return ResponseEntity.ok(new ExerciseWithSolutionsDTO(ex));
-        } else {
-            return ResponseEntity.ok(ex);
+
+        final String courseId = exercise.getCourseId();
+        if (authentication.hasAdminAccess(courseId) || exercise.isPastDueDate()) {
+            return ResponseEntity.ok(new ExerciseWithSolutionsDTO(exercise));
         }
+
+        return ResponseEntity.ok(exercise);
     }
 
     //TODO: Check if user has access to private & solution files
