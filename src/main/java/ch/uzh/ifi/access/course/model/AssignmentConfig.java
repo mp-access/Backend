@@ -9,9 +9,14 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AssignmentConfig {
+public class AssignmentConfig implements HasPublishingDate {
     protected String title;
     protected String description;
     protected LocalDateTime publishDate;
     protected LocalDateTime dueDate;
+
+    @Override
+    public boolean isPublished() {
+        return false;
+    }
 }

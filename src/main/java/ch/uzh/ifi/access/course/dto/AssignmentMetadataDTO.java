@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.HasPublishingDate;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class AssignmentMetadataDTO {
+public class AssignmentMetadataDTO implements HasPublishingDate {
     private final String id;
 
     private String title;
@@ -31,9 +32,5 @@ public class AssignmentMetadataDTO {
                 this.exercises.add(new ExerciseMetadataDTO(e));
             }
         }
-    }
-
-    public boolean isPublished() {
-        return publishDate != null && publishDate.isBefore(LocalDateTime.now());
     }
 }
