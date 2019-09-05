@@ -36,12 +36,6 @@ public class CourseService {
         return courseDao.selectCourseById(id);
     }
 
-    public Optional<Exercise> getExerciseByCourseAndAssignmentId(String courseId, String assignmentId, String exerciseId) {
-        return getCourseById(courseId)
-                .flatMap(course -> course.getAssignmentById(assignmentId))
-                .flatMap(assignment -> assignment.findExerciseById(exerciseId));
-    }
-
     public Optional<List<Exercise>> getExercisesByCourseAndAssignmentId(String courseId, String assignmentId) {
         return getCourseById(courseId)
                 .flatMap(course -> course.getAssignmentById(assignmentId))

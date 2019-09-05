@@ -1,30 +1,22 @@
 package ch.uzh.ifi.access.course.controller;
 
 import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
+import ch.uzh.ifi.access.course.FilterByPublishingDate;
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
-import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
 import ch.uzh.ifi.access.course.model.Course;
-import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/courses")
@@ -41,6 +33,7 @@ public class CourseController {
         this.userService = userService;
     }
 
+    @FilterByPublishingDate
     @GetMapping
     public List<CourseMetadataDTO> getAllCourses() {
         List<CourseMetadataDTO> courses = new ArrayList<>();
@@ -48,6 +41,29 @@ public class CourseController {
             courses.add(new CourseMetadataDTO(c));
         }
         return courses;
+    }
+
+    @FilterByPublishingDate
+    @GetMapping("/{courseId}/assignments/{assignmentId}")
+    public ResponseEntity<AssignmentMetadataDTO> getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId, CourseAuthentication authentication) {
+        AssignmentMetadataDTO assignment = courseService.getCourseById(courseId)
+                .flatMap(course -> course.getAssignmentById(assignmentId))
+                .map(AssignmentMetadataDTO::new)
+                .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
+
+        if (assignment.isPublished() || authentication.hasAdminAccess(courseId)) {
+            return ResponseEntity.ok(assignment);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{courseId}/assistants")
+    public ResponseEntity<?> getCourseAssistants(@PathVariable String courseId) {
+        Course course = courseService.getCourseById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        List<User> users = userService.getCourseAdmins(course);
+        return ResponseEntity.ok(users);
     }
 
     @PostMapping(path = "{id}/update")
@@ -63,32 +79,4 @@ public class CourseController {
         courseService.updateCourseById(id);
     }
 
-    @GetMapping(path = "{id}")
-    public CourseMetadataDTO getCourseById(@PathVariable("id") String id) {
-        return new CourseMetadataDTO(courseService
-                .getCourseById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("No course found")));
-    }
-
-    @GetMapping(path = "{id}/assignments")
-    public List<AssignmentMetadataDTO> getAllAssignmentsByCourseId(@PathVariable("id") String id) {
-        CourseMetadataDTO cd = getCourseById(id);
-        return cd.getAssignments();
-    }
-
-    @GetMapping("/{courseId}/assignments/{assignmentId}")
-    public AssignmentMetadataDTO getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId) {
-        return new AssignmentMetadataDTO(courseService.getCourseById(courseId)
-                .flatMap(course -> course.getAssignmentById(assignmentId))
-                .orElseThrow(() -> new ResourceNotFoundException("No assignment found")));
-    }
-
-    @GetMapping("/{courseId}/assistants")
-    public ResponseEntity<?> getCourseAssistants(@PathVariable String courseId) {
-        Course course = courseService.getCourseById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
-
-        List<User> users = userService.getCourseAdmins(course);
-        return ResponseEntity.ok(users);
-    }
 }
