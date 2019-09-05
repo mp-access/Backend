@@ -1,13 +1,11 @@
 package ch.uzh.ifi.access.course.config;
 
+import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.security.oauth2.provider.OAuth2Request;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class CoursePermissionEvaluatorTest {
@@ -23,7 +21,7 @@ public class CoursePermissionEvaluatorTest {
         GrantedCourseAccess info1 = new GrantedCourseAccess(course.getId(), true, false);
         GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false);
 
-        CourseAuthentication courseAuthentication = authentication(Set.of(info1, info2));
+        CourseAuthentication courseAuthentication = TestObjectFactory.courseAuthentication(Set.of(info1, info2));
 
         Assert.assertTrue(evaluator.hasAccessToCourse(courseAuthentication, course));
     }
@@ -36,17 +34,8 @@ public class CoursePermissionEvaluatorTest {
         Course course = new Course("");
         course.setTitle(courseName);
 
-        CourseAuthentication courseAuthentication = authentication(Set.of(info1));
+        CourseAuthentication courseAuthentication = TestObjectFactory.courseAuthentication(Set.of(info1));
 
         Assert.assertFalse(evaluator.hasAccessToCourse(courseAuthentication, course));
-    }
-
-    private static CourseAuthentication authentication(Set<GrantedCourseAccess> grantedCourseAccesses) {
-        OAuth2Request request = new OAuth2Request(Map.of(),
-                "client",
-                List.of(), true,
-                Set.of("openid"),
-                Set.of(), null, null, null);
-        return new CourseAuthentication(request, null, grantedCourseAccesses, "");
     }
 }

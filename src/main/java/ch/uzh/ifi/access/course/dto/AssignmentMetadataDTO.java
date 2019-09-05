@@ -26,8 +26,10 @@ public class AssignmentMetadataDTO {
         this.publishDate = assignment.getPublishDate();
         this.dueDate = assignment.getDueDate();
 
-        for (Exercise e : assignment.getExercises()) {
-            this.exercises.add(new ExerciseMetadataDTO(e));
+        if (assignment.getExercises() != null) {
+            for (Exercise e : assignment.getExercises()) {
+                this.exercises.add(new ExerciseMetadataDTO(e));
+            }
         }
     }
 

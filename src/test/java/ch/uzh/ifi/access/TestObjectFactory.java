@@ -1,13 +1,17 @@
 package ch.uzh.ifi.access;
 
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.model.*;
+import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -121,5 +125,14 @@ public class TestObjectFactory {
                 .timestamp(Instant.now())
                 .choices(Set.of(1, 3))
                 .build();
+    }
+
+    public static CourseAuthentication courseAuthentication(Set<GrantedCourseAccess> grantedCourseAccesses) {
+        OAuth2Request request = new OAuth2Request(Map.of(),
+                "client",
+                List.of(), true,
+                Set.of("openid"),
+                Set.of(), null, null, null);
+        return new CourseAuthentication(request, null, grantedCourseAccesses, "");
     }
 }
