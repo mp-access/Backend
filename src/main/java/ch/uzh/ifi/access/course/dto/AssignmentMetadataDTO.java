@@ -2,7 +2,6 @@ package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -20,19 +19,19 @@ public class AssignmentMetadataDTO {
 
     private List<ExerciseMetadataDTO> exercises = new ArrayList<>();
 
-    public AssignmentMetadataDTO(Assignment assignment){
+    public AssignmentMetadataDTO(Assignment assignment) {
         this.id = assignment.getId();
         this.title = assignment.getTitle();
         this.description = assignment.getDescription();
         this.publishDate = assignment.getPublishDate();
         this.dueDate = assignment.getDueDate();
 
-        for(Exercise e : assignment.getExercises()){
+        for (Exercise e : assignment.getExercises()) {
             this.exercises.add(new ExerciseMetadataDTO(e));
         }
     }
 
-    public AssignmentMetadataDTO(){
-        this.id = new Utils().getID();
+    public boolean isPublished() {
+        return publishDate != null && publishDate.isBefore(LocalDateTime.now());
     }
 }
