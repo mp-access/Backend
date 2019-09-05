@@ -64,46 +64,11 @@ public class CourseController {
         return cd.getAssignments();
     }
 
-
     @GetMapping("/{courseId}/assignments/{assignmentId}")
     public AssignmentMetadataDTO getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId) {
         return new AssignmentMetadataDTO(courseService.getCourseById(courseId)
                 .flatMap(course -> course.getAssignmentById(assignmentId))
                 .orElseThrow(() -> new ResourceNotFoundException("No assignment found")));
-    }
-
-    @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
-    public ResponseEntity<?> getExerciseByCourseAndAssignment(@PathVariable("courseId") String courseId,
-                                                              @PathVariable("assignmentId") String assignmentId,
-                                                              @PathVariable("exerciseId") String exerciseId) {
-        Exercise ex = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-        if (ex.isPastDueDate()) {
-            return ResponseEntity.ok(new ExerciseWithSolutionsDTO(ex));
-        } else {
-            return ResponseEntity.ok(ex);
-        }
-    }
-
-    @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}/files/{fileId}")
-    public ResponseEntity<Resource> getFile(@PathVariable("courseId") String courseId,
-                                            @PathVariable("assignmentId") String assignmentId,
-                                            @PathVariable("exerciseId") String exerciseId,
-                                            @PathVariable("fileId") String fileId) throws IOException {
-        Exercise e = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-
-        //TODO: Check if user has access to private & solution files
-        //TODO: Check if due date is up
-        Optional<VirtualFile> f = e.getFileById(fileId);
-        if (f.isPresent()) {
-            File fileHandle = f.get().getFile();
-            FileSystemResource r = new FileSystemResource(fileHandle);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
-                    .body(r);
-        }
-        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/{courseId}/assistants")
