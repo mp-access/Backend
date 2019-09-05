@@ -15,7 +15,7 @@ public class CoursePermissionEvaluator {
      * @see CourseAuthentication#getCourseAccesses()
      */
     public boolean hasAccessToCourse(CourseAuthentication authentication, Course course) {
-        return authentication.hasAccess(course);
+        return authentication.hasAccess(course.getId());
     }
 
     /**
@@ -27,7 +27,7 @@ public class CoursePermissionEvaluator {
      * @see CourseAuthentication#getCourseAccesses()
      */
     public boolean hasAdminAccessToCourse(CourseAuthentication authentication, Course course) {
-        return authentication.hasAdminAccess(course);
+        return authentication.hasAdminAccess(course.getId());
     }
 
 }

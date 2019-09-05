@@ -18,10 +18,10 @@ public class CoursePermissionEvaluatorTest {
     public void hasAccessToCourseStudent() {
         String courseName = "Info1";
         String someOtherCourseName = "Info2";
-        GrantedCourseAccess info1 = new GrantedCourseAccess(courseName, true, false);
-        GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false);
         Course course = new Course("");
         course.setTitle(courseName);
+        GrantedCourseAccess info1 = new GrantedCourseAccess(course.getId(), true, false);
+        GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false);
 
         CourseAuthentication courseAuthentication = authentication(Set.of(info1, info2));
 
