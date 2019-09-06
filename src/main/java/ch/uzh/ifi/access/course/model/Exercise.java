@@ -76,9 +76,24 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.question = other.question;
     }
 
-    public Optional<VirtualFile> getFileById(String id) {
-        //TODO: Also search in private files
+    /**
+     * For privileged users or if solutions have been published, search on all folders
+     *
+     * @param id file id
+     */
+    // TODO: should private files ever be visible to a student? (for example after the due date)?
+    public Optional<VirtualFile> getAnyFileById(String id) {
         Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
+        return files.filter(file -> file.getId().equals(id)).findFirst();
+    }
+
+    /**
+     * For normal users or if solutions have not been published yet, we should only search in files in the public and resource folders
+     *
+     * @param id file id
+     */
+    public Optional<VirtualFile> getPublicOrResourcesFile(String id) {
+        Stream<VirtualFile> files = Stream.concat(public_files.stream(), resource_files.stream());
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 

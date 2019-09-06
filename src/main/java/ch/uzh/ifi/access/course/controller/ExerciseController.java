@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.controller;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
@@ -25,8 +26,11 @@ public class ExerciseController {
 
     private final CourseService courseService;
 
-    public ExerciseController(CourseService courseService) {
+    private final CoursePermissionEvaluator permissionEvaluator;
+
+    public ExerciseController(CourseService courseService, CoursePermissionEvaluator permissionEvaluator) {
         this.courseService = courseService;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
     @GetMapping("/{exerciseId}")
@@ -35,28 +39,41 @@ public class ExerciseController {
         Exercise exercise = courseService.getExerciseById(exerciseId)
                 .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
 
-        final String courseId = exercise.getCourseId();
-        if (authentication.hasAdminAccess(courseId) || exercise.isPastDueDate()) {
-            return ResponseEntity.ok(new ExerciseWithSolutionsDTO(exercise));
+        if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
+            if (hasAccessToExerciseSolutions(exercise, authentication)) {
+                return ResponseEntity.ok(new ExerciseWithSolutionsDTO(exercise));
+            } else {
+                return ResponseEntity.ok(exercise);
+            }
         }
 
-        return ResponseEntity.ok(exercise);
+        return ResponseEntity.notFound().build();
     }
 
-    //TODO: Check if user has access to private & solution files
-    //TODO: Check if due date is up
     @GetMapping("/{exerciseId}/files/{fileId}")
     public ResponseEntity<Resource> getFile(
             @PathVariable("exerciseId") String exerciseId,
-            @PathVariable("fileId") String fileId) throws IOException {
-        Optional<FileSystemResource> file = courseService.getFileByExerciseIdAndFileId(exerciseId, fileId);
-        if (file.isPresent()) {
-            File fileHandle = file.get().getFile();
-            FileSystemResource r = new FileSystemResource(fileHandle);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
-                    .body(r);
+            @PathVariable("fileId") String fileId,
+            @ApiIgnore CourseAuthentication authentication) throws IOException {
+        Exercise exercise = courseService.getExerciseById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
+
+        if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
+            Optional<FileSystemResource> file = courseService.getFileCheckingPrivileges(exercise, fileId, authentication);
+
+            if (file.isPresent()) {
+                File fileHandle = file.get().getFile();
+                FileSystemResource r = new FileSystemResource(fileHandle);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
+                        .body(r);
+            }
         }
+
         return ResponseEntity.notFound().build();
+    }
+
+    private boolean hasAccessToExerciseSolutions(Exercise exercise, CourseAuthentication authentication) {
+        return exercise.isPastDueDate() || authentication.hasAdminAccess(exercise.getCourseId());
     }
 }

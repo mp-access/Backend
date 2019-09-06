@@ -24,7 +24,7 @@ public class CoursePermissionEnforcerTest {
         Assignment assignment = notYetPublishedAssignment();
 
         GrantedCourseAccess access = studentAccess();
-        CourseAuthentication authentication = TestObjectFactory.courseAuthentication(Set.of(access));
+        CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(new AssignmentMetadataDTO(assignment), course.getId(), authentication);
 
         Assertions.assertThat(hasAccess).isEmpty();
@@ -36,7 +36,7 @@ public class CoursePermissionEnforcerTest {
 
         AssignmentMetadataDTO dto = new AssignmentMetadataDTO(assignment);
         GrantedCourseAccess access = studentAccess();
-        CourseAuthentication authentication = TestObjectFactory.courseAuthentication(Set.of(access));
+        CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
         Assertions.assertThat(hasAccess).isNotEmpty();
@@ -49,7 +49,7 @@ public class CoursePermissionEnforcerTest {
 
         AssignmentMetadataDTO dto = new AssignmentMetadataDTO(assignment);
         GrantedCourseAccess access = adminAccess();
-        CourseAuthentication authentication = TestObjectFactory.courseAuthentication(Set.of(access));
+        CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
         Assertions.assertThat(hasAccess).hasValue(dto);
@@ -61,7 +61,7 @@ public class CoursePermissionEnforcerTest {
 
         AssignmentMetadataDTO dto = new AssignmentMetadataDTO(assignment);
         GrantedCourseAccess access = adminAccess();
-        CourseAuthentication authentication = TestObjectFactory.courseAuthentication(Set.of(access));
+        CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
         Assertions.assertThat(hasAccess).isNotEmpty();
