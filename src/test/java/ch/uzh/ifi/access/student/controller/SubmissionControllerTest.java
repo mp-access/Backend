@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,11 +44,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@AutoConfigureMockMvc
 @ActiveProfiles("testing")
 public class SubmissionControllerTest {
 
-    @Autowired
     private MockMvc mvc;
 
     @Autowired
@@ -72,7 +69,6 @@ public class SubmissionControllerTest {
     public void setUp() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
-
                 .apply(springSecurity())
                 .build();
 
