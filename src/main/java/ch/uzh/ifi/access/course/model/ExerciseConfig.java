@@ -21,5 +21,6 @@ public class ExerciseConfig {
     public ExerciseConfig(){
         this.isGraded = true;
         this.maxSubmits = 1;
+        this.maxScore = 1;
     }
 }
