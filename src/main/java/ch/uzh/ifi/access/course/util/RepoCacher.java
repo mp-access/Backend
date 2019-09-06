@@ -9,8 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -45,26 +44,9 @@ public class RepoCacher {
     private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
     public static List<Course> retrieveCourseData(String urls[]) {
-        DateTimeFormatter fmt = new DateTimeFormatterBuilder()
-                .appendPattern("yyyy-MM-dd")
-                .optionalStart()
-                .appendPattern(" HH:mm")
-                .optionalEnd()
-                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                .toFormatter();
-
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
-        javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
-
-        mapper = new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.registerModule(javaTimeModule);
+        initializeMapper();
 
         List<Course> courses = new ArrayList<>();
-
-        int i = 0;
         for (String url : urls) {
             try {
                 String hash = loadFilesFromGit(url);
@@ -85,18 +67,32 @@ public class RepoCacher {
         return courses;
     }
 
+    private static void initializeMapper() {
+        DateTimeFormatter fmt = new DateTimeFormatterBuilder()
+                .appendPattern("yyyy-MM-dd")
+                .optionalStart()
+                .appendPattern(" HH:mm")
+                .optionalEnd()
+                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                .toFormatter();
+
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
+        javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
+
+        mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(javaTimeModule);
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.registerModule(javaTimeModule);
+    }
+
     private static String readFile(File file) {
         try {
-            byte[] data = null;
-            FileInputStream fis = new FileInputStream(file);
-            data = new byte[(int) file.length()];
-            fis.read(data);
-            fis.close();
-            String content = new String(data, StandardCharsets.UTF_8);
-            logger.trace(String.format("Parsed file %s\nContent:\n%s", file.getAbsolutePath(), content));
+            String content = Files.readString(file.toPath());
+            logger.trace("Parsed file {}\nContent:\n{}", file.getAbsolutePath(), content);
             return content;
         } catch (Exception e) {
-            logger.warn(String.format("Failed to parse file %s", file.getAbsolutePath()), e);
+            logger.warn("Failed to parse file {}", file.getAbsolutePath(), e);
             return "";
         }
     }
@@ -130,8 +126,9 @@ public class RepoCacher {
             }
 
             String[] children = file.list();
-            for (int i = 0; i < children.length; i++)
-                cacheRepo(new File(file, children[i]), next_context);
+            for (String child : children) {
+                cacheRepo(new File(file, child), next_context);
+            }
         } else {
             if (ignore_file.contains(file.getName())) return;
 
@@ -171,8 +168,9 @@ public class RepoCacher {
     private static void listFiles(File dir, List<VirtualFile> fileList, String root) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (int i = 0; i < children.length; i++)
-                listFiles(new File(dir, children[i]), fileList, root);
+            for (String child : children) {
+                listFiles(new File(dir, child), fileList, root);
+            }
         } else {
             fileList.add(new VirtualFile(dir.getAbsolutePath(), dir.getPath().replace(root, "")));
         }
@@ -193,7 +191,6 @@ public class RepoCacher {
             return new GitClient().pull(directoryPath + "/.git");
         } else {
             return new GitClient().clone(url, gitDir);
-
         }
     }
 }
