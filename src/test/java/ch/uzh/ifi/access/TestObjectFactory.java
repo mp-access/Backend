@@ -17,6 +17,15 @@ import java.util.UUID;
 
 public class TestObjectFactory {
 
+    public static Course createCourseWithOneAssignmentAndOneExercise(String courseTitle, String assignmentTitle, String exerciseQuestion) {
+        Course course = createCourse(courseTitle);
+        Assignment assignment = createAssignment(assignmentTitle);
+        Exercise exercise = createCodeExercise(exerciseQuestion);
+        course.addAssignment(assignment);
+        assignment.addExercise(exercise);
+        return course;
+    }
+
     public static Course createCourse(String title) {
         Course course = new Course(UUID.randomUUID().toString());
         course.setTitle(title);
@@ -127,12 +136,20 @@ public class TestObjectFactory {
                 .build();
     }
 
-    public static CourseAuthentication courseAuthentication(Set<GrantedCourseAccess> grantedCourseAccesses) {
+    public static CourseAuthentication createCourseAuthentication(Set<GrantedCourseAccess> grantedCourseAccesses) {
         OAuth2Request request = new OAuth2Request(Map.of(),
                 "client",
                 List.of(), true,
                 Set.of("openid"),
                 Set.of(), null, null, null);
         return new CourseAuthentication(request, null, grantedCourseAccesses, "");
+    }
+
+    public static GrantedCourseAccess createAdminAccess(final String courseId) {
+        return new GrantedCourseAccess(courseId, false, true);
+    }
+
+    public static GrantedCourseAccess createStudentAccess(final String courseId) {
+        return new GrantedCourseAccess(courseId, true, false);
     }
 }

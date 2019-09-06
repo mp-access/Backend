@@ -21,7 +21,7 @@ public class CoursePermissionEvaluatorTest {
         GrantedCourseAccess info1 = new GrantedCourseAccess(course.getId(), true, false);
         GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false);
 
-        CourseAuthentication courseAuthentication = TestObjectFactory.courseAuthentication(Set.of(info1, info2));
+        CourseAuthentication courseAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(info1, info2));
 
         Assert.assertTrue(evaluator.hasAccessToCourse(courseAuthentication, course));
     }
@@ -34,7 +34,7 @@ public class CoursePermissionEvaluatorTest {
         Course course = new Course("");
         course.setTitle(courseName);
 
-        CourseAuthentication courseAuthentication = TestObjectFactory.courseAuthentication(Set.of(info1));
+        CourseAuthentication courseAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(info1));
 
         Assert.assertFalse(evaluator.hasAccessToCourse(courseAuthentication, course));
     }
