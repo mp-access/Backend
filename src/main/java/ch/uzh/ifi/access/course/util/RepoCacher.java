@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,32 +178,22 @@ public class RepoCacher {
         }
     }
 
-    private static boolean deleteDir(File dir) {
-        if (dir.isDirectory()) {
-            String[] children = dir.list();
-            for (int i = 0; i < children.length; i++)
-                deleteDir(new File(dir, children[i]));
-        }
-        return dir.delete();
-    }
-
     private static String nameFromGitURL(String url) {
-        return url.replace("https://github.com/", "").replace(".git", "");
+        return url
+                .replace("https://github.com/", "")
+                .replace("git@gitlab.com:", "")
+                .replace("https://gitlab.com:", "")
+                .replace(".git", "");
     }
 
     private static String loadFilesFromGit(String url) throws Exception {
-        File gitDir = new File(REPO_DIR + "/" + nameFromGitURL(url));
+        final String directoryPath = REPO_DIR + "/" + nameFromGitURL(url);
+        File gitDir = new File(directoryPath);
         if (gitDir.exists()) {
-            new Git(new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")))
-                    .pull()
-                    .call();
+            return new GitClient().pull(directoryPath + "/.git");
         } else {
-            Git.cloneRepository()
-                    .setURI(url)
-                    .setDirectory(gitDir)
-                    .call();
-        }
+            return new GitClient().clone(url, gitDir);
 
-        return (new FileRepository(new File(REPO_DIR + "/" + nameFromGitURL(url) + "/.git")).getAllRefs().get("HEAD").getObjectId().getName());
+        }
     }
 }
