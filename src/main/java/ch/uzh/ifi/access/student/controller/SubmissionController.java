@@ -92,6 +92,11 @@ public class SubmissionController {
             // Weird stuff going on here: isGraded in SubmissionDTO does not match isGraded from the JSON Payload ...
             // The isGraded from SubmissionDTO.createSubmission matches the JSON Payload.
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash);
+
+            if (exercise.isPastDueDate() && submission.isGraded()) {
+                return ResponseEntity.unprocessableEntity().body("Submission is past due date. Cannot accept a graded submission anymore.");
+            }
+
             submission = studentSubmissionService.initSubmission(submission);
             String processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
