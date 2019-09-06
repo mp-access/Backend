@@ -58,6 +58,11 @@ dependencies {
 
     // Gatling
     implementation 'io.gatling.highcharts:gatling-charts-highcharts:3.0.3'
+
+    // Persist State Machine
+    compile 'org.springframework.statemachine:spring-statemachine-autoconfigure:2.1.3.RELEASE'
+    compile 'org.springframework.statemachine:spring-statemachine-data-mongodb:2.1.3.RELEASE'
+
 }
 
 test {
