@@ -34,23 +34,14 @@ public class EvalProcessService {
     }
 
     public String initEvalProcess(StudentSubmission submission) {
-        String processId = UUID.randomUUID().toString();
-        StateMachine m = null;
-        try {
-            m = EvalMachineFactory.initSMForSubmission(submission.getId());
-            m.start();
-            machineRepo.store(processId, m);
-        } catch (Exception e) {
-            logger.error("Could not create state machine for submission: " + submission.getId());
-            logger.error(e.getMessage());
-        }
-
-        return processId;
+        StateMachine m = machineRepo.initMachine(submission.getId(), "fake-user");
+        m.start();
+        return m.getId();
     }
 
-    public Map<String, String> getEvalProcessState(final String processId) {
+    public Map<String, String> getEvalProcessState(final String machineId) {
         Map<String, String> result = new HashMap<>();
-        StateMachine machine = machineRepo.get(processId);
+        StateMachine machine = machineRepo.get(machineId);
         if (machine != null) {
             if (EvalMachine.States.FINISHED == machine.getState().getId()) {
                 result.put("status", "ok");
