@@ -37,7 +37,7 @@ public class CoursePermissionsAdvice {
                             if (authentication.hasAdminAccess(course.getId())) {
                                 return false;
                             }
-                            return assignment.isPublished();
+                            return !assignment.isPublished();
                         });
             }
         });
