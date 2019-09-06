@@ -14,6 +14,7 @@ public class CodeEvaluatorTest {
     private Exercise exercise;
     private String errorTestLog;
     private String failsTestLog;
+    private String hintsLog;
     private String okTestLog;
 
     @Before
@@ -63,6 +64,29 @@ public class CodeEvaluatorTest {
                 "\n" +
                 "FAILED (failures=1)";
 
+        hintsLog = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
+                "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
+                "test_upper (test.TestStringMethods1.TestStringMethods1) ... FAIL\n" +
+                "test_isupper (test.TestStringMethods2.TestStringMethods2) ... ok\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: test_upper (test.TestStringMethods1.TestStringMethods1)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/home/mangoman/Workspace/MasterProject/CourseService/runner/test/TestStringMethods1.py\", line 6, in test_upper\n" +
+                "    self.assertEqual('FOO'.upper(), 'Foo')\n" +
+                "AssertionError: 'FOO' != 'Foo'\n @#@Erster Hinweis@#@\n"+
+                "- FOO\n" +
+                "+ Foo\n" +
+                "@#@Zweiter Hinweis@#@\n" +
+                "\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 6 tests in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=1)";
+
+
         okTestLog = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
                 "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
                 "test_upper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
@@ -79,7 +103,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execWithErrors() {
         ExecResult console = new ExecResult();
-        console.setStderr(errorTestLog);
+        console.setEvalLog(errorTestLog);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -94,7 +118,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execWithFailures() {
         ExecResult console = new ExecResult();
-        console.setStderr(failsTestLog);
+        console.setEvalLog(failsTestLog);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -110,7 +134,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execOK() {
         ExecResult console = new ExecResult();
-        console.setStderr(okTestLog);
+        console.setEvalLog(okTestLog);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -123,4 +147,20 @@ public class CodeEvaluatorTest {
         Assert.assertEquals(10.0, grade.getScore(), 0.25);
     }
 
+    @Test
+    public void parseHints() {
+        ExecResult console = new ExecResult();
+        console.setEvalLog(hintsLog);
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .exerciseId(exercise.getId())
+                .console(console)
+                .build();
+
+        SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
+
+        Assert.assertEquals(5, grade.getPoints().getCorrect());
+        Assert.assertEquals(2, grade.getHints().size());
+        Assert.assertTrue("Contains given hint.", grade.getHints().contains("Zweiter Hinweis"));
+    }
 }

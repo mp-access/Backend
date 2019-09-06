@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 
 @SuppressWarnings("unused")
 @Value
@@ -11,13 +13,15 @@ import java.time.Instant;
 @Builder
 public class SubmissionEvaluation {
 
-    public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN);
+    public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN, Collections.emptyList());
 
     private Points points;
 
     private int maxScore;
 
     private Instant timestamp;
+
+    private List<String> hints;
 
     @JsonProperty
     public boolean hasSubmitted() {

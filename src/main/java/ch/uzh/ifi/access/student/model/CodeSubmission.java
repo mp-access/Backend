@@ -18,17 +18,14 @@ public class CodeSubmission extends StudentSubmission {
 
     private List<VirtualFile> publicFiles;
 
-    private boolean graded;
-
     private int selectedFile;
 
     private ExecResult console;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, Instant timestamp, List<VirtualFile> publicFiles, boolean graded, int selectedFile, ExecResult console, boolean isInvalid) {
-        super(id, version, userId, commitId, exerciseId, timestamp, null, isInvalid);
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, List<VirtualFile> publicFiles, int selectedFile, ExecResult console) {
+        super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid);
         this.publicFiles = publicFiles;
-        this.graded = graded;
         this.selectedFile = selectedFile;
         this.console = console;
     }
@@ -39,4 +36,5 @@ public class CodeSubmission extends StudentSubmission {
         }
         throw new IllegalArgumentException(String.format("Cannot access index %d of public files (size %d)", index, publicFiles.size()));
     }
+
 }

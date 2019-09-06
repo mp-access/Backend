@@ -85,7 +85,7 @@ public class TestObjectFactory {
                 .exerciseId("exercise-1")
                 .timestamp(Instant.now())
                 .publicFiles(List.of(createVirtualFile("test", "py", false), createVirtualFile("test2", "py", false)))
-                .graded(true)
+                .isGraded(true)
                 .build();
     }
 
