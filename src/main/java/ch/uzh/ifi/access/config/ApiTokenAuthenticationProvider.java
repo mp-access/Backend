@@ -30,12 +30,23 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider, I
     @Value("${GITHUB_WEBHOOK_SECRET:FALLBACK_SECRET_WHICH_SHOULD_BE_TAKEN_FROM_ENV}")
     private String hmacSecret;
 
+    /**
+     * Shared secret for gitlab
+     */
+    @Value("${GITLAB_WEBHOOK_SECRET:FALLBACK_SECRET_WHICH_SHOULD_BE_TAKEN_FROM_ENV}")
+    private String gitlabSecret;
+
     private HmacUtils hmacUtils;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         if (supports(authentication.getClass())) {
-            return new GithubHeaderAuthentication(authentication.getPrincipal(), hmacUtils);
+            HeaderAuthentication headerAuthentication = (HeaderAuthentication) authentication;
+            if (headerAuthentication.isGithub) {
+                return new GithubHeaderAuthentication(authentication.getPrincipal(), hmacUtils);
+            } else if (headerAuthentication.isGitlab) {
+                return new GitlabHeaderAuthentication(authentication.getPrincipal(), gitlabSecret);
+            }
         }
 
         return null;
@@ -43,7 +54,7 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider, I
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return GithubHeaderAuthentication.class.isAssignableFrom(authentication);
+        return HeaderAuthentication.class.isAssignableFrom(authentication);
     }
 
     @Override
@@ -71,6 +82,35 @@ public class ApiTokenAuthenticationProvider implements AuthenticationProvider, I
         public boolean matchesHmacSignature(String payload) {
             String hmac = String.format("sha1=%s", hmacMatcher.hmacHex(payload));
             return hmac.equals(getName());
+        }
+    }
+
+    public static class GitlabHeaderAuthentication extends PreAuthenticatedAuthenticationToken {
+
+        private final boolean matchesSecret;
+
+        GitlabHeaderAuthentication(Object aPrincipal, String gitlabSecret) {
+            super("Gitlab", "N/A");
+            matchesSecret = aPrincipal.equals(gitlabSecret);
+            setAuthenticated(matchesSecret);
+        }
+
+        public boolean isMatchesSecret() {
+            return matchesSecret;
+        }
+    }
+
+    public static class HeaderAuthentication extends PreAuthenticatedAuthenticationToken {
+
+        private final boolean isGithub;
+
+        private final boolean isGitlab;
+
+        HeaderAuthentication(Object aPrincipal, boolean isGithub, boolean isGitlab) {
+            super(aPrincipal, "N/A");
+            this.isGithub = isGithub;
+            this.isGitlab = isGitlab;
+            setAuthenticated(true);
         }
     }
 }

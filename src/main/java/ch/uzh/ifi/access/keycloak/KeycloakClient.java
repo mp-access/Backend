@@ -62,13 +62,19 @@ public class KeycloakClient {
         Users students = getUsersIfExistOrCreateUsers(course.getStudents());
         Users assistants = getUsersIfExistOrCreateUsers(course.getAssistants());
 
-        Group courseGroup = removeIfExistsAndCreateGroup(course.getTitle());
+        if (course.getTitle() != null && !course.getTitle().isEmpty()) {
+            // A group can only be initialized with a title
+            Group courseGroup = removeIfExistsAndCreateGroup(course.getTitle());
 
-        UsersResource usersResource = realmResource.users();
-        students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);
-        assistants.enrollUsersInGroup(courseGroup.getAuthorsGroupId(), usersResource);
+            UsersResource usersResource = realmResource.users();
+            students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);
+            assistants.enrollUsersInGroup(courseGroup.getAuthorsGroupId(), usersResource);
 
-        return courseGroup;
+            return courseGroup;
+        } else {
+            logger.warn("Cannot enroll users in course {} yet, as the course does not have a title with which to name the groups", course.getGitURL());
+        }
+        return null;
     }
 
     private Group removeIfExistsAndCreateGroup(final String title) {
