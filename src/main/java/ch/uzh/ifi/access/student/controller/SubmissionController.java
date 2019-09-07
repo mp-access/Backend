@@ -13,6 +13,7 @@ import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -77,6 +78,15 @@ public class SubmissionController {
 
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
+        if(studentSubmissionService.hasUserCurrentlyRunningSubmissions(authentication.getUserId())){
+            return new ResponseEntity<>(
+                    "Submition rejected: User has an other running submisison.", HttpStatus.TOO_MANY_REQUESTS);
+        }
+
+        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
+        if(!commitHash.isPresent()) {
+            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+        }
         Exercise exercise = courseService.getExerciseById(exerciseId).orElseThrow(() -> new ResourceNotFoundException("Referenced exercise does not exist"));
 
         if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
