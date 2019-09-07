@@ -12,11 +12,13 @@ import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
+import java.time.LocalDateTime;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -67,23 +69,34 @@ public class SubmissionController {
                 .orElse(ResponseEntity.noContent().build());
     }
 
-    @PostMapping("/exs/{exerciseId}")
-    public Map.Entry<String, String> submitEval(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
+    @PostMapping("/exercises/{exerciseId}")
+    public ResponseEntity<?> submit(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         String username = authentication.getName();
 
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
+        if (studentSubmissionService.isUserRateLimited(authentication.getUserId())) {
+            return new ResponseEntity<>(
+                    "Submition rejected: User has an other running submisison.", HttpStatus.TOO_MANY_REQUESTS);
+        }
+
         Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
+        if (!commitHash.isPresent()) {
+            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+        }
+
         String processId = "N/A";
         if (commitHash.isPresent()) {
+            // Weird stuff going on here: isGraded in SubmissionDTO does not match isGraded from the JSON Payload ...
+            // The isGraded from SubmissionDTO.createSubmission matches the JSON Payload.
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
             submission = studentSubmissionService.initSubmission(submission);
             processId = processService.initEvalProcess(submission);
             processService.fireEvalProcessExecutionAsync(processId);
         }
-        return new AbstractMap.SimpleEntry<>("evalId", processId);
+        return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
     }
 
     @GetMapping("/evals/{processId}")
@@ -93,33 +106,20 @@ public class SubmissionController {
         return processService.getEvalProcessState(processId);
     }
 
-    @PostMapping("/exercises/{exerciseId}")
-    public ResponseEntity<?> submitExercise(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-
-        String username = authentication.getName();
-
-        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
-
-        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
-
-        if (commitHash.isPresent()) {
-            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            return ResponseEntity.accepted().body(studentSubmissionService.initSubmission(submission));
-        } else {
-            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
-        }
-    }
-
     @GetMapping("/exercises/{exerciseId}/history")
     public SubmissionHistoryDTO getAllSubmissionsForExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
 
         logger.info(String.format("Fetching all submission for user %s and exercise %s", authentication.getName(), exerciseId));
 
-        List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, authentication.getUserId());
+        List<StudentSubmission> runs = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), false);
+        List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), true);
         SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
-        return new SubmissionHistoryDTO(submissions, submissionCount);
+        Optional<Exercise> exercise = courseService.getExerciseById(exerciseId);
+        boolean isPastDueDate = exercise.map(Exercise::isPastDueDate).orElse(false);
+        LocalDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
+
+        return new SubmissionHistoryDTO(submissions, runs, submissionCount, dueDate, isPastDueDate);
     }
 
     @GetMapping("/attempts/exercises/{exerciseId}/")
@@ -133,4 +133,5 @@ public class SubmissionController {
         int validSubmissionCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
         return new SubmissionCount(maxSubmissions, validSubmissionCount);
     }
+
 }

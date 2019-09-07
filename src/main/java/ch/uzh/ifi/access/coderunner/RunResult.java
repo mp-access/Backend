@@ -6,9 +6,8 @@ import java.time.Instant;
 
 @Value
 public final class RunResult {
-    private final String codeOutput;
-    private final String testOutput;
 
+    private final String console;
     private final String stdOut;
     private final String stdErr;
 
@@ -17,9 +16,8 @@ public final class RunResult {
     private final double timeInMilliseconds;
     private final long timeInNanoseconds;
 
-    public RunResult(String codeOutput, String testOutput, String stdOut, String stdErr, long timeInNanoseconds) {
-        this.codeOutput = codeOutput;
-        this.testOutput = testOutput;
+    public RunResult(String console, String stdOut, String stdErr, long timeInNanoseconds) {
+        this.console = console;
         this.stdOut = stdOut;
         this.stdErr = stdErr;
         this.timeInNanoseconds = timeInNanoseconds;
@@ -28,13 +26,5 @@ public final class RunResult {
         this.timestamp = Instant.now();
     }
 
-    public RunResult trimOutput(String delimiter) {
-        int indexOfDelimiterStdOut = codeOutput.lastIndexOf(delimiter);
-        int indexOfDelimiterStdErr = testOutput.lastIndexOf(delimiter);
 
-        final String trimmedCodeOutput = codeOutput.substring(0, indexOfDelimiterStdOut);
-        final String trimmedTestOutput = testOutput.substring(indexOfDelimiterStdErr).replace(delimiter, "");
-
-        return new RunResult(trimmedCodeOutput, trimmedTestOutput, stdOut, stdErr, timeInNanoseconds);
-    }
 }

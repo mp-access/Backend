@@ -21,6 +21,8 @@ public class StudentAnswerDTO {
 
     private ExerciseType type;
 
+    private boolean graded;
+
     private JsonNode details;
 
     public StudentSubmission createSubmission(String userId, String exerciseId, String commitHash) {
@@ -52,7 +54,7 @@ public class StudentAnswerDTO {
         }
     }
 
-    @JsonIgnoreProperties(value = {"result"})
+    @JsonIgnoreProperties(value = {"result", "id", "version", "console"})
     private static class IgnoreSubmissionResultMixIn {
     }
 }

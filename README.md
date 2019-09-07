@@ -28,6 +28,8 @@ submission.eval.thread-pool-size=10
 submission.eval.max-pool-size=20
 submission.eval.queue-capacity=500
 
+submission.eval.user-rate-limit=false # If set to true users have to wait for their submission to be corrected before they can submit again
+
 # Activate performance test logging
 logging.level.org.springframework.aop.interceptor.PerformanceMonitorInterceptor=trace
 ```

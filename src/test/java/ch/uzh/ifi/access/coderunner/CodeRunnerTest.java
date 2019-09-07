@@ -36,14 +36,14 @@ public class CodeRunnerTest {
         RunResult runResult1 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd1);
         RunResult runResult2 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd2);
 
-        Assertions.assertThat(runResult1.getCodeOutput()).isEqualTo(expectedOutput1);
-        Assertions.assertThat(runResult2.getCodeOutput()).isEqualTo(expectedOutput2);
+        Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput1);
+        Assertions.assertThat(runResult2.getConsole()).isEqualTo(expectedOutput2);
 
 
         String[] cmd3 = new String[]{"ls", "-l"};
         RunResult runResult3 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd3);
-        Assertions.assertThat(runResult3.getCodeOutput()).contains(tempFile1.getName());
-        Assertions.assertThat(runResult3.getCodeOutput()).contains(tempFile2.getName());
+        Assertions.assertThat(runResult3.getConsole()).contains(tempFile1.getName());
+        Assertions.assertThat(runResult3.getConsole()).contains(tempFile2.getName());
     }
 
     @Test
@@ -57,7 +57,7 @@ public class CodeRunnerTest {
 
         RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), tempFile.getName());
 
-        Assertions.assertThat(runResult.getCodeOutput()).isEqualTo(expectedOutput);
+        Assertions.assertThat(runResult.getConsole()).isEqualTo(expectedOutput);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class CodeRunnerTest {
 
         RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName());
 
-        Assertions.assertThat(runResult.getCodeOutput()).isEqualTo(expectedOutput);
+        Assertions.assertThat(runResult.getConsole()).isEqualTo(expectedOutput);
     }
 
     private File createTempFileWithContent(String content, String filename) throws IOException {
@@ -107,6 +107,6 @@ public class CodeRunnerTest {
 
         RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()));
 
-        Assertions.assertThat(runResult1.getCodeOutput()).isEqualTo(expectedOutput);
+        Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput);
     }
 }

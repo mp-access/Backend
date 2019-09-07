@@ -42,29 +42,62 @@ public class SubmissionCodeRunner {
         this.runner = runner;
     }
 
+
     public ExecResult execSubmissionForExercise(CodeSubmission submission, Exercise exercise) throws InterruptedException, DockerException, IOException {
 
         Path path = Paths.get(LOCAL_RUNNER_DIR + "/" + submission.getId());
         logger.debug(path.toAbsolutePath().normalize().toString());
 
-        persistFilesIntoFolder(String.format("%s/%s", path.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
-        persistFilesIntoFolder(String.format("%s/%s", path.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
-        Files.createFile(Paths.get(path.toAbsolutePath().toString(), INIT_FILE));
-
-        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
-        String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
-        String testCommand = buildExecTestSuiteCommand();
-
-        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
-        RunResult res = runner
-                .attachVolumeAndRunBash(path.toString(), fullCommand)
-                .trimOutput(DELIMITER);
-
-        logger.debug("CodeRunner result: " + res.getCodeOutput());
+        ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise) : executeSmoketest(path, submission);
 
         removeDirectory(path);
 
-        return new ExecResult(res.getCodeOutput(), res.getTestOutput());
+        return res;
+    }
+
+    private ExecResult executeSmoketest(Path workPath, CodeSubmission submission) throws IOException, DockerException, InterruptedException {
+        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
+
+        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
+        String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
+        String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
+
+        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        return  mapSmokeToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand));
+    }
+
+    private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise) throws IOException, DockerException, InterruptedException {
+        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
+        Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
+
+        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
+        String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
+        String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
+
+        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        return  mapSubmissionToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand));
+    }
+
+    private ExecResult mapSubmissionToExecResult(RunResult runResult) {
+        int indexOfDelimiterStdOut = runResult.getConsole().lastIndexOf(DELIMITER);
+        int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
+
+        final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
+        final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER+"\n", "");
+
+        return new ExecResult(trimmedConsoleOutput, "", trimmedTestOutput);
+    }
+
+    private ExecResult mapSmokeToExecResult(RunResult runResult) {
+        int indexOfDelimiterConsole = runResult.getConsole().lastIndexOf(DELIMITER);
+        int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
+
+        final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterConsole);
+        final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER+"\n", "");
+
+        return new ExecResult(trimmedConsoleOutput, trimmedTestOutput, "");
     }
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
@@ -100,8 +133,8 @@ public class SubmissionCodeRunner {
         return String.format("python %s", path);
     }
 
-    private String buildExecTestSuiteCommand() {
-        return String.format("python -m unittest discover %s -v", PRIVATE_FOLDER);
+    private String buildExecTestSuiteCommand(String testFolder) {
+        return String.format("python -m unittest discover %s -v", testFolder);
     }
 
     private void removeDirectory(Path path) throws IOException {

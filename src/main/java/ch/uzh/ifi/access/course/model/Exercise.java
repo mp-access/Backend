@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,8 +44,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files) {
-        super(type, language, isGraded, maxScore, maxSubmits, options, solutions);
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files) {
+        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints);
         this.id = id;
         this.index = index;
         this.gitHash = gitHash;
@@ -64,6 +65,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.maxSubmits = other.getMaxSubmits();
         this.options = other.getOptions();
         this.solutions = other.getSolutions();
+        this.hints = other.getHints();
     }
 
     public void update(Exercise other) {
@@ -92,6 +94,10 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
 
     public boolean isPastDueDate() {
         return assignment.isPastDueDate();
+    }
+
+    public LocalDateTime getDueDate() {
+        return assignment.getDueDate();
     }
 
     @JsonIgnore

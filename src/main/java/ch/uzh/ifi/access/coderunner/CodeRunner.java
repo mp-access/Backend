@@ -131,7 +131,7 @@ public class CodeRunner {
         copyDirectoryToContainer(containerId, Paths.get(folderPath));
         startAndWaitContainer(containerId);
 
-        String logs = readStdOutAndErr(containerId);
+        String console = readStdOutAndErr(containerId);
         String stdOut = readStdOut(containerId);
         String stdErr = readStdErr(containerId);
         long endExecutionTime = System.nanoTime();
@@ -139,7 +139,7 @@ public class CodeRunner {
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(logs, stdErr, stdOut, stdErr, executionTime);
+        return new RunResult(console, stdOut, stdErr, executionTime);
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {

@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
 import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
@@ -16,8 +15,10 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,19 +49,6 @@ public class CourseController {
             courses.add(new CourseMetadataDTO(c));
         }
         return courses;
-    }
-
-    @PostMapping(path = "{id}/update")
-    public void updateCourse(@PathVariable("id") String id, @RequestBody String json,
-                             ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
-        logger.debug("Received web hook");
-
-        if (!authentication.matchesHmacSignature(json)) {
-            throw new BadCredentialsException("Hmac signature does not match!");
-        }
-
-        logger.debug("Updating courses");
-        courseService.updateCourseById(id);
     }
 
     @GetMapping(path = "{id}")

@@ -3,7 +3,9 @@ package ch.uzh.ifi.access.student.service;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -15,6 +17,9 @@ import java.util.stream.Collectors;
 public class StudentSubmissionService {
 
     private final StudentSubmissionRepository studentSubmissionRepository;
+
+    @Value("${submission.eval.user-rate-limit:false}")
+    private boolean shouldLimitSubmissionsPerUser;
 
     public StudentSubmissionService(StudentSubmissionRepository studentSubmissionRepository) {
         this.studentSubmissionRepository = studentSubmissionRepository;
@@ -29,11 +34,11 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findById(submissionId);
     }
 
-    public <T extends StudentSubmission> List<T> findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(String exerciseId, String userId) {
+    public <T extends StudentSubmission> List<T> findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(String exerciseId, String userId, boolean isGraded) {
         Assert.notNull(exerciseId, "exerciseId cannot be null");
         Assert.notNull(userId, "userId cannot be null");
 
-        return studentSubmissionRepository.findAllByExerciseIdAndUserIdOrderByVersionDesc(exerciseId, userId);
+        return studentSubmissionRepository.findAllByExerciseIdAndUserIdAndIsGradedOrderByVersionDesc(exerciseId, userId, isGraded);
     }
 
     public <T extends StudentSubmission> T saveSubmission(T answer) {
@@ -51,6 +56,10 @@ public class StudentSubmissionService {
 
         Optional<StudentSubmission> previousSubmissions = findLatestExerciseSubmission(answer.getExerciseId(), answer.getUserId());
         previousSubmissions.ifPresent(prev -> answer.setVersion(prev.getVersion() + 1));
+
+        if(!(answer instanceof CodeSubmission)){
+            answer.setGraded(true);
+        }
 
         return studentSubmissionRepository.save(answer);
     }
@@ -86,7 +95,15 @@ public class StudentSubmissionService {
     }
 
     public int getSubmissionCountByExerciseAndUser(String exerciseId, String userId) {
-        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalse(exerciseId, userId);
+        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(exerciseId, userId);
+    }
+
+    public boolean isUserRateLimited(String userId) {
+        return shouldLimitSubmissionsPerUser && hasUserCurrentlyRunningSubmissions(userId);
+    }
+
+    public boolean hasUserCurrentlyRunningSubmissions(String userId) {
+        return (studentSubmissionRepository.findByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId).size() > 0);
     }
 
 }

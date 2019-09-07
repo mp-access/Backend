@@ -17,6 +17,6 @@ public class CourseConfig {
     protected LocalDateTime startDate;
     protected LocalDateTime endDate;
 
-    protected List<String> assistants;
-    protected List<String> students;
+    protected List<String> assistants = List.of();
+    protected List<String> students = List.of();
 }
