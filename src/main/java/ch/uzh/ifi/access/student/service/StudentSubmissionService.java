@@ -29,11 +29,11 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findById(submissionId);
     }
 
-    public <T extends StudentSubmission> List<T> findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(String exerciseId, String userId) {
+    public <T extends StudentSubmission> List<T> findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(String exerciseId, String userId, boolean isGraded) {
         Assert.notNull(exerciseId, "exerciseId cannot be null");
         Assert.notNull(userId, "userId cannot be null");
 
-        return studentSubmissionRepository.findAllByExerciseIdAndUserIdAndIsGradedTrueOrderByVersionDesc(exerciseId, userId);
+        return studentSubmissionRepository.findAllByExerciseIdAndUserIdAndIsGradedOrderByVersionDesc(exerciseId, userId, isGraded);
     }
 
     public <T extends StudentSubmission> T saveSubmission(T answer) {
