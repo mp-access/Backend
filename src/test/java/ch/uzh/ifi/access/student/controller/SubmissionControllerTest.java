@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.student.controller;
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
+import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -59,7 +61,6 @@ public class SubmissionControllerTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        Mockito.when(courseDAO.selectExerciseById(exerciseId)).thenReturn(Optional.of(exercise));
 
         Set<GrantedCourseAccess> grantedCourseAccesses = Set.of();
         OAuth2Request request = new OAuth2Request(Map.of(),
@@ -68,6 +69,13 @@ public class SubmissionControllerTest {
                 Set.of("openid"),
                 Set.of(), null, null, null);
         authentication = new CourseAuthentication(request, null, grantedCourseAccesses, "");
+
+        Assignment assignment = TestObjectFactory.createAssignment("");
+        exercise = TestObjectFactory.createCodeExercise("");
+        assignment.addExercise(exercise);
+        assignment.setDueDate(LocalDateTime.now());
+
+        Mockito.when(courseDAO.selectExerciseById(exerciseId)).thenReturn(Optional.of(exercise));
     }
 
     @After
