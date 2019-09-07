@@ -54,7 +54,7 @@ public class StudentAnswerDTO {
         }
     }
 
-    @JsonIgnoreProperties(value = {"result"})
+    @JsonIgnoreProperties(value = {"result", "id", "version", "console"})
     private static class IgnoreSubmissionResultMixIn {
     }
 }
