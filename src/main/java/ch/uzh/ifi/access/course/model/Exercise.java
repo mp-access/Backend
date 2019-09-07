@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,6 +94,10 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
 
     public boolean isPastDueDate() {
         return assignment.isPastDueDate();
+    }
+
+    public LocalDateTime getDueDate() {
+        return assignment.getDueDate();
     }
 
     @JsonIgnore
