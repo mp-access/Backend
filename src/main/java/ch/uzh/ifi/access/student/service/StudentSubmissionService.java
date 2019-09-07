@@ -89,4 +89,8 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(exerciseId, userId);
     }
 
+    public boolean hasUserCurrentlyRunningSubmissions(String userId){
+        return (studentSubmissionRepository.findByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId).size() > 0);
+    }
+
 }
