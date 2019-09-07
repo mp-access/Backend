@@ -29,7 +29,7 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
         var calc = correctAnswers - wrongAnswers;
         var points = calc < 0 ?  0 : calc;
 
-        var hints = points < solution.size() ? exercise.getHints() : null;
+        var hints = points < exercise.getMaxScore() ? exercise.getHints() : null;
 
         return SubmissionEvaluation.builder()
                 .points(new SubmissionEvaluation.Points(points, solution.size()))
