@@ -77,7 +77,7 @@ public class SubmissionCodeRunnerTest {
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStdout()).isEmpty();
+        Assertions.assertThat(result.getStdout()).isNotEmpty();
         Assertions.assertThat(result.getTestLog()).isNotEmpty();
         Assertions.assertThat(result.getEvalLog()).isEmpty();
     }
