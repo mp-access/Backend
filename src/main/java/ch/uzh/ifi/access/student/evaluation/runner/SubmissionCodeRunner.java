@@ -92,8 +92,12 @@ public class SubmissionCodeRunner {
 
     private ExecResult mapSmokeToExecResult(RunResult runResult) {
         int indexOfDelimiterConsole = runResult.getConsole().lastIndexOf(DELIMITER);
-        final String trimmedTestOutput = runResult.getConsole().substring(indexOfDelimiterConsole).replace(DELIMITER+"\n", "");
-        return new ExecResult("", trimmedTestOutput, "");
+        int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
+
+        final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterConsole);
+        final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER+"\n", "");
+
+        return new ExecResult(trimmedConsoleOutput, trimmedTestOutput, "");
     }
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
