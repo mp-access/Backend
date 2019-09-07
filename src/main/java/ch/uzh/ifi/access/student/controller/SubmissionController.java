@@ -17,10 +17,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/submissions")
@@ -105,9 +102,11 @@ public class SubmissionController {
 
         logger.info(String.format("Fetching all submission for user %s and exercise %s", authentication.getName(), exerciseId));
 
-        List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, authentication.getUserId());
+        List<StudentSubmission> runs = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), false);
+        List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), true);
         SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
-        return new SubmissionHistoryDTO(submissions, submissionCount);
+
+        return new SubmissionHistoryDTO(submissions, runs, submissionCount);
     }
 
     @GetMapping("/attempts/exercises/{exerciseId}/")
