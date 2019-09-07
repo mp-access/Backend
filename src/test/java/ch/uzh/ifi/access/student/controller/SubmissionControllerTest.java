@@ -320,7 +320,8 @@ public class SubmissionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.evalId").exists());
 
-        mvc.perform(get("/submissions/exercises/" + exerciseIdAlreadyPublished + "/history"))
+        mvc.perform(get("/submissions/exercises/" + exerciseIdAlreadyPublished + "/history")
+                .with(authentication(studentAuthentication)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.submissions").isArray())
                 .andExpect(jsonPath("$.submissions", hasSize(3)))
