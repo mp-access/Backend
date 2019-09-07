@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.student.service;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,10 @@ public class StudentSubmissionService {
 
         Optional<StudentSubmission> previousSubmissions = findLatestExerciseSubmission(answer.getExerciseId(), answer.getUserId());
         previousSubmissions.ifPresent(prev -> answer.setVersion(prev.getVersion() + 1));
+
+        if(!(answer instanceof CodeSubmission)){
+            answer.setGraded(true);
+        }
 
         return studentSubmissionRepository.save(answer);
     }
