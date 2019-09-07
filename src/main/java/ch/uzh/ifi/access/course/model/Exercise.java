@@ -64,6 +64,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.maxSubmits = other.getMaxSubmits();
         this.options = other.getOptions();
         this.solutions = other.getSolutions();
+        this.hints = other.getHints();
     }
 
     public void update(Exercise other) {
