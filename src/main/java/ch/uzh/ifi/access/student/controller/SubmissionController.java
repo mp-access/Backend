@@ -18,7 +18,11 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/submissions")
@@ -73,13 +77,13 @@ public class SubmissionController {
 
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
-        if(studentSubmissionService.hasUserCurrentlyRunningSubmissions(authentication.getUserId())){
+        if (studentSubmissionService.hasUserCurrentlyRunningSubmissions(authentication.getUserId())) {
             return new ResponseEntity<>(
                     "Submition rejected: User has an other running submisison.", HttpStatus.TOO_MANY_REQUESTS);
         }
 
         Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
-        if(!commitHash.isPresent()) {
+        if (!commitHash.isPresent()) {
             return ResponseEntity.badRequest().body("Referenced exercise does not exist");
         }
 
@@ -111,8 +115,11 @@ public class SubmissionController {
         List<StudentSubmission> runs = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), false);
         List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), true);
         SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
+        Optional<Exercise> exercise = courseService.getExerciseById(exerciseId);
+        boolean isPastDueDate = exercise.map(Exercise::isPastDueDate).orElse(false);
+        LocalDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
 
-        return new SubmissionHistoryDTO(submissions, runs, submissionCount);
+        return new SubmissionHistoryDTO(submissions, runs, submissionCount, dueDate, isPastDueDate);
     }
 
     @GetMapping("/attempts/exercises/{exerciseId}/")
