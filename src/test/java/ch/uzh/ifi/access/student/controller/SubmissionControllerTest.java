@@ -315,14 +315,12 @@ public class SubmissionControllerTest {
 
         mvc.perform(post("/submissions/exercises/" + exerciseIdAlreadyPublished)
                 .with(csrf())
-                .with(authentication(exerciseIdAlreadyPublished))
                 .contentType("application/json")
                 .content(runPayload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.evalId").exists());
 
-        mvc.perform(get("/submissions/exercises/" + exerciseIdAlreadyPublished + "/history")
-                .with(authentication(exerciseIdAlreadyPublished)))
+        mvc.perform(get("/submissions/exercises/" + exerciseIdAlreadyPublished + "/history"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.submissions").isArray())
                 .andExpect(jsonPath("$.submissions", hasSize(3)))
