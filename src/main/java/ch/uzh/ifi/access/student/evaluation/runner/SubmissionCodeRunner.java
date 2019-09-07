@@ -80,7 +80,6 @@ public class SubmissionCodeRunner {
         return  mapSubmissionToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand));
     }
 
-
     private ExecResult mapSubmissionToExecResult(RunResult runResult) {
         int indexOfDelimiterStdOut = runResult.getConsole().lastIndexOf(DELIMITER);
         int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
@@ -90,14 +89,11 @@ public class SubmissionCodeRunner {
 
         return new ExecResult(trimmedConsoleOutput, "", trimmedTestOutput);
     }
+
     private ExecResult mapSmokeToExecResult(RunResult runResult) {
-        int indexOfDelimiterStdOut = runResult.getConsole().lastIndexOf(DELIMITER);
-        int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
-
-        final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
-        final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER+"\n", "");
-
-        return new ExecResult(trimmedConsoleOutput, trimmedTestOutput, "");
+        int indexOfDelimiterConsole = runResult.getConsole().lastIndexOf(DELIMITER);
+        final String trimmedTestOutput = runResult.getConsole().substring(indexOfDelimiterConsole).replace(DELIMITER+"\n", "");
+        return new ExecResult("", trimmedTestOutput, "");
     }
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
