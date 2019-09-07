@@ -171,7 +171,7 @@ public class StudentSubmissionServiceTest {
         codeSubmission3 = service.initSubmission(codeSubmission3);
         someOtherSubmission = service.initSubmission(someOtherSubmission);
 
-        List<CodeSubmission> answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId1);
+        List<CodeSubmission> answers = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId1, true);
 
         Assertions.assertThat(answers.size()).isEqualTo(2);
 
@@ -185,14 +185,14 @@ public class StudentSubmissionServiceTest {
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission2.getVersion());
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(1);
 
-        answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId2);
+        answers = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId2, true);
         Assertions.assertThat(answers.size()).isEqualTo(1);
 
         Assertions.assertThat(answers.get(0).getId()).isEqualTo(codeSubmission3.getId());
         Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(codeSubmission3.getExerciseId());
         Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission3.getVersion());
 
-        answers = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(someOtherExercise.getId(), userId2);
+        answers = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(someOtherExercise.getId(), userId2, true);
         Assertions.assertThat(answers.size()).isEqualTo(1);
 
         Assertions.assertThat(answers.get(0).getId()).isEqualTo(someOtherSubmission.getId());
@@ -297,12 +297,12 @@ public class StudentSubmissionServiceTest {
         service.initSubmission(codeSubmission2);
         service.initSubmission(codeSubmission3);
 
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId, true);
         Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
 
         service.invalidateSubmissionsByExerciseId(exercise.getId());
 
-        submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exercise.getId(), userId);
+        submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId, true);
 
         Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
     }
@@ -314,7 +314,7 @@ public class StudentSubmissionServiceTest {
         CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
         CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
         CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
         Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
 
         int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
@@ -330,7 +330,7 @@ public class StudentSubmissionServiceTest {
         CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
         codeSubmission1.setInvalid(true);
         service.saveSubmission(codeSubmission1);
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
         Assertions.assertThat(codeSubmission1.isInvalid()).isTrue();
         Assertions.assertThat(codeSubmission2.isInvalid()).isFalse();
         Assertions.assertThat(codeSubmission3.isInvalid()).isFalse();
@@ -350,7 +350,7 @@ public class StudentSubmissionServiceTest {
         service.saveSubmission(codeSubmission1);
         codeSubmission2.setInvalid(true);
         service.saveSubmission(codeSubmission2);
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
         Assertions.assertThat(codeSubmission1.isInvalid()).isTrue();
         Assertions.assertThat(codeSubmission2.isInvalid()).isTrue();
         Assertions.assertThat(codeSubmission3.isInvalid()).isFalse();
@@ -366,12 +366,12 @@ public class StudentSubmissionServiceTest {
         CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
         CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
         CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
         submissions.forEach(submission -> {
             submission.setInvalid(true);
             service.saveSubmission(submission);
         });
-        submissions = service.findAllSubmissionsByExerciseAndUserOrderedByVersionDesc(exerciseId, userId);
+        submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
         Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
 
         int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);

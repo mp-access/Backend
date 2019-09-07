@@ -24,6 +24,7 @@ public class RetryConfig {
                         context.getRetryCount(),
                         context.getAttribute("context.name"),
                         throwable.toString());
+                logger.debug("Exception details", throwable);
                 super.onError(context, callback, throwable);
             }
         };

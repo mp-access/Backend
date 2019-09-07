@@ -13,11 +13,13 @@ import java.util.stream.Collectors;
 public class SubmissionHistoryDTO {
 
     private final List<SubmissionMetadata> submissions;
+    private final List<SubmissionMetadata> runs;
 
     private final SubmissionCount submissionCount;
 
-    public SubmissionHistoryDTO(List<StudentSubmission> submissions, SubmissionCount submissionCount) {
+    public SubmissionHistoryDTO(List<StudentSubmission> submissions, List<StudentSubmission> runs, SubmissionCount submissionCount) {
         this.submissions = submissions.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
+        this.runs =  runs.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
         this.submissionCount = submissionCount;
     }
 
