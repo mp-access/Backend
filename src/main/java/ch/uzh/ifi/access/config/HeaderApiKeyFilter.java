@@ -20,7 +20,7 @@ public class HeaderApiKeyFilter extends OncePerRequestFilter {
 
     private static final String GITLAB_HEADER_NAME = "X-Gitlab-Token";
 
-    private static final AntPathRequestMatcher requestMatcher = new AntPathRequestMatcher("/webhooks/courses/**/update/**", HttpMethod.POST.toString());
+    private static final AntPathRequestMatcher requestMatcher = new AntPathRequestMatcher("/webhooks/courses/**/update/{github|gitlab}", HttpMethod.POST.toString());
 
     private final ApiTokenAuthenticationProvider authenticationProvider;
 

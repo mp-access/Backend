@@ -33,7 +33,7 @@ public class HeaderApiKeyFilterTest {
     public void githubHeader() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod(HttpMethod.POST.toString());
-        request.setPathInfo(URL + "/1/update");
+        request.setPathInfo(URL + "/1/update/github");
 
         final String hash = "sha1=asdf";
         request.addHeader("X-Hub-Signature", hash);
@@ -48,7 +48,7 @@ public class HeaderApiKeyFilterTest {
     public void gitlabHeader() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod(HttpMethod.POST.toString());
-        request.setPathInfo(URL + "/1/update");
+        request.setPathInfo(URL + "/1/update/gitlab");
 
         final String header = UUID.randomUUID().toString();
         request.addHeader("X-Gitlab-Token", header);
@@ -63,7 +63,7 @@ public class HeaderApiKeyFilterTest {
     public void doFilterInternalNoHeaderSet() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod(HttpMethod.POST.toString());
-        request.setPathInfo(URL + "/1/update");
+        request.setPathInfo(URL + "/1/update/github");
 
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
 
@@ -74,7 +74,7 @@ public class HeaderApiKeyFilterTest {
     public void githubWrongHashingAlgorithm() throws ServletException, IOException {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setMethod(HttpMethod.POST.toString());
-        request.setPathInfo(URL + "/1/update");
+        request.setPathInfo(URL + "/1/update/github");
         request.addHeader("X-Hub-Signature", "md5=asdf");
 
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
