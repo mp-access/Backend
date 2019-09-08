@@ -5,10 +5,12 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.*;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.Image;
+import com.spotify.docker.client.messages.Info;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -26,9 +28,9 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
-    private static final String PYTHON_DOCKER_IMAGE = "python:3.7-alpine";
-
     private DockerClient docker;
+
+    private PythonImageConfig pythonImageConfig = new PythonImageConfig();
 
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
@@ -48,10 +50,10 @@ public class CodeRunner {
 
     private void pullImageIfNotPresent() {
         try {
-            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
+            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PythonImageConfig.PYTHON_DOCKER_IMAGE));
             if (images.isEmpty()) {
-                logger.debug(String.format("No suitable python image found (searched for %s), pulling new image from registry", PYTHON_DOCKER_IMAGE));
-                docker.pull(PYTHON_DOCKER_IMAGE);
+                logger.debug(String.format("No suitable python image found (searched for %s), pulling new image from registry", PythonImageConfig.PYTHON_DOCKER_IMAGE));
+                docker.pull(PythonImageConfig.PYTHON_DOCKER_IMAGE);
             }
         } catch (DockerException | InterruptedException e) {
             logger.warn("Failed to pull python docker image", e);
@@ -65,17 +67,13 @@ public class CodeRunner {
      * @param folderPath path to folder to mount inside container
      * @param bashCmd    command to execute in bash
      * @return stdout from container and execution time {@link RunResult}
-     * @throws DockerException
-     * @throws InterruptedException
      */
     public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd) throws DockerException, InterruptedException, IOException {
-        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
-
         String[] cmd = new String[3];
         cmd[0] = "/bin/sh";
         cmd[1] = "-c";
         cmd[2] = bashCmd;
-        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+        ContainerConfig containerConfig = pythonImageConfig.containerConfig(cmd);
 
         return createAndRunContainer(containerConfig, folderPath);
     }
@@ -87,13 +85,9 @@ public class CodeRunner {
      * @param folderPath path to folder to mount inside container
      * @param cmd        command to execute inside container
      * @return stdout from container and execution time {@link RunResult}
-     * @throws DockerException
-     * @throws InterruptedException
      */
     public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException, IOException {
-        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
-
-        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+        ContainerConfig containerConfig = pythonImageConfig.containerConfig(cmd);
 
         return createAndRunContainer(containerConfig, folderPath);
     }
@@ -105,14 +99,10 @@ public class CodeRunner {
      * @param folderPath     path to folder to mount inside container
      * @param filenameToExec python file to run
      * @return stdout from container and execution time {@link RunResult}
-     * @throws DockerException
-     * @throws InterruptedException
      */
     public RunResult runPythonCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
-        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
-
         String[] cmd = {"python", filenameToExec};
-        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+        ContainerConfig containerConfig = pythonImageConfig.containerConfig(cmd);
 
         return createAndRunContainer(containerConfig, folderPath);
     }
@@ -153,27 +143,6 @@ public class CodeRunner {
             logger.warn(e.getMessage(), e);
         }
         logger.trace(joiner.toString());
-    }
-
-    private HostConfig hostConfigWithAttachedVolume(String hostPath) {
-        String absolutePath = new FileSystemResource(hostPath).getFile().getAbsolutePath();
-        return HostConfig.builder()
-                // TODO: Bind volume or copy files to container? As a quickfix will simply copy them (slower but actually more secure)
-//                .appendBinds(new String[]{absolutePath + ":" + DOCKER_CODE_FOLDER})
-                .build();
-    }
-
-    private ContainerConfig containerConfig(HostConfig hostConfig, String[] cmd) {
-        return ContainerConfig
-                .builder()
-                .hostConfig(hostConfig)
-                .image(PYTHON_DOCKER_IMAGE)
-                .networkDisabled(true)
-                .workingDir(DOCKER_CODE_FOLDER)
-                .attachStdout(true)
-                .attachStderr(true)
-                .cmd(cmd)
-                .build();
     }
 
     private void startAndWaitContainer(String id) throws DockerException, InterruptedException {

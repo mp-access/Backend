@@ -48,14 +48,14 @@ public class SubmissionCodeRunner {
         Path path = Paths.get(LOCAL_RUNNER_DIR + "/" + submission.getId());
         logger.debug(path.toAbsolutePath().normalize().toString());
 
-        ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise) : executeSmoketest(path, submission);
+        ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise) : executeSmokeTest(path, submission);
 
         removeDirectory(path);
 
         return res;
     }
 
-    private ExecResult executeSmoketest(Path workPath, CodeSubmission submission) throws IOException, DockerException, InterruptedException {
+    private ExecResult executeSmokeTest(Path workPath, CodeSubmission submission) throws IOException, DockerException, InterruptedException {
         persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
