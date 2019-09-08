@@ -105,7 +105,7 @@ public class CodeRunnerTest {
         final String delimiter = "======";
         final String expectedOutput = String.format("Hello 1!\n%s\nHello 2!\n", delimiter);
 
-        RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()));
+        RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()), executionLimits);
 
         Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput);
     }

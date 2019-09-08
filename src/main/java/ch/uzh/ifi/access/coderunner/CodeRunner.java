@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.coderunner;
 
 
+import ch.uzh.ifi.access.course.model.CodeExecutionLimits;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -64,11 +65,12 @@ public class CodeRunner {
      * Mounts the folder at path inside the container and runs the given command
      * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
      *
-     * @param folderPath path to folder to mount inside container
-     * @param bashCmd    command to execute in bash
+     * @param folderPath      path to folder to mount inside container
+     * @param bashCmd         command to execute in bash
+     * @param executionLimits
      * @return stdout from container and execution time {@link RunResult}
      */
-    public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd) throws DockerException, InterruptedException, IOException {
+    public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         String[] cmd = new String[3];
         cmd[0] = "/bin/sh";
         cmd[1] = "-c";

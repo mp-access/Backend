@@ -44,8 +44,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files) {
-        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints);
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits) {
+        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
         this.id = id;
         this.index = index;
         this.gitHash = gitHash;
@@ -66,6 +66,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.options = other.getOptions();
         this.solutions = other.getSolutions();
         this.hints = other.getHints();
+        this.executionLimits = other.getExecutionLimits();
     }
 
     public void update(Exercise other) {
