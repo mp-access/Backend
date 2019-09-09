@@ -25,13 +25,4 @@ public class ExerciseConfig {
         this.maxSubmits = 1;
         this.executionLimits = CodeExecutionLimits.DEFAULTS;
     }
-
-//    @JsonProperty("executionLimits")
-//    private void unpackNested(Map<String, String> json) {
-//        this.executionLimits = new CodeExecutionLimits(
-//                Long.parseLong(json.get("memory")), Long.parseLong(json.get("cpuCores")),
-//                Long.parseLong(json.get("timeout")), Boolean.parseBoolean(json.get("networking")));
-//
-//    }
-
 }
