@@ -75,39 +75,10 @@ public class CodeRunner {
         cmd[2] = bashCmd;
         ContainerConfig containerConfig = new PythonImageConfig(executionLimits).containerConfig(cmd);
 
-        return createAndRunContainer(containerConfig, folderPath);
+        return createAndRunContainer(containerConfig, folderPath, executionLimits);
     }
 
-    /**
-     * Mounts the folder at path inside the container and runs the given command
-     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
-     *
-     * @param folderPath path to folder to mount inside container
-     * @param cmd        command to execute inside container
-     * @return stdout from container and execution time {@link RunResult}
-     */
-    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException, IOException {
-        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
-
-        return createAndRunContainer(containerConfig, folderPath);
-    }
-
-    /**
-     * Mounts the folder at path inside the container and runs the given python file
-     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
-     *
-     * @param folderPath     path to folder to mount inside container
-     * @param filenameToExec python file to run
-     * @return stdout from container and execution time {@link RunResult}
-     */
-    public RunResult runPythonCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
-        String[] cmd = {"python", filenameToExec};
-        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
-
-        return createAndRunContainer(containerConfig, folderPath);
-    }
-
-    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath) throws DockerException, InterruptedException, IOException {
+    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         long startExecutionTime = System.nanoTime();
 
         ContainerCreation creation = docker.createContainer(containerConfig);
@@ -119,24 +90,11 @@ public class CodeRunner {
         }
 
         copyDirectoryToContainer(containerId, Paths.get(folderPath));
-        Callable<Void> startAndWaitWithTimeout = () -> {
-            startAndWaitContainer(containerId);
-            return null;
-        };
 
-        boolean didTimeout = false;
-        long timeout = 5000;
+        long timeout = executionLimits.getTimeout();
         TimeUnit unit = TimeUnit.MILLISECONDS;
-        Future<Void> execution = executionTimeoutWatchdog.submit(startAndWaitWithTimeout);
-        try {
-            execution.get(timeout, unit);
-        } catch (ExecutionException e) {
-            logger.error("Failed to start and wait for container", e);
-        } catch (TimeoutException e) {
-            logger.debug("Execution of student code took longer than configured timeout. Stopping container {}", containerId);
-            docker.killContainer(containerId, DockerClient.Signal.SIGKILL);
-            didTimeout = true;
-        }
+
+        boolean didTimeout = startContainerWithTimeout(containerId, timeout, unit);
 
         ContainerState state = docker.inspectContainer(containerId).state();
         boolean isOomKilled = state.oomKilled();
@@ -155,6 +113,25 @@ public class CodeRunner {
         stopAndRemoveContainer(containerId);
 
         return new RunResult(console, stdOut, stdErr, executionTime, didTimeout, isOomKilled);
+    }
+
+    private boolean startContainerWithTimeout(String containerId, long timeout, TimeUnit unit) throws InterruptedException, DockerException {
+        Callable<Void> startAndWaitWithTimeout = () -> {
+            startAndWaitContainer(containerId);
+            return null;
+        };
+        Future<Void> execution = executionTimeoutWatchdog.submit(startAndWaitWithTimeout);
+        boolean didTimeout = false;
+        try {
+            execution.get(timeout, unit);
+        } catch (ExecutionException e) {
+            logger.error("Failed to start and wait for container", e);
+        } catch (TimeoutException e) {
+            logger.debug("Execution of student code took longer than configured timeout. Stopping container {}", containerId);
+            docker.killContainer(containerId, DockerClient.Signal.SIGKILL);
+            didTimeout = true;
+        }
+        return didTimeout;
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {
