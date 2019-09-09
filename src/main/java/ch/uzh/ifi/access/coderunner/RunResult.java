@@ -16,15 +16,19 @@ public final class RunResult {
     private final double timeInMilliseconds;
     private final long timeInNanoseconds;
 
-    public RunResult(String console, String stdOut, String stdErr, long timeInNanoseconds) {
+    private final boolean timeout;
+
+    private final boolean oomKilled;
+
+    public RunResult(String console, String stdOut, String stdErr, long timeInNanoseconds, boolean timeout, boolean isOomKilled) {
         this.console = console;
         this.stdOut = stdOut;
         this.stdErr = stdErr;
         this.timeInNanoseconds = timeInNanoseconds;
+        this.timeout = timeout;
         this.timeInSeconds = this.timeInNanoseconds / 1.0E9D;
         this.timeInMilliseconds = this.timeInNanoseconds / 1000000.0D;
         this.timestamp = Instant.now();
+        this.oomKilled = isOomKilled;
     }
-
-
 }

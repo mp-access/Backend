@@ -6,10 +6,7 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.Image;
-import com.spotify.docker.client.messages.Info;
+import com.spotify.docker.client.messages.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 
 @Service
@@ -30,6 +28,8 @@ public class CodeRunner {
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
     private DockerClient docker;
+
+    private ExecutorService executionTimeoutWatchdog = Executors.newCachedThreadPool();
 
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
@@ -119,17 +119,42 @@ public class CodeRunner {
         }
 
         copyDirectoryToContainer(containerId, Paths.get(folderPath));
-        startAndWaitContainer(containerId);
+        Callable<Void> startAndWaitWithTimeout = () -> {
+            startAndWaitContainer(containerId);
+            return null;
+        };
+
+        boolean didTimeout = false;
+        long timeout = 5000;
+        TimeUnit unit = TimeUnit.MILLISECONDS;
+        Future<Void> execution = executionTimeoutWatchdog.submit(startAndWaitWithTimeout);
+        try {
+            execution.get(timeout, unit);
+        } catch (ExecutionException e) {
+            logger.error("Failed to start and wait for container", e);
+        } catch (TimeoutException e) {
+            logger.debug("Execution of student code took longer than configured timeout. Stopping container {}", containerId);
+            docker.killContainer(containerId, DockerClient.Signal.SIGKILL);
+            didTimeout = true;
+        }
+
+        ContainerState state = docker.inspectContainer(containerId).state();
+        boolean isOomKilled = state.oomKilled();
 
         String console = readStdOutAndErr(containerId);
         String stdOut = readStdOut(containerId);
         String stdErr = readStdErr(containerId);
+
+        if (didTimeout) {
+            console = String.format("%s\nTimeout. Your submission took too long too complete (max execution time %s seconds)", console, unit.toSeconds(timeout));
+            stdErr = String.format("%s\nTimeout. Your submission took too long too complete (max execution time %s seconds)", stdErr, unit.toSeconds(timeout));
+        }
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(console, stdOut, stdErr, executionTime);
+        return new RunResult(console, stdOut, stdErr, executionTime, didTimeout, isOomKilled);
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {

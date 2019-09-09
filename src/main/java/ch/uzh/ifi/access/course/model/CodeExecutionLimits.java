@@ -27,12 +27,15 @@ public class CodeExecutionLimits {
      */
     private static final long DEFAULT_TIMEOUT = 5 * 1000;
 
-    public static final CodeExecutionLimits DEFAULTS = new CodeExecutionLimits(DEFAULT_MAX_RAM_USAGE_IN_MB, DEFAULT_MAX_CORES, DEFAULT_TIMEOUT, false);
+    public static final CodeExecutionLimits DEFAULTS = new CodeExecutionLimits(DEFAULT_MAX_RAM_USAGE_IN_MB, DEFAULT_MAX_CORES, DEFAULT_TIMEOUT, false, false);
+
+    public static final CodeExecutionLimits TESTING_UNLIMITED = new CodeExecutionLimits(-1L, -1L, -1L, true, true);
 
     private long memory;
     private long cpuCores;
     private long timeout;
     private boolean networking;
+    private boolean testing;
 
     public long getMemoryInMb() {
         return memory * MB_TO_Bytes;

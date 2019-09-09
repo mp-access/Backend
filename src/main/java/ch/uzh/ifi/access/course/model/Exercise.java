@@ -135,6 +135,9 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
     }
 
+    public CodeExecutionLimits getExecutionLimits() {
+        return Optional.ofNullable(executionLimits).orElse(CodeExecutionLimits.DEFAULTS);
+    }
 
     public boolean isBreakingChange(Exercise other) {
         return !(Objects.equals(this.gitHash, other.gitHash) &&

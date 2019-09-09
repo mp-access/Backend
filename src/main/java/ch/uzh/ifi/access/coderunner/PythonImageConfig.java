@@ -19,6 +19,10 @@ public class PythonImageConfig {
     private CodeExecutionLimits codeExecutionLimits = CodeExecutionLimits.DEFAULTS;
 
     private HostConfig hostConfig() {
+        if (codeExecutionLimits.isTesting()) {
+            return HostConfig.builder().build();
+        }
+
         return HostConfig.builder()
                 .memory(codeExecutionLimits.getMemoryInMb())
                 .cpuQuota(codeExecutionLimits.getCpuQuota())
