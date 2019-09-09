@@ -6,6 +6,7 @@ plugins {
 }
 
 apply plugin: 'io.spring.dependency-management'
+apply plugin: 'scala'
 
 
 group = 'ch.uzh.ifi.access'
@@ -21,6 +22,8 @@ ext {
 }
 
 dependencies {
+    compile 'org.scala-lang:scala-library:2.11.8'
+
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -57,7 +60,7 @@ dependencies {
     implementation "com.spotify:docker-client:8.16.0:shaded"
 
     // Gatling
-    implementation 'io.gatling.highcharts:gatling-charts-highcharts:3.0.3'
+    implementation 'io.gatling.highcharts:gatling-charts-highcharts:3.0.2'
 }
 
 test {
@@ -80,5 +83,11 @@ jacocoTestReport {
     reports {
         xml.enabled true
         csv.enabled false
+    }
+}
+
+gatling {
+    simulations = {
+        include "**/BrowsingSimulation.scala"
     }
 }
