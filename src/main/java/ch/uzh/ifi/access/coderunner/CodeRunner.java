@@ -78,7 +78,36 @@ public class CodeRunner {
         return createAndRunContainer(containerConfig, folderPath, executionLimits);
     }
 
-        private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
+    /**
+     * Mounts the folder at path inside the container and runs the given command
+     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
+     *
+     * @param folderPath path to folder to mount inside container
+     * @param cmd        command to execute inside container
+     * @return stdout from container and execution time {@link RunResult}
+     */
+    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
+        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
+
+        return createAndRunContainer(containerConfig, folderPath, executionLimits);
+    }
+
+    /**
+     * Mounts the folder at path inside the container and runs the given python file
+     * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
+     *
+     * @param folderPath     path to folder to mount inside container
+     * @param filenameToExec python file to run
+     * @return stdout from container and execution time {@link RunResult}
+     */
+    public RunResult runPythonCode(String folderPath, String filenameToExec, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
+        String[] cmd = {"python", filenameToExec};
+        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
+
+        return createAndRunContainer(containerConfig, folderPath, executionLimits);
+    }
+
+    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         long startExecutionTime = System.nanoTime();
 
         ContainerCreation creation = docker.createContainer(containerConfig);
