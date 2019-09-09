@@ -54,13 +54,13 @@ class CodeExecutionSimulation extends Simulation {
     )
   // remove polling from the test scenario
       .pause(1)
-      .asLongAs(session => !session("submissionCompleted").asOption[String].getOrElse("").equals("ok")) {
+      .asLongAs(session => session.contains("evalId") && !session("submissionCompleted").asOption[String].getOrElse("").equals("ok")) {
         exec(http("Poll for evaluation")
           .get("/api/submissions/evals/${evalId}")
           .headers(headers_27)
           .check(bodyString.exists)
           .check(jsonPath("$.status").saveAs("submissionCompleted")))
-          .pause(1)
+          .pause(500 milliseconds )
       }
 
 
@@ -72,10 +72,8 @@ class CodeExecutionSimulation extends Simulation {
       atOnceUsers(25),
       rampUsers(100) during (10 seconds),
       nothingFor(10 seconds),
-      atOnceUsers(25),
       rampUsers(200) during (10 seconds),
-      nothingFor(10 seconds),
-      rampUsers(500) during (25 seconds)
-
+      nothingFor(25 seconds),
+      rampUsers(500) during (10 seconds)
     ).protocols(httpProtocol))
 }

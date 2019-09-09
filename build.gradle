@@ -88,7 +88,7 @@ jacocoTestReport {
 
 gatling {
     simulations = {
-//        include "**/BrowsingSimulation.scala"
-        include "**/CodeExecutionSimulation.scala"
+        include "**/BrowsingSimulation.scala"
+//        include "**/CodeExecutionSimulation.scala"
     }
 }
