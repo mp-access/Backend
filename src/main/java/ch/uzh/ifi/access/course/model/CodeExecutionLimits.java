@@ -31,10 +31,29 @@ public class CodeExecutionLimits {
 
     public static final CodeExecutionLimits TESTING_UNLIMITED = new CodeExecutionLimits(-1L, -1L, -1L, true, true);
 
+    /**
+     * Max ram usage
+     */
     private long memory;
+
+    /**
+     * Max core usage
+     */
     private long cpuCores;
+
+    /**
+     * Max execution time in milliseconds
+     */
     private long timeout;
+
+    /**
+     * Is networking enabled inside the container
+     */
     private boolean networking;
+
+    /**
+     * If testing is enabled, memory and cpu restrictions are lifted. Can be used for testing and debugging.
+     */
     private boolean testing;
 
     public long getMemoryInMb() {

@@ -78,7 +78,7 @@ public class CodeRunner {
         return createAndRunContainer(containerConfig, folderPath, executionLimits);
     }
 
-    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
+        private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         long startExecutionTime = System.nanoTime();
 
         ContainerCreation creation = docker.createContainer(containerConfig);

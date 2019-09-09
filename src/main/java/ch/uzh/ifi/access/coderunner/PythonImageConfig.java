@@ -34,7 +34,7 @@ public class PythonImageConfig {
                 .builder()
                 .hostConfig(hostConfig())
                 .image(PYTHON_DOCKER_IMAGE)
-                .networkDisabled(codeExecutionLimits.isNetworking())
+                .networkDisabled(!codeExecutionLimits.isNetworking())
                 .workingDir(STUDENT_CODE_FOLDER)
                 .attachStdout(true)
                 .attachStderr(true)
