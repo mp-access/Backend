@@ -1,11 +1,9 @@
 package ch.uzh.ifi.access.course.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -25,6 +23,7 @@ public class ExerciseConfig {
     public ExerciseConfig() {
         this.isGraded = true;
         this.maxSubmits = 1;
+        this.executionLimits = CodeExecutionLimits.DEFAULTS;
     }
 
 //    @JsonProperty("executionLimits")

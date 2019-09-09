@@ -31,8 +31,6 @@ public class CodeRunner {
 
     private DockerClient docker;
 
-    private PythonImageConfig pythonImageConfig = new PythonImageConfig();
-
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
         logDebugInfo();
@@ -75,7 +73,7 @@ public class CodeRunner {
         cmd[0] = "/bin/sh";
         cmd[1] = "-c";
         cmd[2] = bashCmd;
-        ContainerConfig containerConfig = pythonImageConfig.containerConfig(cmd);
+        ContainerConfig containerConfig = new PythonImageConfig(executionLimits).containerConfig(cmd);
 
         return createAndRunContainer(containerConfig, folderPath);
     }
@@ -89,7 +87,7 @@ public class CodeRunner {
      * @return stdout from container and execution time {@link RunResult}
      */
     public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException, IOException {
-        ContainerConfig containerConfig = pythonImageConfig.containerConfig(cmd);
+        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
 
         return createAndRunContainer(containerConfig, folderPath);
     }
@@ -104,7 +102,7 @@ public class CodeRunner {
      */
     public RunResult runPythonCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
         String[] cmd = {"python", filenameToExec};
-        ContainerConfig containerConfig = pythonImageConfig.containerConfig(cmd);
+        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
 
         return createAndRunContainer(containerConfig, folderPath);
     }
