@@ -152,7 +152,11 @@ public class CodeRunner {
         Future<Void> execution = executionTimeoutWatchdog.submit(startAndWaitWithTimeout);
         boolean didTimeout = false;
         try {
-            execution.get(timeout, unit);
+            if (timeout > 0) {
+                execution.get(timeout, unit);
+            } else {
+                execution.get();
+            }
         } catch (ExecutionException e) {
             logger.error("Failed to start and wait for container", e);
         } catch (TimeoutException e) {
