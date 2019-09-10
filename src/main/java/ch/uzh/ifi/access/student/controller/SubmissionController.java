@@ -79,7 +79,7 @@ public class SubmissionController {
 
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
-        if (studentSubmissionService.hasUserCurrentlyRunningSubmissions(authentication.getUserId())) {
+        if (studentSubmissionService.isUserRateLimited(authentication.getUserId())) {
             return new ResponseEntity<>(
                     "Submition rejected: User has an other running submisison.", HttpStatus.TOO_MANY_REQUESTS);
         }
