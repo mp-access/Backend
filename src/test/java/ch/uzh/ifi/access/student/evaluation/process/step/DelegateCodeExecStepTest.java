@@ -4,6 +4,7 @@ import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
+import ch.uzh.ifi.access.student.SubmissionProperties;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
 import ch.uzh.ifi.access.student.evaluation.runner.SubmissionCodeRunner;
@@ -47,7 +48,7 @@ public class DelegateCodeExecStepTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        submissionService = new StudentSubmissionService(repository);
+        submissionService = new StudentSubmissionService(repository, new SubmissionProperties());
         courseService = new CourseService(courseDAO);
     }
 

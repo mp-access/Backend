@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.student.service;
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.student.SubmissionProperties;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
@@ -33,7 +34,7 @@ public class StudentSubmissionServiceTest {
 
     @Before
     public void setUp() {
-        this.service = new StudentSubmissionService(repository);
+        this.service = new StudentSubmissionService(repository, new SubmissionProperties());
     }
 
     @After
