@@ -164,4 +164,4 @@ course_repositories/
 runner/
 courses_db
 
-load_testing/
+#load_testing/
