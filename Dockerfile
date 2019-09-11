@@ -26,7 +26,7 @@ COPY --from=build /workspace/app/src/main/resources/application-prod.properties 
 #RUN groupadd -r backend && useradd -r -s /bin/false -g backend backend
 #RUN chown -R backend:backend /app
 
-USER backend
+#USER backend
 
 WORKDIR /app
 
