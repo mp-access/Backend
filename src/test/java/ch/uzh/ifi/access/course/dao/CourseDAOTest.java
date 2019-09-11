@@ -87,7 +87,7 @@ public class CourseDAOTest {
 
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
-        exerciseBefore2.setIndex(1);
+        exerciseBefore2.setIndex(3);
         exerciseAfter2.setIndex(exerciseBefore2.getIndex());
 
         before.addAssignment(assignmentBefore);
