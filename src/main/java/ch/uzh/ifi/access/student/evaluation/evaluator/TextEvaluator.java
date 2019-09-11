@@ -8,6 +8,8 @@ import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TextEvaluator implements StudentSubmissionEvaluator {
 
@@ -17,7 +19,9 @@ public class TextEvaluator implements StudentSubmissionEvaluator {
 
         TextSubmission textSub = (TextSubmission) submission;
 
-        if (exercise.getTextSolution().equalsIgnoreCase(textSub.getAnswer().trim())) {
+        Pattern p = Pattern.compile(exercise.getTextSolution());
+        Matcher m = p.matcher(textSub.getAnswer().trim());
+        if (m.find( )) {
             return SubmissionEvaluation.builder()
                     .points(new SubmissionEvaluation.Points(1, 1))
                     .maxScore(exercise.getMaxScore())
