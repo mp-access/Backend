@@ -88,7 +88,6 @@ public class CourseDAOTest {
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
         exerciseBefore2.setIndex(1);
-        exerciseAfter2.setGitHash(exerciseBefore2.getGitHash());
         exerciseAfter2.setIndex(exerciseBefore2.getIndex());
 
         before.addAssignment(assignmentBefore);
@@ -113,13 +112,13 @@ public class CourseDAOTest {
         Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
         Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
-        exerciseBefore1.setGitHash("ex1");
-        exerciseAfter1.setGitHash("ex1.1");
+        exerciseBefore1.setIndex(1);
+        exerciseAfter1.setIndex(2);
 
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
-        exerciseBefore2.setGitHash("ex2");
-        exerciseAfter2.setGitHash("ex2.1");
+        exerciseBefore2.setIndex(3);
+        exerciseAfter2.setIndex(4);
 
         before.addAssignment(assignmentBefore);
         assignmentBefore.addExercise(exerciseBefore1);
