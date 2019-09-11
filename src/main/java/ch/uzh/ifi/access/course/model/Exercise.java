@@ -11,26 +11,33 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
+@ToString(callSuper=true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-@ToString(exclude = "assignment")
 public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
 
     private final String id;
     private int index;
+    @ToString.Exclude
     private String gitHash;
 
     @JsonIgnore
+    @ToString.Exclude
     private Assignment assignment;
 
+    @ToString.Exclude
     private String question;
 
     @JsonIgnore
+    @ToString.Exclude
     private List<VirtualFile> private_files;
     @JsonIgnore
+    @ToString.Exclude
     private List<VirtualFile> solution_files;
 
+    @ToString.Exclude
     private List<VirtualFile> resource_files;
+    @ToString.Exclude
     private List<VirtualFile> public_files;
 
     public Exercise(String name) {

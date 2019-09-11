@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,11 +15,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
+@ToString(callSuper=true)
 @EqualsAndHashCode(callSuper = true)
 public class Course extends CourseConfig implements IndexedCollection<Assignment> {
     private final String id;
 
+    @ToString.Exclude
     private String gitHash;
+    @ToString.Exclude
     private String gitURL;
     private String directory;
 
