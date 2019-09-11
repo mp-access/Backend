@@ -18,8 +18,11 @@ public class ExerciseConfig {
     protected List<String> solutions;
     protected List<String> hints;
 
-    public ExerciseConfig(){
+    protected CodeExecutionLimits executionLimits;
+
+    public ExerciseConfig() {
         this.isGraded = true;
         this.maxSubmits = 1;
+        this.executionLimits = CodeExecutionLimits.DEFAULTS;
     }
 }

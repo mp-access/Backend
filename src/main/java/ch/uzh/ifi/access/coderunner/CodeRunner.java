@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.coderunner;
 
 
+import ch.uzh.ifi.access.course.model.CodeExecutionLimits;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
@@ -8,7 +9,6 @@ import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.messages.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 
 @Service
@@ -26,9 +27,9 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
-    private static final String PYTHON_DOCKER_IMAGE = "python:3.7-alpine";
-
     private DockerClient docker;
+
+    private ExecutorService executionTimeoutWatchdog = Executors.newCachedThreadPool();
 
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
@@ -48,10 +49,10 @@ public class CodeRunner {
 
     private void pullImageIfNotPresent() {
         try {
-            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PYTHON_DOCKER_IMAGE));
+            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PythonImageConfig.PYTHON_DOCKER_IMAGE));
             if (images.isEmpty()) {
-                logger.debug(String.format("No suitable python image found (searched for %s), pulling new image from registry", PYTHON_DOCKER_IMAGE));
-                docker.pull(PYTHON_DOCKER_IMAGE);
+                logger.debug(String.format("No suitable python image found (searched for %s), pulling new image from registry", PythonImageConfig.PYTHON_DOCKER_IMAGE));
+                docker.pull(PythonImageConfig.PYTHON_DOCKER_IMAGE);
             }
         } catch (DockerException | InterruptedException e) {
             logger.warn("Failed to pull python docker image", e);
@@ -62,22 +63,19 @@ public class CodeRunner {
      * Mounts the folder at path inside the container and runs the given command
      * Note: Mounts the host's folder at '/usr/src' and sets it as the working directory
      *
-     * @param folderPath path to folder to mount inside container
-     * @param bashCmd    command to execute in bash
+     * @param folderPath      path to folder to mount inside container
+     * @param bashCmd         command to execute in bash
+     * @param executionLimits
      * @return stdout from container and execution time {@link RunResult}
-     * @throws DockerException
-     * @throws InterruptedException
      */
-    public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd) throws DockerException, InterruptedException, IOException {
-        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
-
+    public RunResult attachVolumeAndRunBash(String folderPath, String bashCmd, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         String[] cmd = new String[3];
         cmd[0] = "/bin/sh";
         cmd[1] = "-c";
         cmd[2] = bashCmd;
-        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+        ContainerConfig containerConfig = new PythonImageConfig(executionLimits).containerConfig(cmd);
 
-        return createAndRunContainer(containerConfig, folderPath);
+        return createAndRunContainer(containerConfig, folderPath, executionLimits);
     }
 
     /**
@@ -87,15 +85,11 @@ public class CodeRunner {
      * @param folderPath path to folder to mount inside container
      * @param cmd        command to execute inside container
      * @return stdout from container and execution time {@link RunResult}
-     * @throws DockerException
-     * @throws InterruptedException
      */
-    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd) throws DockerException, InterruptedException, IOException {
-        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
+    public RunResult attachVolumeAndRunCommand(String folderPath, String[] cmd, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
+        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
 
-        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
-
-        return createAndRunContainer(containerConfig, folderPath);
+        return createAndRunContainer(containerConfig, folderPath, executionLimits);
     }
 
     /**
@@ -105,19 +99,15 @@ public class CodeRunner {
      * @param folderPath     path to folder to mount inside container
      * @param filenameToExec python file to run
      * @return stdout from container and execution time {@link RunResult}
-     * @throws DockerException
-     * @throws InterruptedException
      */
-    public RunResult runPythonCode(String folderPath, String filenameToExec) throws DockerException, InterruptedException, IOException {
-        HostConfig hostConfig = hostConfigWithAttachedVolume(folderPath);
-
+    public RunResult runPythonCode(String folderPath, String filenameToExec, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         String[] cmd = {"python", filenameToExec};
-        ContainerConfig containerConfig = containerConfig(hostConfig, cmd);
+        ContainerConfig containerConfig = new PythonImageConfig().containerConfig(cmd);
 
-        return createAndRunContainer(containerConfig, folderPath);
+        return createAndRunContainer(containerConfig, folderPath, executionLimits);
     }
 
-    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath) throws DockerException, InterruptedException, IOException {
+    private RunResult createAndRunContainer(ContainerConfig containerConfig, String folderPath, CodeExecutionLimits executionLimits) throws DockerException, InterruptedException, IOException {
         long startExecutionTime = System.nanoTime();
 
         ContainerCreation creation = docker.createContainer(containerConfig);
@@ -129,17 +119,52 @@ public class CodeRunner {
         }
 
         copyDirectoryToContainer(containerId, Paths.get(folderPath));
-        startAndWaitContainer(containerId);
+
+        long timeout = executionLimits.getTimeout();
+        TimeUnit unit = TimeUnit.MILLISECONDS;
+
+        boolean didTimeout = startContainerWithTimeout(containerId, timeout, unit);
+
+        ContainerState state = docker.inspectContainer(containerId).state();
+        boolean isOomKilled = state.oomKilled();
 
         String console = readStdOutAndErr(containerId);
         String stdOut = readStdOut(containerId);
         String stdErr = readStdErr(containerId);
+
+        if (didTimeout) {
+            console = String.format("%s\nTimeout. Your submission took too long too complete (max execution time %s seconds)", console, unit.toSeconds(timeout));
+            stdErr = String.format("%s\nTimeout. Your submission took too long too complete (max execution time %s seconds)", stdErr, unit.toSeconds(timeout));
+        }
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
 
-        return new RunResult(console, stdOut, stdErr, executionTime);
+        return new RunResult(console, stdOut, stdErr, executionTime, didTimeout, isOomKilled);
+    }
+
+    private boolean startContainerWithTimeout(String containerId, long timeout, TimeUnit unit) throws InterruptedException, DockerException {
+        Callable<Void> startAndWaitWithTimeout = () -> {
+            startAndWaitContainer(containerId);
+            return null;
+        };
+        Future<Void> execution = executionTimeoutWatchdog.submit(startAndWaitWithTimeout);
+        boolean didTimeout = false;
+        try {
+            if (timeout > 0) {
+                execution.get(timeout, unit);
+            } else {
+                execution.get();
+            }
+        } catch (ExecutionException e) {
+            logger.error("Failed to start and wait for container", e);
+        } catch (TimeoutException e) {
+            logger.debug("Execution of student code took longer than configured timeout. Stopping container {}", containerId);
+            docker.killContainer(containerId, DockerClient.Signal.SIGKILL);
+            didTimeout = true;
+        }
+        return didTimeout;
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {
@@ -153,27 +178,6 @@ public class CodeRunner {
             logger.warn(e.getMessage(), e);
         }
         logger.trace(joiner.toString());
-    }
-
-    private HostConfig hostConfigWithAttachedVolume(String hostPath) {
-        String absolutePath = new FileSystemResource(hostPath).getFile().getAbsolutePath();
-        return HostConfig.builder()
-                // TODO: Bind volume or copy files to container? As a quickfix will simply copy them (slower but actually more secure)
-//                .appendBinds(new String[]{absolutePath + ":" + DOCKER_CODE_FOLDER})
-                .build();
-    }
-
-    private ContainerConfig containerConfig(HostConfig hostConfig, String[] cmd) {
-        return ContainerConfig
-                .builder()
-                .hostConfig(hostConfig)
-                .image(PYTHON_DOCKER_IMAGE)
-                .networkDisabled(true)
-                .workingDir(DOCKER_CODE_FOLDER)
-                .attachStdout(true)
-                .attachStderr(true)
-                .cmd(cmd)
-                .build();
     }
 
     private void startAndWaitContainer(String id) throws DockerException, InterruptedException {
