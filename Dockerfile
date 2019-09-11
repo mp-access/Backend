@@ -23,8 +23,8 @@ COPY --from=build ${DEPENDENCY}/BOOT-INF/classes ${DIR}
 COPY --from=build /workspace/app/src/main/resources/application-prod.properties ${DIR}/application.properties
 
 # creates a system user (-r), with no password, no home directory set, and no shell
-RUN groupadd -r backend && useradd -r -s /bin/false -g backend backend
-RUN chown -R backend:backend /app
+#RUN groupadd -r backend && useradd -r -s /bin/false -g backend backend
+#RUN chown -R backend:backend /app
 
 USER backend
 
