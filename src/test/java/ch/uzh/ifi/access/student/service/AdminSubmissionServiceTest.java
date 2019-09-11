@@ -4,6 +4,7 @@ import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.student.SubmissionProperties;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
@@ -47,7 +48,7 @@ public class AdminSubmissionServiceTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        this.submissionService = new StudentSubmissionService(studentSubmissionRepository);
+        this.submissionService = new StudentSubmissionService(studentSubmissionRepository, new SubmissionProperties());
         this.service = new AdminSubmissionService(submissionService, userService);
     }
 

@@ -21,8 +21,6 @@ public class StudentAnswerDTO {
 
     private ExerciseType type;
 
-    private boolean graded;
-
     private JsonNode details;
 
     public StudentSubmission createSubmission(String userId, String exerciseId, String commitHash) {

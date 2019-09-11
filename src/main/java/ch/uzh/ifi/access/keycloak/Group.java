@@ -47,17 +47,21 @@ public class Group {
         return new Users(resource.group(authors.getId()).members(), List.of());
     }
 
-    static Group create(final String title, GroupsResource resource) {
+    static Group create(final String courseId, String title, GroupsResource resource) {
         GroupRepresentation courseRepresentation = new GroupRepresentation();
-        courseRepresentation.setName(title);
+        courseRepresentation.setName(courseId);
+        courseRepresentation.singleAttribute("Title", title);
         String courseGroupId = Utils.getCreatedId(resource.add(courseRepresentation));
         GroupResource course = resource.group(courseGroupId);
 
+        // Make sure that 'students' and authors do not appear in the actual group name
         GroupRepresentation students = new GroupRepresentation();
-        students.setName(STUDENTS_GROUP_NAME);
+        students.setName(String.format("%s - %s", title.replace(STUDENTS_GROUP_NAME, ""), STUDENTS_GROUP_NAME));
+        students.singleAttribute("Title", title);
 
         GroupRepresentation authors = new GroupRepresentation();
-        authors.setName(AUTHORS_GROUP_NAME);
+        authors.setName(String.format("%s - %s", title.replace(AUTHORS_GROUP_NAME, ""), AUTHORS_GROUP_NAME));
+        authors.singleAttribute("Title", title);
 
         String studentsGroupId = Utils.getCreatedId(course.subGroup(students));
         String authorsGroupId = Utils.getCreatedId(course.subGroup(authors));

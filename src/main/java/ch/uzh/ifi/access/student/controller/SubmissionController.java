@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.student.controller;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
@@ -15,14 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.time.LocalDateTime;
-import java.util.AbstractMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/submissions")
@@ -36,10 +35,13 @@ public class SubmissionController {
 
     private final EvalProcessService processService;
 
-    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService, EvalProcessService processService) {
+    private final CoursePermissionEvaluator permissionEvaluator;
+
+    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService, EvalProcessService processService, CoursePermissionEvaluator permissionEvaluator) {
         this.studentSubmissionService = studentSubmissionService;
         this.courseService = courseService;
         this.processService = processService;
+        this.permissionEvaluator = permissionEvaluator;
     }
 
     @GetMapping("/{submissionId}")
@@ -82,21 +84,29 @@ public class SubmissionController {
                     "Submition rejected: User has an other running submisison.", HttpStatus.TOO_MANY_REQUESTS);
         }
 
-        Optional<String> commitHash = courseService.getExerciseById(exerciseId).map(Exercise::getGitHash);
-        if (!commitHash.isPresent()) {
-            return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+        Exercise exercise = courseService.getExerciseById(exerciseId).orElseThrow(() -> new ResourceNotFoundException("Referenced exercise does not exist"));
+
+        if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
+
+            String commitHash = exercise.getGitHash();
+            if (StringUtils.isEmpty(commitHash)) {
+                return ResponseEntity.badRequest().body("Referenced exercise does not exist");
+            }
+
+            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash);
+
+            if (exercise.isPastDueDate() && submission.isGraded()) {
+                return ResponseEntity.unprocessableEntity().body("Submission is past due date. Cannot accept a graded submission anymore.");
+            }
+
+            submission = studentSubmissionService.initSubmission(submission);
+            String processId = processService.initEvalProcess(submission);
+            processService.fireEvalProcessExecutionAsync(processId);
+
+            return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
         }
 
-        String processId = "N/A";
-        if (commitHash.isPresent()) {
-            // Weird stuff going on here: isGraded in SubmissionDTO does not match isGraded from the JSON Payload ...
-            // The isGraded from SubmissionDTO.createSubmission matches the JSON Payload.
-            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash.get());
-            submission = studentSubmissionService.initSubmission(submission);
-            processId = processService.initEvalProcess(submission);
-            processService.fireEvalProcessExecutionAsync(processId);
-        }
-        return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
+        return ResponseEntity.badRequest().body("Exercise is not yet online!");
     }
 
     @GetMapping("/evals/{processId}")

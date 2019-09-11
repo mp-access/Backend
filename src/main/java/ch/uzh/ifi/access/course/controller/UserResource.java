@@ -20,11 +20,6 @@ public class UserResource {
         return ResponseEntity.ok(principal);
     }
 
-    @GetMapping(path = "/admin")
-    public ResponseEntity<String> getAdmin(@ApiIgnore Principal principal) {
-        return ResponseEntity.ok("ggwp admin " + principal.getName());
-    }
-
     @GetMapping("/courses")
     public Set<GrantedCourseAccess> getCourses(@ApiIgnore CourseAuthentication authentication) {
         return authentication.getCourseAccesses();

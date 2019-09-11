@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AssignmentConfig {
+public class AssignmentConfig implements HasPublishingDate {
     protected String title;
     protected String description;
     protected LocalDateTime publishDate;

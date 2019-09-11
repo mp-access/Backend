@@ -1,17 +1,30 @@
 package ch.uzh.ifi.access;
 
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.model.*;
+import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public class TestObjectFactory {
+
+    public static Course createCourseWithOneAssignmentAndOneExercise(String courseTitle, String assignmentTitle, String exerciseQuestion) {
+        Course course = createCourse(courseTitle);
+        Assignment assignment = createAssignment(assignmentTitle);
+        Exercise exercise = createCodeExercise(exerciseQuestion);
+        course.addAssignment(assignment);
+        assignment.addExercise(exercise);
+        return course;
+    }
 
     public static Course createCourse(String title) {
         Course course = new Course(UUID.randomUUID().toString());
@@ -121,5 +134,22 @@ public class TestObjectFactory {
                 .timestamp(Instant.now())
                 .choices(Set.of(1, 3))
                 .build();
+    }
+
+    public static CourseAuthentication createCourseAuthentication(Set<GrantedCourseAccess> grantedCourseAccesses) {
+        OAuth2Request request = new OAuth2Request(Map.of(),
+                "client",
+                List.of(), true,
+                Set.of("openid"),
+                Set.of(), null, null, null);
+        return new CourseAuthentication(request, null, grantedCourseAccesses, "");
+    }
+
+    public static GrantedCourseAccess createAdminAccess(final String courseId) {
+        return new GrantedCourseAccess(courseId, false, true);
+    }
+
+    public static GrantedCourseAccess createStudentAccess(final String courseId) {
+        return new GrantedCourseAccess(courseId, true, false);
     }
 }

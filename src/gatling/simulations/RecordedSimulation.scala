@@ -1,7 +1,31 @@
+import java.util.UUID
+
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
 class RecordedSimulation extends Simulation {
+
+  val headers_0 = Map("Pragma" -> "no-cache")
+
+  val headers_1 = Map(
+    "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "Upgrade-Insecure-Requests" -> "1")
+
+  val json_headers = Map(
+    "Accept" -> "*/*",
+    "Accept-Encoding" -> "gzip, deflate, br",
+    "Accept-Language" -> "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7,es;q=0.6"
+  )
+
+  val headers_3 = Map(
+    "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+    "Origin" -> "http://localhost:8080",
+    "Upgrade-Insecure-Requests" -> "1",
+    "Accept-Encoding" -> "gzip, deflate, br",
+    "Accept-Language" -> "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7,es;q=0.6",
+    "Cache-Control" -> "max-age=0",
+    "Connection" -> "keep-alive"
+  )
 
   val httpProtocol = http
     .baseUrl("https://142.93.164.106")
@@ -10,10 +34,7 @@ class RecordedSimulation extends Simulation {
     .acceptEncodingHeader("gzip, deflate")
     .acceptLanguageHeader("en-US,en;q=0.5")
     .userAgentHeader("Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0) Gecko/20100101 Firefox/68.0")
-
-  val headers_0 = Map(
-    "Accept" -> "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Upgrade-Insecure-Requests" -> "1")
+    .disableFollowRedirect
 
   val headers_2 = Map(
     "Accept-Encoding" -> "gzip, deflate",
@@ -21,124 +42,146 @@ class RecordedSimulation extends Simulation {
 
   val headers_5 = Map(
     "Content-Type" -> "application/json",
-    "authorization" -> "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJoS244M2ptd2pnNEtVLVpDZlRnbTVTaC0wS05IdHBTSTdDbTZWdXRfUk40In0.eyJqdGkiOiIzOWI2NGY1NS02NjhmLTRkYzUtYjE3Yy1kZWRkNzFiMDUxY2YiLCJleHAiOjE1NjcyOTk5ODUsIm5iZiI6MCwiaWF0IjoxNTY3MjYzOTg1LCJpc3MiOiJodHRwczovLzE0Mi45My4xNjQuMTA2L2F1dGgvcmVhbG1zL2RldiIsImF1ZCI6WyJjb3Vyc2Utc2VydmljZSIsImFjY291bnQiXSwic3ViIjoiYjIyOTg0MjMtNGMxMi00MjZlLTg3ZmItNmNmMWM1MGE0OGU4IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiYWNjZXNzLWZyb250ZW5kIiwibm9uY2UiOiIxZTAxZDRiYy0yMjE5LTQ2YTUtOGNhYS00ODQzZWNjODgwYjUiLCJhdXRoX3RpbWUiOjE1NjcyNjM5ODUsInNlc3Npb25fc3RhdGUiOiJhOTM3MDBmMy0wNjc2LTQyNmMtODA5Yi03YzQwODFiOWQxMDgiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIjE0Mi45My4xNjQuMTA2LyoiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJncm91cHMiOlsiL0luZm9ybWF0aWNzIDEvc3R1ZGVudHMiLCIvSW5mb3JtYXRpY3MgMi9zdHVkZW50cyIsIi9Ob24tVGVjaG5pY2FsIFB5dGhvbiBJbnRyb2R1Y3Rpb24vc3R1ZGVudHMiXSwicHJlZmVycmVkX3VzZXJuYW1lIjoiam9oYW5uLnNjaG9wQHV6aC5jaCIsImVtYWlsIjoiam9oYW5uLnNjaG9wQHV6aC5jaCJ9.JMa1zWKIG8oUC7cvfYivF1huH8sVK7UOXeYlIzoELd-E2tvVUem7IZ85L_11N0h5rDeWrQCBcxjCmiVPjw_3K9wT_hUDJB-cikMWg0yYW_bz8_JSfbYpM41U1qPgBcUaqNm95jz7nkdDrrHGyG2MPMlqKx7sg3sijaCfWFf0e4XJI6a-0HJuVIwgekXpfhQS5nb_ExqE9XOMrTkXjooMUGr_qnMPMI8TIOwCMzEHmXBPJl12C721oEhP8U0y9YntmnusqdBNgi92NViaY__hAkxMnVb3j7h-U5aBQfkiUmR3eWvo7bE5PxrdCIyb6lTVHQmVM7rIDNVa8JI3up3Nag")
+    "authorization" -> "Bearer ${bearerToken}")
 
   val headers_27 = Map(
     "Content-Type" -> "application/json",
     "Origin" -> "https://142.93.164.106",
-    "authorization" -> "Bearer eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJoS244M2ptd2pnNEtVLVpDZlRnbTVTaC0wS05IdHBTSTdDbTZWdXRfUk40In0.eyJqdGkiOiIzOWI2NGY1NS02NjhmLTRkYzUtYjE3Yy1kZWRkNzFiMDUxY2YiLCJleHAiOjE1NjcyOTk5ODUsIm5iZiI6MCwiaWF0IjoxNTY3MjYzOTg1LCJpc3MiOiJodHRwczovLzE0Mi45My4xNjQuMTA2L2F1dGgvcmVhbG1zL2RldiIsImF1ZCI6WyJjb3Vyc2Utc2VydmljZSIsImFjY291bnQiXSwic3ViIjoiYjIyOTg0MjMtNGMxMi00MjZlLTg3ZmItNmNmMWM1MGE0OGU4IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiYWNjZXNzLWZyb250ZW5kIiwibm9uY2UiOiIxZTAxZDRiYy0yMjE5LTQ2YTUtOGNhYS00ODQzZWNjODgwYjUiLCJhdXRoX3RpbWUiOjE1NjcyNjM5ODUsInNlc3Npb25fc3RhdGUiOiJhOTM3MDBmMy0wNjc2LTQyNmMtODA5Yi03YzQwODFiOWQxMDgiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbIjE0Mi45My4xNjQuMTA2LyoiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJncm91cHMiOlsiL0luZm9ybWF0aWNzIDEvc3R1ZGVudHMiLCIvSW5mb3JtYXRpY3MgMi9zdHVkZW50cyIsIi9Ob24tVGVjaG5pY2FsIFB5dGhvbiBJbnRyb2R1Y3Rpb24vc3R1ZGVudHMiXSwicHJlZmVycmVkX3VzZXJuYW1lIjoiam9oYW5uLnNjaG9wQHV6aC5jaCIsImVtYWlsIjoiam9oYW5uLnNjaG9wQHV6aC5jaCJ9.JMa1zWKIG8oUC7cvfYivF1huH8sVK7UOXeYlIzoELd-E2tvVUem7IZ85L_11N0h5rDeWrQCBcxjCmiVPjw_3K9wT_hUDJB-cikMWg0yYW_bz8_JSfbYpM41U1qPgBcUaqNm95jz7nkdDrrHGyG2MPMlqKx7sg3sijaCfWFf0e4XJI6a-0HJuVIwgekXpfhQS5nb_ExqE9XOMrTkXjooMUGr_qnMPMI8TIOwCMzEHmXBPJl12C721oEhP8U0y9YntmnusqdBNgi92NViaY__hAkxMnVb3j7h-U5aBQfkiUmR3eWvo7bE5PxrdCIyb6lTVHQmVM7rIDNVa8JI3up3Nag")
+    "authorization" -> "Bearer ${bearerToken}")
 
-  val uri1 = "http://detectportal.firefox.com/success.txt"
+  val client_id = "access-frontend"
+  val realm = "dev"
+
+  val authUri = "https://142.93.164.106/auth/realms/" + realm + "/protocol/openid-connect/auth"
+
+  val tokenUri = "https://142.93.164.106/auth/realms/" + realm + "/protocol/openid-connect/token"
+
+  val uri3 = "https://142.93.164.106"
 
   val scn = scenario("RecordedSimulation2")
-    .exec(http("request_0")
-      .get("/auth/realms/dev/protocol/openid-connect/auth?client_id=access-frontend&redirect_uri=https%3A%2F%2F142.93.164.106%2Fcourses&state=6c7ca1b9-49b1-49f9-8dde-5f4d9a839185&response_mode=fragment&response_type=code&scope=openid&nonce=1e01d4bc-2219-46a5-8caa-4843ecc880b5")
-      .headers(headers_0))
-    .pause(1)
-    .exec(http("request_1")
-      .post("/auth/realms/dev/login-actions/authenticate?session_code=KI3fxqxtdjJKzF79fIMKO94CTy4-HPzMbbfwFqCGTIQ&execution=921f870c-cef4-47c6-97aa-e5256435830f&client_id=access-frontend&tab_id=WE81AaobYDc")
-      .headers(headers_0)
+    .exec(http("GET login page")
+      .get(authUri)
+      .queryParam("client_id", client_id)
+      .queryParam("redirect_uri", uri3)
+      .queryParam("state", UUID.randomUUID().toString())
+      .queryParam("nonce", UUID.randomUUID().toString())
+      .queryParam("response_mode", "fragment")
+      .queryParam("response_type", "code")
+      .queryParam("scope", "openid")
+      .headers(headers_3)
+      .check(status.is(200))
+      .check(css("#kc-form-login")
+        .ofType[Node]
+        .transform(variabe => {
+          variabe.getAttribute("action")
+        })
+        .saveAs("loginUrl"))
+    )
+    .exec(http("POST login")
+      .post("${loginUrl}")
+      .headers(headers_3)
       .formParam("username", "johann.schop@uzh.ch")
       .formParam("password", "test")
-      .resources(http("request_2")
-        .get(uri1 + "")
-        .headers(headers_2),
-        http("request_3")
-          .get("/auth/realms/dev/protocol/openid-connect/login-status-iframe.html")
-          .headers(headers_0),
-        http("request_4")
-          .post("/auth/realms/dev/protocol/openid-connect/token")
-          .formParam("code", "316d5140-0cf6-449f-8d21-5f3f831adc0b.a93700f3-0676-426c-809b-7c4081b9d108.f94a434e-e42b-49e3-8cd2-1d72f8c3105d")
-          .formParam("grant_type", "authorization_code")
-          .formParam("client_id", "access-frontend")
-          .formParam("redirect_uri", "https://142.93.164.106/courses"),
-        http("request_5")
-          .get("/api/courses")
-          .headers(headers_5),
-        http("request_6")
-          .get("/auth/realms/dev/protocol/openid-connect/login-status-iframe.html/init?client_id=access-frontend&origin=https%3A%2F%2F142.93.164.106")))
+      .check(status.is(302))
+      .check(header("Location")
+        .transform(t => {
+          t.substring(t.indexOf("code=") + 5, t.length())
+        })
+        .saveAs("authorizationCode"))
+      .check(header("Location").saveAs("nextPage"))
+    )
+    .exec(http("POST fetch token")
+      .post(tokenUri)
+      .headers(json_headers)
+      .header("Referer", "uri3")
+      .formParam("code", "${authorizationCode}")
+      .formParam("grant_type", "authorization_code")
+      .formParam("client_id", client_id)
+      .formParam("redirect_uri", uri3)
+      .check(status.is(200))
+      .check(jsonPath("$..access_token").saveAs("bearerToken"))
+    )
     .pause(1)
-    .exec(http("request_7")
+    .exec(http("GET courses")
       .get("/api/courses")
       .headers(headers_5)
-      .resources(http("request_8")
+      .resources(http("Get results for course")
         .get("/api/students/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/results")
         .headers(headers_5)))
     .pause(1)
-    .exec(http("request_9")
+    .exec(http("GET assignment")
       .get("/api/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/assignments/4aeef65e-fb99-3dcf-bd91-1e7a0ba6fec1")
       .headers(headers_5)
-      .resources(http("request_10")
+      .resources(http("GET results for course")
         .get("/api/students/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/results")
         .headers(headers_5)))
     .pause(1)
-    .exec(http("request_11")
+    .exec(http("GET exercise 1")
       .get("/api/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
       .headers(headers_5)
-      .resources(http("request_12")
+      .resources(http("GET all exercises in assignment 1")
         .get("/api/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/assignments/4aeef65e-fb99-3dcf-bd91-1e7a0ba6fec1")
         .headers(headers_5),
-        http("request_13")
+        http("GET last submission for exercise 1")
           .get("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
           .headers(headers_5),
-        http("request_14")
+        http("GET submission history 1")
           .get("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d/history")
           .headers(headers_5)))
     .pause(1)
-    .exec(http("request_15")
+    .exec(http("GET exercise 2")
       .get("/api/exercises/aa097709-e8a1-343e-9352-8ba412758379")
       .headers(headers_5)
-      .resources(http("request_16")
+      .resources(http("GET all exercises in assignment 2")
         .get("/api/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/assignments/4aeef65e-fb99-3dcf-bd91-1e7a0ba6fec1")
         .headers(headers_5),
-        http("request_17")
+        http("GET last submission for exercise 2")
           .get("/api/submissions/exercises/aa097709-e8a1-343e-9352-8ba412758379")
           .headers(headers_5),
-        http("request_18")
+        http("GET submission history 2")
           .get("/api/submissions/exercises/aa097709-e8a1-343e-9352-8ba412758379/history")
           .headers(headers_5),
-        http("request_19")
+        http("GET exercise 3")
           .get("/api/exercises/ea1a481c-522f-3347-92e3-a604179ac82a")
           .headers(headers_5),
-        http("request_20")
+        http("GET all exercises in assignment 3")
           .get("/api/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/assignments/4aeef65e-fb99-3dcf-bd91-1e7a0ba6fec1")
           .headers(headers_5),
-        http("request_21")
+        http("GET last submission for exercise 3")
           .get("/api/submissions/exercises/ea1a481c-522f-3347-92e3-a604179ac82a")
           .headers(headers_5),
-        http("request_22")
+        http("GET submission history 3")
           .get("/api/submissions/exercises/ea1a481c-522f-3347-92e3-a604179ac82a/history")
           .headers(headers_5),
-        http("request_23")
+        http("GET exercise 4")
           .get("/api/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
           .headers(headers_5),
-        http("request_24")
+        http("GET all exercises in assignment 4")
           .get("/api/courses/b75be786-f1c1-32d3-99fc-8af4ff155ade/assignments/4aeef65e-fb99-3dcf-bd91-1e7a0ba6fec1")
           .headers(headers_5),
-        http("request_25")
+        http("GET last submission for exercise 4")
           .get("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
           .headers(headers_5),
-        http("request_26")
+        http("GET submission history 4")
           .get("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d/history")
           .headers(headers_5)))
     .pause(2)
-    .exec(http("request_27")
-      .post("/api/submissions/exs/8e989eea-2a38-3147-a03f-d0c300f8c99d")
+    .exec(http("POST submission")
+      .post("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
       .headers(headers_27)
-      .body(RawFileBody("RecordedSimulation2_0027_request.txt")))
-    .pause(1)
-    .exec(http("request_28")
-      .get("/api/submissions/evals/d0d4a10d-5292-4de7-828a-9d1ab0c57c03")
-      .headers(headers_5)
-      .resources(http("request_29")
-        .get("/api/submissions/evals/d0d4a10d-5292-4de7-828a-9d1ab0c57c03")
-        .headers(headers_5),
-        http("request_30")
-          .get("/api/submissions/5d6aa0b4ec57dc0001dcb0fa")
-          .headers(headers_5),
-        http("request_31")
-          .get("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d/history")
-          .headers(headers_5)))
+      .body(RawFileBody("RecordedSimulation2_0027_request.txt"))
+      .check(jsonPath("$.evalId").saveAs("evalId"))
+    )
+  // remove polling from the test scenario
+//    .pause(1)
+//    .asLongAs(session => !session("submissionCompleted").asOption[String].getOrElse("").equals("ok")) {
+//      exec(http("Poll for evaluation")
+//        .get("/api/submissions/evals/${evalId}")
+//        .headers(headers_5)
+//        .check(bodyString.exists)
+//        .check(jsonPath("$.status").saveAs("submissionCompleted")))
+//        .pause(1)
+//    }
 
-  setUp(scn.inject(atOnceUsers(1))).protocols(httpProtocol)
+  setUp(scn.inject(atOnceUsers(1000))).protocols(httpProtocol)
 }

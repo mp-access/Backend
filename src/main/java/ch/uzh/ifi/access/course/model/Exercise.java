@@ -44,8 +44,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files) {
-        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints);
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits) {
+        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
         this.id = id;
         this.index = index;
         this.gitHash = gitHash;
@@ -66,6 +66,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.options = other.getOptions();
         this.solutions = other.getSolutions();
         this.hints = other.getHints();
+        this.executionLimits = other.getExecutionLimits();
     }
 
     public void update(Exercise other) {
@@ -78,9 +79,24 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.question = other.question;
     }
 
-    public Optional<VirtualFile> getFileById(String id) {
-        //TODO: Also search in private files
+    /**
+     * For privileged users or if solutions have been published, search on all folders
+     *
+     * @param id file id
+     */
+    // TODO: should private files ever be visible to a student? (for example after the due date)?
+    public Optional<VirtualFile> getAnyFileById(String id) {
         Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
+        return files.filter(file -> file.getId().equals(id)).findFirst();
+    }
+
+    /**
+     * For normal users or if solutions have not been published yet, we should only search in files in the public and resource folders
+     *
+     * @param id file id
+     */
+    public Optional<VirtualFile> getPublicOrResourcesFile(String id) {
+        Stream<VirtualFile> files = Stream.concat(public_files.stream(), resource_files.stream());
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
@@ -134,6 +150,9 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         throw new UnsupportedOperationException("Calling getMultipleChoiceSolution on non-multipleChoice type exercise");
     }
 
+    public CodeExecutionLimits getExecutionLimits() {
+        return Optional.ofNullable(executionLimits).orElse(CodeExecutionLimits.DEFAULTS);
+    }
 
     public boolean isBreakingChange(Exercise other) {
         return (!Objects.equals(this.gitHash, other.gitHash) && (

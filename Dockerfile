@@ -14,10 +14,20 @@ FROM openjdk:11.0.3-jre-slim-stretch
 RUN apt-get update
 RUN apt-get -y upgrade
 RUN apt-get -y install openssh-client
-VOLUME /tmp
+
 ARG DEPENDENCY=/workspace/app/build/dependency
-COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
-COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
-COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
-COPY --from=build /workspace/app/src/main/resources/application-prod.properties /app/application.properties
-ENTRYPOINT ["java","-cp","app:app/lib/*","ch.uzh.ifi.access.AccessApplication"]
+ARG DIR=/app/access
+COPY --from=build ${DEPENDENCY}/BOOT-INF/lib ${DIR}/lib
+COPY --from=build ${DEPENDENCY}/META-INF ${DIR}/META-INF
+COPY --from=build ${DEPENDENCY}/BOOT-INF/classes ${DIR}
+COPY --from=build /workspace/app/src/main/resources/application-prod.properties ${DIR}/application.properties
+
+# creates a system user (-r), with no password, no home directory set, and no shell
+RUN groupadd -r backend && useradd -r -s /bin/false -g backend backend
+RUN chown -R backend:backend /app
+
+USER backend
+
+WORKDIR /app
+
+ENTRYPOINT ["java","-cp","access:access/lib/*","ch.uzh.ifi.access.AccessApplication"]

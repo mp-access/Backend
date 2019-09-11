@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.coderunner;
 
+import ch.uzh.ifi.access.course.model.CodeExecutionLimits;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import org.assertj.core.api.Assertions;
@@ -33,15 +34,15 @@ public class CodeRunnerTest {
         String[] cmd1 = new String[]{"python", tempFile1.getName()};
         String[] cmd2 = new String[]{"python", tempFile2.getName()};
 
-        RunResult runResult1 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd1);
-        RunResult runResult2 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd2);
+        RunResult runResult1 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd1, CodeExecutionLimits.TESTING_UNLIMITED);
+        RunResult runResult2 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd2, CodeExecutionLimits.TESTING_UNLIMITED);
 
         Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput1);
         Assertions.assertThat(runResult2.getConsole()).isEqualTo(expectedOutput2);
 
 
         String[] cmd3 = new String[]{"ls", "-l"};
-        RunResult runResult3 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd3);
+        RunResult runResult3 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd3, CodeExecutionLimits.TESTING_UNLIMITED);
         Assertions.assertThat(runResult3.getConsole()).contains(tempFile1.getName());
         Assertions.assertThat(runResult3.getConsole()).contains(tempFile2.getName());
     }
@@ -55,7 +56,7 @@ public class CodeRunnerTest {
 
         File tempFile = createTempFileWithContent(code, "test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), tempFile.getName());
+        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), tempFile.getName(), CodeExecutionLimits.TESTING_UNLIMITED);
 
         Assertions.assertThat(runResult.getConsole()).isEqualTo(expectedOutput);
     }
@@ -81,7 +82,7 @@ public class CodeRunnerTest {
         createTempFileWithContent(dependencyCode, "/a.py");
         File main = createTempFileWithContent(mainCode, "/test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName());
+        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), CodeExecutionLimits.TESTING_UNLIMITED);
 
         Assertions.assertThat(runResult.getConsole()).isEqualTo(expectedOutput);
     }
@@ -105,7 +106,7 @@ public class CodeRunnerTest {
         final String delimiter = "======";
         final String expectedOutput = String.format("Hello 1!\n%s\nHello 2!\n", delimiter);
 
-        RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()));
+        RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()), CodeExecutionLimits.TESTING_UNLIMITED);
 
         Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput);
     }
