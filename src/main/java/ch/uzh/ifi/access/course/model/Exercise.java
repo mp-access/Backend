@@ -155,14 +155,15 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     }
 
     public boolean isBreakingChange(Exercise other) {
-        return !(Objects.equals(this.gitHash, other.gitHash) &&
-                Objects.equals(this.index, other.index) &&
-                Objects.equals(this.type, other.type) &&
-                Objects.equals(this.language, other.language) &&
-                Objects.equals(this.question, other.question) &&
-                Objects.equals(this.private_files, other.private_files) &&
-                Objects.equals(this.resource_files, other.resource_files) &&
-                Objects.equals(this.public_files, other.public_files)
+        return (!Objects.equals(this.gitHash, other.gitHash) && (
+                !Objects.equals(this.index, other.index) ||
+                !Objects.equals(this.type, other.type) ||
+                !Objects.equals(this.language, other.language) ||
+                !Objects.equals(this.question, other.question) ||
+                !Objects.equals(this.private_files, other.private_files) ||
+                !Objects.equals(this.resource_files, other.resource_files) ||
+                !Objects.equals(this.public_files, other.public_files)
+            )
         );
     }
 }
