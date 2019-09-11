@@ -159,8 +159,8 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
             throw new IllegalArgumentException(String.format("Cannot parse group to GrantedCourseAccess for string %s", courseElement));
         }
         String courseKey = group.get(0);
-        boolean isStudent = group.get(1).equalsIgnoreCase("students");
-        boolean isAuthor = group.get(1).equalsIgnoreCase("authors");
+        boolean isStudent = group.get(1).toLowerCase().contains("students");
+        boolean isAuthor = group.get(1).toLowerCase().contains("authors");
 
         return new GrantedCourseAccess(courseKey, isStudent, isAuthor);
     }

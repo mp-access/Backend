@@ -2,10 +2,10 @@ package ch.uzh.ifi.access.student.service;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.student.SubmissionProperties;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -18,11 +18,11 @@ public class StudentSubmissionService {
 
     private final StudentSubmissionRepository studentSubmissionRepository;
 
-    @Value("${submission.eval.user-rate-limit:false}")
-    private boolean shouldLimitSubmissionsPerUser;
+    private final SubmissionProperties submissionProperties;
 
-    public StudentSubmissionService(StudentSubmissionRepository studentSubmissionRepository) {
+    public StudentSubmissionService(StudentSubmissionRepository studentSubmissionRepository, SubmissionProperties submissionProperties) {
         this.studentSubmissionRepository = studentSubmissionRepository;
+        this.submissionProperties = submissionProperties;
     }
 
     public List<StudentSubmission> findAll() {
@@ -57,7 +57,7 @@ public class StudentSubmissionService {
         Optional<StudentSubmission> previousSubmissions = findLatestExerciseSubmission(answer.getExerciseId(), answer.getUserId());
         previousSubmissions.ifPresent(prev -> answer.setVersion(prev.getVersion() + 1));
 
-        if(!(answer instanceof CodeSubmission)){
+        if (!(answer instanceof CodeSubmission)) {
             answer.setGraded(true);
         }
 
@@ -99,7 +99,7 @@ public class StudentSubmissionService {
     }
 
     public boolean isUserRateLimited(String userId) {
-        return shouldLimitSubmissionsPerUser && hasUserCurrentlyRunningSubmissions(userId);
+        return submissionProperties.isUserRateLimit() && hasUserCurrentlyRunningSubmissions(userId);
     }
 
     public boolean hasUserCurrentlyRunningSubmissions(String userId) {

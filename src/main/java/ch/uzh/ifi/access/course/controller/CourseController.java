@@ -1,31 +1,24 @@
 package ch.uzh.ifi.access.course.controller;
 
+import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
+import ch.uzh.ifi.access.course.FilterByPublishingDate;
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
-import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
 import ch.uzh.ifi.access.course.model.Course;
-import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.service.CourseService;
+import ch.uzh.ifi.access.course.util.CoursePermissionEnforcer;
 import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.*;
+import springfox.documentation.annotations.ApiIgnore;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/courses")
@@ -37,11 +30,15 @@ public class CourseController {
 
     private final UserService userService;
 
-    public CourseController(CourseService courseService, UserService userService) {
+    private final CoursePermissionEnforcer permissionEnforcer;
+
+    public CourseController(CourseService courseService, UserService userService, CoursePermissionEnforcer permissionEnforcer) {
         this.courseService = courseService;
         this.userService = userService;
+        this.permissionEnforcer = permissionEnforcer;
     }
 
+    @FilterByPublishingDate
     @GetMapping
     public List<CourseMetadataDTO> getAllCourses() {
         List<CourseMetadataDTO> courses = new ArrayList<>();
@@ -64,46 +61,17 @@ public class CourseController {
         return cd.getAssignments();
     }
 
-
+    @FilterByPublishingDate
     @GetMapping("/{courseId}/assignments/{assignmentId}")
-    public AssignmentMetadataDTO getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId) {
-        return new AssignmentMetadataDTO(courseService.getCourseById(courseId)
+    public ResponseEntity<AssignmentMetadataDTO> getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId, @ApiIgnore CourseAuthentication authentication) {
+        AssignmentMetadataDTO assignment = courseService.getCourseById(courseId)
                 .flatMap(course -> course.getAssignmentById(assignmentId))
-                .orElseThrow(() -> new ResourceNotFoundException("No assignment found")));
-    }
+                .map(AssignmentMetadataDTO::new)
+                .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
 
-    @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}")
-    public ResponseEntity<?> getExerciseByCourseAndAssignment(@PathVariable("courseId") String courseId,
-                                                              @PathVariable("assignmentId") String assignmentId,
-                                                              @PathVariable("exerciseId") String exerciseId) {
-        Exercise ex = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-        if (ex.isPastDueDate()) {
-            return ResponseEntity.ok(new ExerciseWithSolutionsDTO(ex));
-        } else {
-            return ResponseEntity.ok(ex);
-        }
-    }
-
-    @GetMapping("/{courseId}/assignments/{assignmentId}/exercises/{exerciseId}/files/{fileId}")
-    public ResponseEntity<Resource> getFile(@PathVariable("courseId") String courseId,
-                                            @PathVariable("assignmentId") String assignmentId,
-                                            @PathVariable("exerciseId") String exerciseId,
-                                            @PathVariable("fileId") String fileId) throws IOException {
-        Exercise e = courseService.getExerciseByCourseAndAssignmentId(courseId, assignmentId, exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-
-        //TODO: Check if user has access to private & solution files
-        //TODO: Check if due date is up
-        Optional<VirtualFile> f = e.getFileById(fileId);
-        if (f.isPresent()) {
-            File fileHandle = f.get().getFile();
-            FileSystemResource r = new FileSystemResource(fileHandle);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
-                    .body(r);
-        }
-        return ResponseEntity.notFound().build();
+        return permissionEnforcer.shouldAccessAssignment(assignment, courseId, authentication)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{courseId}/assistants")
@@ -114,4 +82,18 @@ public class CourseController {
         List<User> users = userService.getCourseAdmins(course);
         return ResponseEntity.ok(users);
     }
+
+    @PostMapping(path = "{id}/update")
+    public void updateCourse(@PathVariable("id") String id, @RequestBody String json,
+                             ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
+        logger.debug("Received web hook");
+
+        if (!authentication.matchesHmacSignature(json)) {
+            throw new BadCredentialsException("Hmac signature does not match!");
+        }
+
+        logger.debug("Updating courses");
+        courseService.updateCourseById(id);
+    }
+
 }

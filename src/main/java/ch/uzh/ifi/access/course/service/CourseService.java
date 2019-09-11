@@ -1,6 +1,7 @@
 
 package ch.uzh.ifi.access.course.service;
 
+import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
@@ -36,12 +37,6 @@ public class CourseService {
         return courseDao.selectCourseById(id);
     }
 
-    public Optional<Exercise> getExerciseByCourseAndAssignmentId(String courseId, String assignmentId, String exerciseId) {
-        return getCourseById(courseId)
-                .flatMap(course -> course.getAssignmentById(assignmentId))
-                .flatMap(assignment -> assignment.findExerciseById(exerciseId));
-    }
-
     public Optional<List<Exercise>> getExercisesByCourseAndAssignmentId(String courseId, String assignmentId) {
         return getCourseById(courseId)
                 .flatMap(course -> course.getAssignmentById(assignmentId))
@@ -52,14 +47,21 @@ public class CourseService {
         return courseDao.selectExerciseById(exerciseId);
     }
 
-    public Optional<FileSystemResource> getFileByExerciseIdAndFileId(String exerciseId, String fileId) {
-        Optional<Exercise> exercise = getExerciseById(exerciseId);
-        Optional<VirtualFile> virtualFile = exercise.flatMap(e -> e.getFileById(fileId));
-
+    public Optional<FileSystemResource> getFileCheckingPrivileges(Exercise exercise, String fileId, CourseAuthentication authentication) {
+        Optional<VirtualFile> virtualFile;
+        if (hasAccessToExerciseSolutions(exercise, authentication)) {
+            virtualFile = exercise.getAnyFileById(fileId);
+        } else {
+            virtualFile = exercise.getPublicOrResourcesFile(fileId);
+        }
         return virtualFile.map(file -> new FileSystemResource(file.getFile()));
     }
 
     public Optional<Integer> getExerciseMaxSubmissions(String exerciseId) {
         return courseDao.selectExerciseById(exerciseId).map(Exercise::getMaxSubmits);
+    }
+
+    private boolean hasAccessToExerciseSolutions(Exercise exercise, CourseAuthentication authentication) {
+        return exercise.isPastDueDate() || authentication.hasAdminAccess(exercise.getCourseId());
     }
 }

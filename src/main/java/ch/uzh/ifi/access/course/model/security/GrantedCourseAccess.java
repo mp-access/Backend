@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.course.model.security;
 
-import ch.uzh.ifi.access.course.model.Course;
 import lombok.Value;
 
 import java.io.Serializable;
@@ -22,12 +21,12 @@ public class GrantedCourseAccess implements Serializable {
         this.isAuthor = isAuthor;
     }
 
-    public boolean evaluateAccess(Course course) {
-        return this.course.equals(course.getTitle());
+    public boolean evaluateAccess(String courseId) {
+        return this.course.equals(courseId);
     }
 
-    public boolean evaluateAdminAccess(Course course) {
-        return evaluateAccess(course) && isAuthor;
+    public boolean evaluateAdminAccess(String courseId) {
+        return evaluateAccess(courseId) && isAuthor;
     }
 
     public static GrantedCourseAccess empty() {

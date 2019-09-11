@@ -31,11 +31,12 @@ public class CourseAuthentication extends OAuth2Authentication {
         return courseAccesses;
     }
 
-    public boolean hasAccess(Course course) { return courseAccesses.stream().anyMatch(access -> access.evaluateAccess(course));
+    public boolean hasAccess(String courseId) {
+        return courseAccesses.stream().anyMatch(access -> access.evaluateAccess(courseId));
     }
 
-    public boolean hasAdminAccess(Course course) {
-        return courseAccesses.stream().anyMatch(access -> access.evaluateAdminAccess(course));
+    public boolean hasAdminAccess(String courseId) {
+        return courseAccesses.stream().anyMatch(access -> access.evaluateAdminAccess(courseId));
     }
 
     public String getUserId() {
