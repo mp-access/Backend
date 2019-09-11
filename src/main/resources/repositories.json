@@ -4,6 +4,7 @@
         "https://github.com/mp-access/Course2.git",
         "https://github.com/mp-access/NonTechPythonIntro.git",
         "https://github.com/proksch/access-test-repo",
-        "git@gitlab.com:alexhofmann/testprivaterepo.git"
+        "git@gitlab.com:alexhofmann/testprivaterepo.git",
+        "git@gitlab.ifi.uzh.ch:seal/access/course-info1.git"
     ]
 }

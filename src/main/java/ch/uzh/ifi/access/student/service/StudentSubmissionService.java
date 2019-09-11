@@ -81,7 +81,7 @@ public class StudentSubmissionService {
         Assert.notNull(userId, "userId cannot be null");
         List<String> exerciseIds = assignment.getExercises().stream().map(Exercise::getId).collect(Collectors.toList());
 
-        return studentSubmissionRepository.findByExerciseIdInAndUserIdOrderByVersionDesc(exerciseIds, userId);
+        return studentSubmissionRepository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(exerciseIds, userId);
     }
 
     public void invalidateSubmissionsByExerciseIdIn(List<String> exerciseIds) {

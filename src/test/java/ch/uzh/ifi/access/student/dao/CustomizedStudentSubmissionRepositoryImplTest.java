@@ -83,7 +83,7 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
 
 
         List<StudentSubmission> latestSubmissionsByAssignment = repository
-                .findByExerciseIdInAndUserIdOrderByVersionDesc(
+                .findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(
                         List.of(exercise1.getId(), exercise2.getId(), exercise3.getId()),
                         userId);
         List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
