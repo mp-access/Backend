@@ -90,15 +90,17 @@ public class CourseDAO {
                 .collect(Collectors.toUnmodifiableMap(Exercise::getId, ex -> ex));
     }
 
-    public void updateCourseById(String id) {
+    public Course updateCourseById(String id) {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
         try {
             Course courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
             updateCourse(c, courseUpdate);
+            return c;
         } catch (Exception e) {
             logger.error("Failed to update course", e);
         }
+        return null;
     }
 
     void updateCourse(Course before, Course after) {
