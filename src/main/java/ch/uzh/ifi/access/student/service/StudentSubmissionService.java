@@ -72,11 +72,11 @@ public class StudentSubmissionService {
     }
 
     /**
-     * For a given assignment and user returns the last submitted version of each exercise
+     * For a given assignment and user returns the last graded submitted version of each exercise
      *
      * @return last submission of each exercise
      */
-    public List<StudentSubmission> findLatestSubmissionsByAssignment(Assignment assignment, String userId) {
+    public List<StudentSubmission> findLatestGradedSubmissionsByAssignment(Assignment assignment, String userId) {
         Assert.notNull(assignment, "assignment cannot be null");
         Assert.notNull(userId, "userId cannot be null");
         List<String> exerciseIds = assignment.getExercises().stream().map(Exercise::getId).collect(Collectors.toList());

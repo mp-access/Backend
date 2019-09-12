@@ -49,7 +49,7 @@ public class ResultController {
                     .assignmentId(a.getId())
                     .userId(userId)
                     .maxScore(a.getMaxScore())
-                    .gradedSubmissions(submissionService.findLatestSubmissionsByAssignment(a, userId))
+                    .gradedSubmissions(submissionService.findLatestGradedSubmissionsByAssignment(a, userId))
                     .build());
         }
 
