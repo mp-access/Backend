@@ -2,6 +2,7 @@
 package ch.uzh.ifi.access.course.service;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
@@ -20,13 +21,19 @@ public class CourseService {
 
     private final CourseDAO courseDao;
 
+    private final CourseServiceSetup courseSetup;
+
     @Autowired
-    public CourseService(@Qualifier("gitrepo") CourseDAO courseDao) {
+    public CourseService(@Qualifier("gitrepo") CourseDAO courseDao, CourseServiceSetup courseSetup) {
         this.courseDao = courseDao;
+        this.courseSetup = courseSetup;
     }
 
     public void updateCourseById(String id) {
-        courseDao.updateCourseById(id);
+        Course course = courseDao.updateCourseById(id);
+        if (course != null) {
+            courseSetup.initializedCourseParticipants(course);
+        }
     }
 
     public List<Course> getAllCourses() {

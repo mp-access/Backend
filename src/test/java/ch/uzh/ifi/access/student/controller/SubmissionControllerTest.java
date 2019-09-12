@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.student.controller;
 
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
@@ -59,6 +60,9 @@ public class SubmissionControllerTest {
 
     @MockBean
     private CourseDAO courseDAO;
+
+    @MockBean
+    private CourseServiceSetup courseServiceSetup;
 
     private CourseAuthentication studentAuthentication;
     private CourseAuthentication adminAuthentication;

@@ -49,7 +49,7 @@ public class DelegateCodeExecStepTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         submissionService = new StudentSubmissionService(repository, new SubmissionProperties());
-        courseService = new CourseService(courseDAO);
+        courseService = new CourseService(courseDAO, null);
     }
 
     @After
