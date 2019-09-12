@@ -72,11 +72,13 @@ public class BreakingChangeIntegrationTest {
         submission1.setUserId(userId);
         submission1.setExerciseId(exerciseBefore1.getId());
         submission1.setCommitId(exerciseBefore1.getGitHash());
+        submission1.setGraded(true);
 
         CodeSubmission submission2 = new CodeSubmission();
         submission2.setUserId(userId);
         submission2.setExerciseId(exerciseBefore2.getId());
         submission2.setCommitId(exerciseBefore2.getGitHash());
+        submission2.setGraded(true);
 
         // Begin actual test
         // Submit answers for each exercise
@@ -95,8 +97,8 @@ public class BreakingChangeIntegrationTest {
         Thread.sleep(2000);
 
         // Exercise 1 submission should be invalidated, exercise 2 should still be valid
-        List<StudentSubmission> exercise1Submissions = repository.findByExerciseIdInAndUserIdOrderByVersionDesc(List.of(exerciseBefore1.getId()), userId);
-        List<StudentSubmission> exercise2Submissions = repository.findByExerciseIdInAndUserIdOrderByVersionDesc(List.of(exerciseBefore2.getId()), userId);
+        List<StudentSubmission> exercise1Submissions = repository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List.of(exerciseBefore1.getId()), userId);
+        List<StudentSubmission> exercise2Submissions = repository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List.of(exerciseBefore2.getId()), userId);
 
         Assertions.assertThat(exercise1Submissions).size().isEqualTo(1);
         Assertions.assertThat(exercise2Submissions).size().isEqualTo(1);

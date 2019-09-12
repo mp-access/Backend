@@ -30,7 +30,7 @@ public class AdminSubmissionService {
 
         Map<User, List<StudentSubmission>> submissionsByStudent = new HashMap<>();
         for (User student : students) {
-            List<StudentSubmission> studentSubmissionsForAssignment = submissionService.findLatestSubmissionsByAssignment(assignment, student.getId());
+            List<StudentSubmission> studentSubmissionsForAssignment = submissionService.findLatestGradedSubmissionsByAssignment(assignment, student.getId());
             submissionsByStudent.put(student, studentSubmissionsForAssignment);
         }
 

@@ -273,7 +273,7 @@ public class StudentSubmissionServiceTest {
         service.initSubmission(codeSubmission2);
         codeSubmission3 = service.initSubmission(codeSubmission3);
 
-        List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestSubmissionsByAssignment(assignment, userId);
+        List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestGradedSubmissionsByAssignment(assignment, userId);
         List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
         Set<String> latestSubmissionsForAssignment = Set.of(codeSubmission3.getId(), answer2.getId(), answer3.getId());
 
