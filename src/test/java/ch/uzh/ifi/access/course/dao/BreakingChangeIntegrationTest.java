@@ -72,11 +72,13 @@ public class BreakingChangeIntegrationTest {
         submission1.setUserId(userId);
         submission1.setExerciseId(exerciseBefore1.getId());
         submission1.setCommitId(exerciseBefore1.getGitHash());
+        submission1.setGraded(true);
 
         CodeSubmission submission2 = new CodeSubmission();
         submission2.setUserId(userId);
         submission2.setExerciseId(exerciseBefore2.getId());
         submission2.setCommitId(exerciseBefore2.getGitHash());
+        submission2.setGraded(true);
 
         // Begin actual test
         // Submit answers for each exercise

@@ -68,10 +68,15 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         // Explicitly set user ids for test
         final String userId = "userId-1";
         codeSubmission1.setUserId(userId);
+        codeSubmission1.setGraded(true);
         answer2.setUserId(userId);
+        answer2.setGraded(true);
         answer3.setUserId(userId);
+        answer3.setGraded(true);
         codeSubmission2.setUserId(userId);
+        codeSubmission2.setGraded(true);
         codeSubmission3.setUserId(userId);
+        codeSubmission3.setGraded(true);
 
         mongoTemplate.save(codeSubmission1);
         answer2 = mongoTemplate.save(answer2);
