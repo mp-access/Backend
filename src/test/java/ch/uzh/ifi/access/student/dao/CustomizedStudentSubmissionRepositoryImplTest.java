@@ -58,6 +58,7 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
         CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
         CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+        CodeSubmission codeSubmission4 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
 
         // Submit once for exercise 2
         TextSubmission answer2 = TestObjectFactory.createTextAnswerWithExercise(exercise2.getId());
@@ -77,6 +78,8 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         codeSubmission2.setGraded(true);
         codeSubmission3.setUserId(userId);
         codeSubmission3.setGraded(true);
+        codeSubmission4.setUserId(userId);
+        codeSubmission4.setGraded(false);
 
         mongoTemplate.save(codeSubmission1);
         answer2 = mongoTemplate.save(answer2);
@@ -85,6 +88,8 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         codeSubmission2 = mongoTemplate.save(codeSubmission2);
         codeSubmission3.setVersion(codeSubmission2.getVersion() + 1);
         codeSubmission3 = mongoTemplate.save(codeSubmission3);
+        codeSubmission4.setVersion(codeSubmission3.getVersion() + 1);
+        codeSubmission4 = mongoTemplate.save(codeSubmission4);
 
 
         List<StudentSubmission> latestSubmissionsByAssignment = repository
@@ -97,6 +102,8 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         Assertions.assertThat(Set.copyOf(ids))
                 .withFailMessage("Submissions should include one submission for each exercise and should include following versions: " + latestSubmissionsByAssignment.toString())
                 .isEqualTo(latestSubmissionsForAssignment);
+
+        Assertions.assertThat(ids).doesNotContain(codeSubmission4.getId());
     }
 
     @Test
