@@ -40,8 +40,8 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
      * @return list of the most recent user submissions for the given exercises
      */
     @Override
-    public List<StudentSubmission> findByExerciseIdInAndUserIdOrderByVersionDesc(List<String> exerciseIds, String userId) {
-        Criteria criteria = Criteria.where("exerciseId").in(exerciseIds).and("userId").is(userId);
+    public List<StudentSubmission> findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List<String> exerciseIds, String userId) {
+        Criteria criteria = Criteria.where("exerciseId").in(exerciseIds).and("userId").is(userId).and("isGraded").is(true);
         MatchOperation matchByExerciseIdAndUserId = Aggregation.match(criteria);
 
         SortOperation sortByVersionDesc = Aggregation.sort(new Sort(Sort.Direction.DESC, "version"));
