@@ -49,7 +49,7 @@ public class CourseServiceTest {
 
         when(dao.selectCourseById(any())).thenReturn(Optional.of(course));
 
-        CourseService service = new CourseService(dao);
+        CourseService service = new CourseService(dao, null);
         var optResult = service.getExercisesByCourseAndAssignmentId(course.getId(), a1.getId());
 
         assertThat(optResult.isPresent()).isTrue();
@@ -77,7 +77,7 @@ public class CourseServiceTest {
 
         CourseAuthentication student = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createStudentAccess(course.getId())));
 
-        CourseService courseService = new CourseService(dao);
+        CourseService courseService = new CourseService(dao, null);
 
         Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), student);
         Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), student);
@@ -113,7 +113,7 @@ public class CourseServiceTest {
 
         CourseAuthentication student = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createStudentAccess(course.getId())));
 
-        CourseService courseService = new CourseService(dao);
+        CourseService courseService = new CourseService(dao, null);
 
         Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), student);
         Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), student);
@@ -148,7 +148,7 @@ public class CourseServiceTest {
 
         CourseAuthentication admin = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAdminAccess(course.getId())));
 
-        CourseService courseService = new CourseService(dao);
+        CourseService courseService = new CourseService(dao, null);
 
         Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), admin);
         Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), admin);
