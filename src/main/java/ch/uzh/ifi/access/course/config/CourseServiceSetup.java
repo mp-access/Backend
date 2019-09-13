@@ -41,6 +41,13 @@ public class CourseServiceSetup {
         courses.forEach(keycloakClient::enrollUsersInCourse);
     }
 
+    @Retryable(
+            backoff = @Backoff(delay = 30000)
+    )
+    public void initializedCourseParticipants(Course course) {
+        keycloakClient.enrollUsersInCourse(course);
+    }
+
     @SuppressWarnings("unused")
     @Recover
     void logFailedAttemptToInitializeParticipants() {

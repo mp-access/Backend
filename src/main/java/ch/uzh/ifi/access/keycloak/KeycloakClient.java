@@ -165,6 +165,7 @@ public class KeycloakClient {
     }
 
     public static Keycloak keycloak(SecurityProperties securityProperties) {
+        ResteasyClientBuilder builder = new ResteasyClientBuilder().connectionPoolSize(10).disableTrustManager();
         return KeycloakBuilder.builder()
                 .serverUrl(securityProperties.getAuthServer())
                 .realm("master")
@@ -172,7 +173,7 @@ public class KeycloakClient {
                 .password(securityProperties.getKeycloakApiPassword())
                 .clientId(ADMIN_CLIENT_ID)
                 .resteasyClient(
-                        new ResteasyClientBuilder().connectionPoolSize(10).build()
+                        builder.build()
                 ).build();
     }
 }
