@@ -146,7 +146,11 @@ public class KeycloakClient {
 
         Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
         if (!smtpConfig.isEmpty()) {
-            userResource.executeActionsEmail("access-frontend", securityProperties.getAuthServer(), emailActionsAfterCreation);
+            try {
+                userResource.executeActionsEmail(emailActionsAfterCreation);
+            } catch (Exception e) {
+                logger.error("Failed to send email", e);
+            }
         } else {
             logger.warn("No SMTP server configured. Cannot send out verification emails.");
         }
