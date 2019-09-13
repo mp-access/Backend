@@ -24,8 +24,12 @@ ext {
 dependencies {
     compile 'org.scala-lang:scala-library:2.11.8'
 
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9'
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
+    // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.28'
+
+
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.9'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.8'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-configuration-processor'
@@ -98,6 +102,9 @@ jar {
     manifest {
         attributes 'Main-Class': 'ch.uzh.ifi.access.localtester.LocalTester'
     }
-    archivesBaseName = "LocalACCESSTester"
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    archivesBaseName = "ACCESSTester"
     enabled = true
 }

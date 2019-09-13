@@ -8,10 +8,13 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class AssignmentConfig implements HasPublishingDate {
     protected String title;
     protected String description;
     protected LocalDateTime publishDate;
     protected LocalDateTime dueDate;
+
+    public AssignmentConfig(){
+        this.description = "";
+    }
 }
