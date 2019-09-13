@@ -9,6 +9,11 @@ import java.util.List;
 
 public class LocalTester {
     public static void main(String[] args){
+        if(args.length <= 0){
+            System.out.println("ERROR: To few arguments. You gave " + args.length + ". Please provide path to local repository!");
+            return;
+        }
+
         List<File> repos = new ArrayList<>();
         for(String s : args){
             File folder = new File(s);
@@ -16,6 +21,7 @@ public class LocalTester {
                 repos.add(folder);
             }else{
                 System.out.println("ERROR: The folder \"" + folder.getName() + "\" was not found!");
+                return;
             }
         }
         List<Course> courses = RepoCacher.retrieveCourseData(repos);

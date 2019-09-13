@@ -93,3 +93,11 @@ gatling {
 //        include "**/CodeExecutionSimulation.scala"
     }
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ch.uzh.ifi.access.localtester.LocalTester'
+    }
+    archivesBaseName = "LocalACCESSTester"
+    enabled = true
+}

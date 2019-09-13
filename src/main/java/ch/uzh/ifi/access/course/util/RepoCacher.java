@@ -101,8 +101,9 @@ public class RepoCacher {
         LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
         javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
 
-        mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(javaTimeModule);
+        mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
         mapper.registerModule(javaTimeModule);
     }
 
