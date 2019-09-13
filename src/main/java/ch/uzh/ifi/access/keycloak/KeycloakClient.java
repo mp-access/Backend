@@ -40,15 +40,19 @@ public class KeycloakClient {
 
     private final CourseServiceSetup.CourseProperties courseProperties;
 
+    private final SecurityProperties securityProperties;
+
     @Autowired
     public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
+        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(DEFAULT_REALM);
     }
 
     public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
+        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
     }
@@ -142,7 +146,7 @@ public class KeycloakClient {
 
         Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
         if (!smtpConfig.isEmpty()) {
-            userResource.executeActionsEmail(emailActionsAfterCreation);
+            userResource.executeActionsEmail("access-frontend", securityProperties.getAuthServer(), emailActionsAfterCreation);
         } else {
             logger.warn("No SMTP server configured. Cannot send out verification emails.");
         }
