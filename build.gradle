@@ -98,7 +98,7 @@ gatling {
     }
 }
 
-jar {
+task customFatJar(type: Jar) {
     manifest {
         attributes 'Main-Class': 'ch.uzh.ifi.access.localtester.LocalTester'
     }
