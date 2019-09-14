@@ -44,6 +44,11 @@ public class KeycloakClient {
     public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
+
+        logger.info("Keycloak instance info:");
+        logger.info("Auth server: " + securityProperties.getAuthServer());
+        logger.info("Realm: " + securityProperties.getRealm());
+
         realmResource = keycloak.realm(securityProperties.getRealm());
     }
 
