@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,12 +14,14 @@ import java.util.List;
 import java.util.Optional;
 
 @Data
+@ToString(callSuper=true)
 @EqualsAndHashCode(callSuper = true)
 public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment> {
     private final String id;
     private int index;
 
     @JsonIgnore
+    @ToString.Exclude
     private Course course;
 
     private List<Exercise> exercises;

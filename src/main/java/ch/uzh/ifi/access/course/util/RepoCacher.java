@@ -67,6 +67,26 @@ public class RepoCacher {
         return courses;
     }
 
+    public static List<Course> retrieveCourseData(List<File> repos) {
+        initializeMapper();
+
+        List<Course> courses = new ArrayList<>();
+        for (File repo : repos) {
+            try {
+                RepoCacher cacher = new RepoCacher();
+                Course course = new Course(repo.getName());
+                course.setGitHash("ThisIsARealHash");
+                course.setDirectory(repo.getAbsolutePath());
+
+                cacher.cacheRepo(repo, course);
+                courses.add(course);
+            } catch (Exception e) {
+                logger.error(String.format("Failed to cache repository: %s", repo.getName()), e);
+            }
+        }
+        return courses;
+    }
+
     private static void initializeMapper() {
         DateTimeFormatter fmt = new DateTimeFormatterBuilder()
                 .appendPattern("yyyy-MM-dd")
@@ -81,8 +101,10 @@ public class RepoCacher {
         LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
         javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
 
-        mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(javaTimeModule);
+        mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+
         mapper.registerModule(javaTimeModule);
     }
 
@@ -181,7 +203,8 @@ public class RepoCacher {
                 .replace("https://github.com/", "")
                 .replace("git@gitlab.com:", "")
                 .replace("https://gitlab.com:", "")
-                .replace(".git", "");
+                .replace(".git", "")
+                .replace(":", "_");
     }
 
     private static String loadFilesFromGit(String url) throws Exception {

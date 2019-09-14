@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -8,6 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class ExerciseConfig {
+    @JsonProperty(required=true)
     protected ExerciseType type;
     protected String language;
     protected Boolean isGraded;

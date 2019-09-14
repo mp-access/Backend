@@ -9,7 +9,6 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class CourseConfig {
     protected String title;
     protected String description;
@@ -19,4 +18,9 @@ public class CourseConfig {
 
     protected List<String> assistants = List.of();
     protected List<String> students = List.of();
+
+    public CourseConfig(){
+        this.description = "";
+        this.owner = "";
+    }
 }
