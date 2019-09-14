@@ -40,19 +40,15 @@ public class KeycloakClient {
 
     private final CourseServiceSetup.CourseProperties courseProperties;
 
-    private final SecurityProperties securityProperties;
-
     @Autowired
     public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
-        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
-        realmResource = keycloak.realm(DEFAULT_REALM);
+        realmResource = keycloak.realm(securityProperties.getRealm());
     }
 
     public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
-        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
     }

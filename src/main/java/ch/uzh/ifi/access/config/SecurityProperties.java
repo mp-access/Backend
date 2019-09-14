@@ -29,11 +29,11 @@ public class SecurityProperties {
 
     private String authorizationEndpoint;
 
-    @Value("${KEYCLOAK_USER:admin}")
     private String keycloakApiAdmin = "admin";
 
-    @Value("${KEYCLOAK_PASSWORD:admin}")
     private String keycloakApiPassword = "admin";
+
+    private String realm = "dev";
 
     public CorsConfiguration getCorsConfiguration() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
