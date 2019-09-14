@@ -133,8 +133,8 @@ public class CodeRunner {
         String stdErr = readStdErr(containerId);
 
         if (didTimeout) {
-            console = String.format("%s\nTimeout. Your submission took too long too complete (max execution time %s seconds)", console, unit.toSeconds(timeout));
-            stdErr = String.format("%s\nTimeout. Your submission took too long too complete (max execution time %s seconds)", stdErr, unit.toSeconds(timeout));
+            console = String.format("%s\nTimeout. Your submission took too long to complete (max execution time %s seconds)", console, unit.toSeconds(timeout));
+            stdErr = String.format("%s\nTimeout. Your submission took too long to complete (max execution time %s seconds)", stdErr, unit.toSeconds(timeout));
         }
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
