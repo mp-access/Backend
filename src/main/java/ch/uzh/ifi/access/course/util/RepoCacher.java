@@ -104,6 +104,7 @@ public class RepoCacher {
         mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+
         mapper.registerModule(javaTimeModule);
     }
 
@@ -202,7 +203,8 @@ public class RepoCacher {
                 .replace("https://github.com/", "")
                 .replace("git@gitlab.com:", "")
                 .replace("https://gitlab.com:", "")
-                .replace(".git", "");
+                .replace(".git", "")
+                .replace(":", "_");
     }
 
     private static String loadFilesFromGit(String url) throws Exception {
