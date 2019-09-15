@@ -65,7 +65,12 @@ public class DevSecurityConfigurer extends WebSecurityConfigurerAdapter {
             boolean isAdmin = Boolean.parseBoolean(admin);
             boolean isStudent = !isAdmin;
             GrantedCourseAccess access = new GrantedCourseAccess(Optional.ofNullable(courseId).orElse(""), isStudent, isAdmin);
-            return new CourseAuthentication(request, auth, Set.of(access), "");
+            return new CourseAuthentication(request, auth, Set.of(access), "") {
+                @Override
+                public boolean hasAccess(String courseId) {
+                    return true;
+                }
+            };
         }
 
         @Override

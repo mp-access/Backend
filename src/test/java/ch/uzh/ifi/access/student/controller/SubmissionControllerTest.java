@@ -17,7 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,9 +31,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
@@ -85,16 +88,17 @@ public class SubmissionControllerTest {
         Exercise exercise = assignment.getExercises().get(0);
         exerciseIdAlreadyPublished = exercise.getId();
         assignment.setPublishDate(LocalDateTime.now().minusDays(1));
-        Mockito.when(courseDAO.selectExerciseById(exerciseIdAlreadyPublished)).thenReturn(Optional.of(exercise));
+        assignment.setDueDate(LocalDateTime.now().plusDays(7));
+        when(courseDAO.selectExerciseById(exerciseIdAlreadyPublished)).thenReturn(Optional.of(exercise));
 
         assignment = TestObjectFactory.createAssignment("asdf");
         exercise = TestObjectFactory.createCodeExercise("adfsf");
         assignment.addExercise(exercise);
         course.addAssignment(assignment);
         assignment.setPublishDate(LocalDateTime.now().plusDays(1));
+        assignment.setDueDate(LocalDateTime.now().plusDays(7));
         exerciseIdNotYetPublished = exercise.getId();
-        Mockito.when(courseDAO.selectExerciseById(exerciseIdNotYetPublished)).thenReturn(Optional.of(exercise));
-
+        when(courseDAO.selectExerciseById(exerciseIdNotYetPublished)).thenReturn(Optional.of(exercise));
 
         studentAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createStudentAccess(course.getId())));
         adminAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAdminAccess(course.getId())));
