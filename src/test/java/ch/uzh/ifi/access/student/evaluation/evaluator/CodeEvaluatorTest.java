@@ -165,7 +165,7 @@ public class CodeEvaluatorTest {
     }
 
     @Test
-    public void outOfMemory_HasEmptyEvalLog() {
+    public void outOfMemoryHasEmptyEvalLog() {
         ExecResult console = new ExecResult();
         console.setEvalLog("");
 
