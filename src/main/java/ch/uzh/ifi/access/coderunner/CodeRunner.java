@@ -27,7 +27,7 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
-    private static final int MAX_LOG_LENGTH = 1000;
+    private static final int MAX_LOG_LENGTH = 100000;
 
     private DockerClient docker;
 

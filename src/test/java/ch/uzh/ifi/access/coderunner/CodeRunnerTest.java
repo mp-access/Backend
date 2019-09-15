@@ -133,7 +133,7 @@ public class CodeRunnerTest {
         CodeRunner runner = new CodeRunner();
 
         String mainCode = "while True:\n" +
-                "    print('Lorem ipsum dolor sit amet, consectetur adipiscing elit.')\n";
+                "    x = 1+1\n";
 
         File main = createTempFileWithContent(mainCode, "/test.py");
 
@@ -155,6 +155,6 @@ public class CodeRunnerTest {
 
         RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), new CodeExecutionLimits(1, 1, 5 * 1000, false, false));
 
-        Assertions.assertThat(runResult.getConsole()).hasSize(1000);
+        Assertions.assertThat(runResult.getConsole()).hasSize(100000);
     }
 }
