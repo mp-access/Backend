@@ -40,9 +40,12 @@ public class KeycloakClient {
 
     private final CourseServiceSetup.CourseProperties courseProperties;
 
+    private final SecurityProperties securityProperties;
+
     @Autowired
     public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
+        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
 
         logger.info("Keycloak instance info:");
@@ -54,6 +57,7 @@ public class KeycloakClient {
 
     public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties) {
         this.courseProperties = courseProperties;
+        this.securityProperties = securityProperties;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
     }
@@ -85,13 +89,15 @@ public class KeycloakClient {
     private Group removeIfExistsAndCreateGroup(final String courseId, String title) {
         try {
             GroupRepresentation groupRepresentation = realmResource.getGroupByPath(courseId);
-            logger.info(String.format("Found existing group: %s.\nRemoving it and creating it anew", groupRepresentation.getName()));
+            logger.info("Found existing group for course '{}': {}. Removing it and creating it anew", title, groupRepresentation.getName());
             realmResource.groups().group(groupRepresentation.getId()).remove();
         } catch (NotFoundException e) {
             logger.debug("Did not find any groups. Creating new group...", e);
         }
 
-        return Group.create(courseId, title, realmResource.groups());
+        Group group = Group.create(courseId, title, realmResource.groups());
+        logger.info("Created group for course '{}': {}", title, group.getName());
+        return group;
     }
 
     Users getUsersIfExistOrCreateUsers(List<String> emailAddresses) {
@@ -148,8 +154,7 @@ public class KeycloakClient {
         Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
         if (!smtpConfig.isEmpty()) {
             try {
-//                userResource.executeActionsEmail(emailActionsAfterCreation);
-                userResource.executeActionsEmail("access-frontend", "http://localhost:3000", emailActionsAfterCreation);
+                userResource.executeActionsEmail(securityProperties.getFrontendClientId(), securityProperties.getRedirectUriAfterActions(), emailActionsAfterCreation);
             } catch (Exception e) {
                 logger.error("Failed to send email", e);
             }
