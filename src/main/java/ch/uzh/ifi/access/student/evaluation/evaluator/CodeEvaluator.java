@@ -62,7 +62,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         int points = 0;
         int nrOfTest = -1;
 
-        if (log != null && !log.isEmpty()) {
+        if (log != null && !log.trim().isEmpty()) {
             List<String> lines = Arrays.asList(log.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
