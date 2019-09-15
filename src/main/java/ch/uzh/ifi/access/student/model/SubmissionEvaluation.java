@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,6 +31,10 @@ public class SubmissionEvaluation {
 
     public double getScore() {
         return Math.round((points.getCorrect() / (double) points.getMax() * maxScore) * 4) / 4d;
+    }
+
+    public List<String> getHints() {
+        return hints != null && hints.size() > 1 ? Arrays.asList(hints.get(0)) : hints;
     }
 
     @Data

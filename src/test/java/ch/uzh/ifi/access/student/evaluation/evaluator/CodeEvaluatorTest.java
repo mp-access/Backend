@@ -160,7 +160,7 @@ public class CodeEvaluatorTest {
         SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
 
         Assert.assertEquals(5, grade.getPoints().getCorrect());
-        Assert.assertEquals(2, grade.getHints().size());
+        Assert.assertEquals(1, grade.getHints().size());
         Assert.assertTrue("Contains given hint.", grade.getHints().contains("Zweiter Hinweis"));
     }
 }
