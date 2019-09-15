@@ -29,6 +29,9 @@ public class SubmissionEvaluation {
     }
 
     public double getScore() {
+        if(points.getMax() == 0){
+            return 0.0;
+        }
         return Math.round((points.getCorrect() / (double) points.getMax() * maxScore) * 4) / 4d;
     }
 
