@@ -27,6 +27,8 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
+    private static final int MAX_LOG_LENGTH = 1000;
+
     private DockerClient docker;
 
     private ExecutorService executionTimeoutWatchdog = Executors.newCachedThreadPool();
@@ -146,6 +148,23 @@ public class CodeRunner {
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
+
+
+        if (console != null && console.length() > MAX_LOG_LENGTH) {
+            logger.warn(String.format("Trim console log (keep beginning) to max length of %s for execution: %s", MAX_LOG_LENGTH, folderPath));
+            console = console.substring(0, MAX_LOG_LENGTH);
+        }
+
+        if (stdOut != null && stdOut.length() > MAX_LOG_LENGTH) {
+            logger.warn(String.format("Trim stdOut log (keep beginning) to max length of %s for execution: %s", MAX_LOG_LENGTH, folderPath));
+            stdOut = stdOut.substring(0, MAX_LOG_LENGTH);
+        }
+
+        if (stdErr != null && stdErr.length() > MAX_LOG_LENGTH) {
+            logger.warn(String.format("Trim stdErr log (keep end) to max length of %s for execution: %s", MAX_LOG_LENGTH, folderPath));
+            stdOut = stdOut.substring(stdErr.length() - MAX_LOG_LENGTH);
+        }
+
 
         return new RunResult(console, stdOut, stdErr, executionTime, didTimeout, isOomKilled);
     }
