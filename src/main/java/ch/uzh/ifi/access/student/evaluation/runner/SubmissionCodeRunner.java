@@ -83,12 +83,21 @@ public class SubmissionCodeRunner {
     }
 
     private ExecResult mapSubmissionToExecResult(RunResult runResult) {
-        int indexOfDelimiterStdOut = runResult.getConsole().lastIndexOf(DELIMITER);
-        int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
 
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
-            final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
+
+            String trimmedConsoleOutput = "";
+            if(runResult.getConsole() != null && !runResult.getConsole().trim().isEmpty()){
+                int indexOfDelimiterStdOut = runResult.getConsole().contains(DELIMITER) ?   runResult.getConsole().lastIndexOf(DELIMITER): runResult.getConsole().length();
+                trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
+            }
+
+            String trimmedTestOutput ="";
+            if(runResult.getStdErr() != null && !runResult.getStdErr().trim().isEmpty()){
+                int indexOfDelimiterStdErr = runResult.getStdErr().contains(DELIMITER) ? runResult.getStdErr().lastIndexOf(DELIMITER): 0;
+                trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
+            }
+
             return new ExecResult(trimmedConsoleOutput, "", trimmedTestOutput);
         }
 
@@ -96,12 +105,21 @@ public class SubmissionCodeRunner {
     }
 
     private ExecResult mapSmokeToExecResult(RunResult runResult) {
-        int indexOfDelimiterConsole = runResult.getConsole().lastIndexOf(DELIMITER);
-        int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
 
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterConsole);
-            final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
+
+            String trimmedConsoleOutput = "";
+            if(runResult.getConsole() != null && !runResult.getConsole().trim().isEmpty()){
+                int indexOfDelimiterConsole = runResult.getConsole().contains(DELIMITER) ? runResult.getConsole().lastIndexOf(DELIMITER): runResult.getConsole().length();
+                trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterConsole);
+            }
+
+            String trimmedTestOutput = "";
+            if(runResult.getStdErr() != null && !runResult.getStdErr().trim().isEmpty()){
+                int indexOfDelimiterStdErr = runResult.getStdErr().contains(DELIMITER) ? runResult.getStdErr().lastIndexOf(DELIMITER): 0;
+                trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
+            }
+
             return new ExecResult(trimmedConsoleOutput, trimmedTestOutput, "");
         }
 
