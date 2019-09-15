@@ -85,15 +85,13 @@ public class KeycloakClient {
     private Group removeIfExistsAndCreateGroup(final String courseId, String title) {
         try {
             GroupRepresentation groupRepresentation = realmResource.getGroupByPath(courseId);
-            logger.info("Found existing group for course '{}': {}. Removing it and creating it anew", title, groupRepresentation.getName());
+            logger.info(String.format("Found existing group: %s.\nRemoving it and creating it anew", groupRepresentation.getName()));
             realmResource.groups().group(groupRepresentation.getId()).remove();
         } catch (NotFoundException e) {
             logger.debug("Did not find any groups. Creating new group...", e);
         }
 
-        Group group = Group.create(courseId, title, realmResource.groups());
-        logger.info("Created group for course '{}': {}", title, group.getName());
-        return group;
+        return Group.create(courseId, title, realmResource.groups());
     }
 
     Users getUsersIfExistOrCreateUsers(List<String> emailAddresses) {
@@ -150,7 +148,8 @@ public class KeycloakClient {
         Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
         if (!smtpConfig.isEmpty()) {
             try {
-                userResource.executeActionsEmail(emailActionsAfterCreation);
+//                userResource.executeActionsEmail(emailActionsAfterCreation);
+                userResource.executeActionsEmail("access-frontend", "http://localhost:3000", emailActionsAfterCreation);
             } catch (Exception e) {
                 logger.error("Failed to send email", e);
             }
