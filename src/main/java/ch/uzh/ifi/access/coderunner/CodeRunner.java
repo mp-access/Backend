@@ -27,6 +27,8 @@ public class CodeRunner {
 
     private static final String DOCKER_CODE_FOLDER = "/usr/src/";
 
+    private static final int MAX_LOG_LENGTH = 100000;
+
     private DockerClient docker;
 
     private ExecutorService executionTimeoutWatchdog = Executors.newCachedThreadPool();
@@ -133,19 +135,36 @@ public class CodeRunner {
         String stdErr = readStdErr(containerId);
 
         if (isOomKilled) {
-            console = String.format("%s\nOut of Memory. Submission run terminated.", console, unit.toSeconds(timeout));
-            stdErr = String.format("%s\nOut of Memory. Submission run terminated.", stdErr, unit.toSeconds(timeout));
+            console = String.format("Out of Memory. Submission run terminated.");
+            stdErr = String.format("Out of Memory. Submission run terminated.");
         }
 
         if (didTimeout) {
-            console = String.format("%s\nTimeout. Submission run terminated, took too long to complete.", console, unit.toSeconds(timeout));
-            stdErr = String.format("%s\nTimeout. Submission run terminated, took too long to complete.", stdErr, unit.toSeconds(timeout));
+            console = String.format("Timeout. Submission run terminated, took too long (over %s ms) to complete.", timeout);
+            stdErr = String.format("Timeout. Submission run terminated, took too long (over %s ms) to complete.", timeout);
         }
 
         long endExecutionTime = System.nanoTime();
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
+
+
+        if (console != null && console.length() > MAX_LOG_LENGTH) {
+            logger.warn(String.format("Trim console log (keep beginning) to max length of %s for execution: %s", MAX_LOG_LENGTH, folderPath));
+            console = console.substring(0, MAX_LOG_LENGTH);
+        }
+
+        if (stdOut != null && stdOut.length() > MAX_LOG_LENGTH) {
+            logger.warn(String.format("Trim stdOut log (keep beginning) to max length of %s for execution: %s", MAX_LOG_LENGTH, folderPath));
+            stdOut = stdOut.substring(0, MAX_LOG_LENGTH);
+        }
+
+        if (stdErr != null && stdErr.length() > MAX_LOG_LENGTH) {
+            logger.warn(String.format("Trim stdErr log (keep end) to max length of %s for execution: %s", MAX_LOG_LENGTH, folderPath));
+            stdOut = stdOut.substring(stdErr.length() - MAX_LOG_LENGTH);
+        }
+
 
         return new RunResult(console, stdOut, stdErr, executionTime, didTimeout, isOomKilled);
     }
