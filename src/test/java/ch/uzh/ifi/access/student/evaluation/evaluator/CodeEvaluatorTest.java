@@ -163,4 +163,37 @@ public class CodeEvaluatorTest {
         Assert.assertEquals(2, grade.getHints().size());
         Assert.assertTrue("Contains given hint.", grade.getHints().contains("Zweiter Hinweis"));
     }
+
+    @Test
+    public void outOfMemory_HasEmptyEvalLog() {
+        ExecResult console = new ExecResult();
+        console.setEvalLog("");
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .exerciseId(exercise.getId())
+                .console(console)
+                .build();
+
+        SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
+
+        Assert.assertEquals(0, grade.getPoints().getCorrect());
+        Assert.assertEquals(exercise.getMaxScore(), grade.getMaxScore());
+    }
+
+    @Test
+    public void nonsenseLog() {
+        ExecResult console = new ExecResult();
+        console.setEvalLog("asdfklajd blkasjd falsdjf  \n aljöflkjsd fasdf \n asdfjkl adsflkja sdf");
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .exerciseId(exercise.getId())
+                .console(console)
+                .build();
+
+        SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
+
+        Assert.assertEquals(0, grade.getPoints().getCorrect());
+        Assert.assertEquals(0.0, grade.getScore(), 0.1);
+        Assert.assertEquals(0, grade.getHints().size());
+    }
 }
