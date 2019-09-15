@@ -86,21 +86,25 @@ public class SubmissionCodeRunner {
         int indexOfDelimiterStdOut = runResult.getConsole().lastIndexOf(DELIMITER);
         int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
 
-        final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
-        final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
+        if (!runResult.isTimeout() && !runResult.isOomKilled()) {
+            final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
+            final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
+            return new ExecResult(trimmedConsoleOutput, "", trimmedTestOutput);
+        }
 
-        return new ExecResult(trimmedConsoleOutput, "", trimmedTestOutput);
+        return new ExecResult(runResult.getConsole(), "", "");
     }
 
     private ExecResult mapSmokeToExecResult(RunResult runResult) {
         int indexOfDelimiterConsole = runResult.getConsole().lastIndexOf(DELIMITER);
         int indexOfDelimiterStdErr = runResult.getStdErr().lastIndexOf(DELIMITER);
 
-        if (!runResult.isTimeout()) {
+        if (!runResult.isTimeout() && !runResult.isOomKilled()) {
             final String trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterConsole);
             final String trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
             return new ExecResult(trimmedConsoleOutput, trimmedTestOutput, "");
         }
+
         return new ExecResult(runResult.getConsole(), runResult.getStdErr(), "");
     }
 
