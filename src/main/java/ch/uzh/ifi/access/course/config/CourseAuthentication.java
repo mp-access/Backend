@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.course.config;
 
-import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;

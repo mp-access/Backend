@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.controller;
 
 import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
+import ch.uzh.ifi.access.course.CheckCoursePermission;
 import ch.uzh.ifi.access.course.FilterByPublishingDate;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
@@ -13,6 +14,7 @@ import ch.uzh.ifi.access.student.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
@@ -38,6 +40,7 @@ public class CourseController {
         this.permissionEnforcer = permissionEnforcer;
     }
 
+    @CheckCoursePermission
     @FilterByPublishingDate
     @GetMapping
     public List<CourseMetadataDTO> getAllCourses() {
@@ -48,6 +51,7 @@ public class CourseController {
         return courses;
     }
 
+    @PreAuthorize("@coursePermissionEvaluator.hasAccessToCourse(authentication, #id)")
     @GetMapping(path = "{id}")
     public CourseMetadataDTO getCourseById(@PathVariable("id") String id) {
         return new CourseMetadataDTO(courseService
@@ -55,12 +59,14 @@ public class CourseController {
                 .orElseThrow(() -> new ResourceNotFoundException("No course found")));
     }
 
+    @PreAuthorize("@coursePermissionEvaluator.hasAccessToCourse(authentication, #id)")
     @GetMapping(path = "{id}/assignments")
     public List<AssignmentMetadataDTO> getAllAssignmentsByCourseId(@PathVariable("id") String id) {
         CourseMetadataDTO cd = getCourseById(id);
         return cd.getAssignments();
     }
 
+    @PreAuthorize("@coursePermissionEvaluator.hasAccessToCourse(authentication, #courseId)")
     @FilterByPublishingDate
     @GetMapping("/{courseId}/assignments/{assignmentId}")
     public ResponseEntity<AssignmentMetadataDTO> getAssignmentByCourseId(@PathVariable("courseId") String courseId, @PathVariable("assignmentId") String assignmentId, @ApiIgnore CourseAuthentication authentication) {

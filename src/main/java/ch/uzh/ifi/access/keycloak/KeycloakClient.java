@@ -85,13 +85,15 @@ public class KeycloakClient {
     private Group removeIfExistsAndCreateGroup(final String courseId, String title) {
         try {
             GroupRepresentation groupRepresentation = realmResource.getGroupByPath(courseId);
-            logger.info(String.format("Found existing group: %s.\nRemoving it and creating it anew", groupRepresentation.getName()));
+            logger.info("Found existing group for course '{}': {}. Removing it and creating it anew", title, groupRepresentation.getName());
             realmResource.groups().group(groupRepresentation.getId()).remove();
         } catch (NotFoundException e) {
             logger.debug("Did not find any groups. Creating new group...", e);
         }
 
-        return Group.create(courseId, title, realmResource.groups());
+        Group group = Group.create(courseId, title, realmResource.groups());
+        logger.info("Created group for course '{}': {}", title, group.getName());
+        return group;
     }
 
     Users getUsersIfExistOrCreateUsers(List<String> emailAddresses) {
