@@ -24,6 +24,18 @@ public class CoursePermissionEvaluator {
      * Evaluates if current logged in user has access to a course
      *
      * @param authentication contains the information to which course a user has access to
+     * @param courseId       course to access
+     * @return
+     * @see CourseAuthentication#getCourseAccesses()
+     */
+    public boolean hasAccessToCourse(CourseAuthentication authentication, String courseId) {
+        return authentication.hasAccess(courseId);
+    }
+
+    /**
+     * Evaluates if current logged in user has access to a course
+     *
+     * @param authentication contains the information to which course a user has access to
      * @param course         course to access
      * @return
      * @see CourseAuthentication#getCourseAccesses()
@@ -43,6 +55,7 @@ public class CoursePermissionEvaluator {
      */
     public boolean hasAccessToExercise(CourseAuthentication authentication, Exercise exercise) {
         Assignment assignment = exercise.getAssignment();
-        return assignment.isPublished() || authentication.hasAdminAccess(exercise.getCourseId());
+        String courseId = exercise.getCourseId();
+        return authentication.hasAccess(courseId) && (assignment.isPublished() || authentication.hasAdminAccess(courseId));
     }
 }

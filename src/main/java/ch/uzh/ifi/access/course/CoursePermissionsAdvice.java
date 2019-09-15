@@ -4,6 +4,7 @@ import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,19 @@ import java.util.Collection;
 public class CoursePermissionsAdvice {
 
     private static final Logger logger = LoggerFactory.getLogger(CoursePermissionsAdvice.class);
+
+    @AfterReturning(returning = "courses", pointcut = "@annotation(ch.uzh.ifi.access.course.CheckCoursePermission) && execution(java.util.List<ch.uzh.ifi.access.course.dto.CourseMetadataDTO> ch.uzh..*(..))")
+    public void filterByCoursePermission(Collection<CourseMetadataDTO> courses) {
+        logger.debug("filterByCoursePermission() advice");
+        if (courses != null) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            filterByCoursePermission(courses, (CourseAuthentication) authentication);
+        }
+    }
+
+    private void filterByCoursePermission(Collection<CourseMetadataDTO> courses, CourseAuthentication authentication) {
+        courses.removeIf(course -> !authentication.hasAccess(course.getId()));
+    }
 
     @AfterReturning(returning = "courses", pointcut = "@annotation(ch.uzh.ifi.access.course.FilterByPublishingDate) && execution(java.util.List<ch.uzh.ifi.access.course.dto.CourseMetadataDTO> ch.uzh..*(..))")
     public void filterByStartDate(Collection<CourseMetadataDTO> courses) {
@@ -41,5 +55,14 @@ public class CoursePermissionsAdvice {
                         });
             }
         });
+    }
+
+    @Before("@annotation(ch.uzh.ifi.access.course.CheckCoursePermission) && args(courseId)")
+    public void checkCoursePermission(String courseId) {
+        logger.debug("checkCoursePermission() advice");
+        if (courseId != null) {
+            CourseAuthentication authentication = (CourseAuthentication) SecurityContextHolder.getContext().getAuthentication();
+            authentication.hasAccess(courseId);
+        }
     }
 }

@@ -35,6 +35,10 @@ public class SecurityProperties {
 
     private String realm = "dev";
 
+    private String frontendClientId= "access-frontend";
+
+    private String redirectUriAfterActions = "localhost:3000";
+
     public CorsConfiguration getCorsConfiguration() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
         corsConfiguration.setAllowedMethods(cors.getAllowedMethods());

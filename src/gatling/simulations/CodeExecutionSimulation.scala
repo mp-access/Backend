@@ -1,4 +1,5 @@
 import io.gatling.core.Predef._
+import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
 import io.gatling.http.request.builder.HttpRequestBuilder.toActionBuilder
 
@@ -7,7 +8,7 @@ import scala.concurrent.duration._
 class CodeExecutionSimulation extends Simulation {
 
   val httpProtocol = http
-    .baseUrl("https://142.93.164.106")
+    .baseUrl("https://info1-exercises.ifi.uzh.ch")
     .inferHtmlResources()
     .acceptHeader("*/*")
     .acceptEncodingHeader("gzip, deflate")
@@ -26,7 +27,7 @@ class CodeExecutionSimulation extends Simulation {
 
   val headers_5 = Map("Accept" -> "application/json")
 
-  val bearerToken = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJoS244M2ptd2pnNEtVLVpDZlRnbTVTaC0wS05IdHBTSTdDbTZWdXRfUk40In0.eyJqdGkiOiIxZDEzMTdiNi04ZjIzLTRmMTQtYTQ0Ny04ZjY5NWM5NmYwNmYiLCJleHAiOjE1NjgwODIyMDEsIm5iZiI6MCwiaWF0IjoxNTY4MDQ2ODAwLCJpc3MiOiJodHRwczovLzE0Mi45My4xNjQuMTA2L2F1dGgvcmVhbG1zL2RldiIsImF1ZCI6WyJjb3Vyc2Utc2VydmljZSIsImFjY291bnQiXSwic3ViIjoiYjIyOTg0MjMtNGMxMi00MjZlLTg3ZmItNmNmMWM1MGE0OGU4IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiYWNjZXNzLWZyb250ZW5kIiwibm9uY2UiOiIyY2U0MzVhMy1lZGViLTQwMzktODQ4NS01MzFjYzRhYTQ2NWIiLCJhdXRoX3RpbWUiOjE1NjgwNDYyMDEsInNlc3Npb25fc3RhdGUiOiIxOTgxYzM0Yi01NjRhLTQ0MGYtYTUyNS0xMmQ1YWE5OTZmMjUiLCJhY3IiOiIwIiwiYWxsb3dlZC1vcmlnaW5zIjpbIjE0Mi45My4xNjQuMTA2LyoiLCJodHRwOi8vbG9jYWxob3N0OjMwMDAiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBlbWFpbCBwcm9maWxlIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJncm91cHMiOlsiL0luZm9ybWF0aWNzIDEvc3R1ZGVudHMiLCIvSW5mb3JtYXRpY3MgMi9zdHVkZW50cyIsIi9Ob24tVGVjaG5pY2FsIFB5dGhvbiBJbnRyb2R1Y3Rpb24vc3R1ZGVudHMiXSwicHJlZmVycmVkX3VzZXJuYW1lIjoiam9oYW5uLnNjaG9wQHV6aC5jaCIsImVtYWlsIjoiam9oYW5uLnNjaG9wQHV6aC5jaCJ9.NDJ9j-hRmxm1szN_aaL2CZNavHpCYjfUeNpD6Otf18iWjAYjZWukESwjTL7OB881Hj97ZAFNExT2WE3XK2IgoLszYn429KIquu-wyGr_T79uwqYA5Io-OyBUYP2ypH_-aLtuYJfIL6__kEPk8Hv6Mh8bkU9WlUdeWGyeUaC_ul1Pq9EVIu5uB-Uc-B3aoCdV40PRtXQWPiIhpdip5ZcBiioXI-48_E-8yVBBDcFDuAaSbCo3qhfjeqtchCRK4hO9NA27KjNXuV1SU-TCMuAQOnLfSnLLEKV4qkhR_1I6r1tFOf6ovHvX4K--fhJxW1py2ZCiigrZuwA5FLHQbZh_Hg"
+  val bearerToken = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJXZUZPRHh2N3RtMUhFQk9oWXFrN09NanhSMWxJTnd2djZrNTc2SldNbm5ZIn0.eyJqdGkiOiJlZDRiOTI1ZC1lYTEzLTRlMzItYjNmOS0zMjBjODdlNDQzZTkiLCJleHAiOjE1Njg1ODgwMDAsIm5iZiI6MCwiaWF0IjoxNTY4NTUyMDAwLCJpc3MiOiJodHRwczovL2luZm8xLWV4ZXJjaXNlcy5pZmkudXpoLmNoL2F1dGgvcmVhbG1zL2FjY2VzcyIsImF1ZCI6WyJjb3Vyc2Utc2VydmljZSIsImFjY291bnQiXSwic3ViIjoiZGY1MzFhOWUtZDkwZi00NDMwLTk2MDAtOGM4ZGQyZDYwYzBhIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiYWNjZXNzLWZyb250ZW5kIiwibm9uY2UiOiJkYmZjODEzZC05YTgzLTQ2YTktOWFiYS1jYmQwOTc5N2VlMWYiLCJhdXRoX3RpbWUiOjE1Njg1NTIwMDAsInNlc3Npb25fc3RhdGUiOiIzOWQ1NDhmNC1kNTE1LTRhMjUtODE3Yy1kNjNkZjc1NmMyZmMiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImluZm8xLWV4ZXJjaXNlcy5pZmkudXpoLmNoLyoiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJncm91cHMiOlsiL2I3NWJlNzg2LWYxYzEtMzJkMy05OWZjLThhZjRmZjE1NWFkZS9JbmZvcm1hdGljcyAxIC0gc3R1ZGVudHMiLCIvZGM0NGZkM2YtMjIxMi0zMjVlLTkxMzktNzJmY2YxOWViNmIzL0luZm9ybWF0aWNzIDIgLSBzdHVkZW50cyIsIi9iMzkzYWFlNy0zMDEwLTNkMjgtYTI3Ni1lNDZjYWE5YTQzMDAvTm9uLVRlY2huaWNhbCBQeXRob24gSW50cm9kdWN0aW9uIC0gc3R1ZGVudHMiXSwicHJlZmVycmVkX3VzZXJuYW1lIjoiam9oYW5uLnNjaG9wQHV6aC5jaCIsImVtYWlsIjoiam9oYW5uLnNjaG9wQHV6aC5jaCJ9.VFWG1NnF7raGL65SjVdFGNGfTUE6yTsviAHk8ERILhe0xNShg3FtS9iaVS7zZLEuZ1p2z-uZHMQTMCGS--fA_lhLcRd9HzlnY7h3wTKy68G7PvzbpV-216_AcDv80DtqRDKiRauZlZ-6GPxMudcU9gY8kbmTOJM6IpoXAFDjdVxh3ZHSGg1pgTK6_EN7RpTZF_TTUUYYPY8OlCXIm8n-kcdQRuO73M8lKU8oGAAk0xaMV_gi6ubuBOY-EP_jgpMVkjHCxiLrJV-Yp_s8Orf5o5wuaMXU12RIgDZr6tE_lzc-BuZGuSj4-XeW1DrvnI4Yxgb9x0jkDkdIgBQGw2WHDQ"
   val headers_15 = Map(
     "Content-Type" -> "application/json",
     "authorization" -> s"Bearer ${bearerToken}")
@@ -39,41 +40,45 @@ class CodeExecutionSimulation extends Simulation {
 
   val headers_27 = Map(
     "Content-Type" -> "application/json",
-    "Origin" -> "https://142.93.164.106",
+    "Origin" -> "https://info1-exercises.ifi.uzh.ch",
     "authorization" -> s"Bearer ${bearerToken}")
 
   val uri1 = "http://detectportal.firefox.com/success.txt"
 
   val scn = scenario("RecordedSimulation")
-    .exec(http("POST submission")
-      .post("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
-      .headers(headers_27)
-      .body(RawFileBody("RecordedSimulation2_0027_request.txt"))
-      .check(jsonPath("$.evalId").saveAs("evalId"))
-      .check(status.is(200))
-    )
-  // remove polling from the test scenario
-      .pause(1)
-      .asLongAs(session => session.contains("evalId") && !session("submissionCompleted").asOption[String].getOrElse("").equals("ok")) {
-        exec(http("Poll for evaluation")
-          .get("/api/submissions/evals/${evalId}")
-          .headers(headers_27)
-          .check(bodyString.exists)
-          .check(jsonPath("$.status").saveAs("submissionCompleted")))
-          .pause(500 milliseconds )
-      }
+    .exec(getGroup("Execute code group",
+      exec(http("POST submission")
+        .post("/api/submissions/exercises/8e989eea-2a38-3147-a03f-d0c300f8c99d")
+        .headers(headers_27)
+        .body(RawFileBody("RecordedSimulation2_0027_request.txt"))
+        .check(status.is(200))
+        .check(jsonPath("$.evalId").saveAs("evalId"))
+      )
+        // remove polling from the test scenario
+        .pause(1)
+        .asLongAs(session => session.contains("evalId") && !session("submissionCompleted").asOption[String].getOrElse("").equals("ok")) {
+          exec(http("Poll for evaluation")
+            .get("/api/submissions/evals/${evalId}")
+            .headers(headers_27)
+            .check(bodyString.exists)
+            .check(status.is(200))
+            .check(jsonPath("$.status").saveAs("submissionCompleted")))
+            .pause(1000 milliseconds)
+        }
+    ))
 
+  private def getGroup(groupName: String, chain: ChainBuilder) = {
+    group(groupName)(chain)
+  }
 
-
-
-//    setUp(scn.inject(atOnceUsers(25))).protocols(httpProtocol)
+  //      setUp(scn.inject(atOnceUsers(25))).protocols(httpProtocol)
   setUp(
     scn.inject(
       atOnceUsers(25),
       rampUsers(100) during (10 seconds),
       nothingFor(10 seconds),
-      rampUsers(200) during (10 seconds),
-      nothingFor(25 seconds),
-      rampUsers(500) during (10 seconds)
+      rampUsers(300) during (10 seconds),
+//      nothingFor(25 seconds),
+//      rampUsers(400) during (10 seconds)
     ).protocols(httpProtocol))
 }

@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.dto;
 
+import ch.uzh.ifi.access.course.model.CodeExecutionLimits;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.model.VirtualFile;
@@ -32,6 +33,8 @@ public class ExerciseWithSolutionsDTO {
     private List<VirtualFile> resource_files = new ArrayList<>();
     private List<VirtualFile> public_files = new ArrayList<>();
 
+    private CodeExecutionLimits executionLimits;
+
     public ExerciseWithSolutionsDTO(Exercise exercise) {
         this.id = exercise.getId();
         this.assignmentId = exercise.getAssignmentId();
@@ -47,6 +50,7 @@ public class ExerciseWithSolutionsDTO {
         this.solution_files = exercise.getSolution_files();
         this.resource_files = exercise.getResource_files();
         this.public_files = exercise.getPublic_files();
+        this.executionLimits = exercise.getExecutionLimits();
     }
 
     public ExerciseWithSolutionsDTO() {
