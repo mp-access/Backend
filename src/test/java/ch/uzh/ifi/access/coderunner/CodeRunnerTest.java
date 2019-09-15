@@ -117,14 +117,15 @@ public class CodeRunnerTest {
 
         String mainCode = "some_array = []\n"+
                 "while True:\n" +
-                "    some_array.append(“hello”)\n";
+                "    some_array.append('Lorem ipsum dolor sit amet, consectetur adipiscing elit.')\n";
 
 
         File main = createTempFileWithContent(mainCode, "/test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), new CodeExecutionLimits(1, 1, 5 * 1000, false, false));
+        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), new CodeExecutionLimits(1, 1, 10 * 1000, false, false));
 
         Assertions.assertThat(runResult.isOomKilled()).isTrue();
+        Assertions.assertThat(runResult.getConsole()).startsWith("Out of Memory");
     }
 
     @Test
@@ -139,6 +140,7 @@ public class CodeRunnerTest {
         RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), new CodeExecutionLimits(64, 1, 1000, false, false));
 
         Assertions.assertThat(runResult.isTimeout()).isTrue();
+        Assertions.assertThat(runResult.getConsole()).startsWith("Timeout");
     }
 
     @Test

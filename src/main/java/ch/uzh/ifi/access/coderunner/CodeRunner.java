@@ -135,13 +135,13 @@ public class CodeRunner {
         String stdErr = readStdErr(containerId);
 
         if (isOomKilled) {
-            console = String.format("%s\nOut of Memory. Submission run terminated.", console, unit.toSeconds(timeout));
-            stdErr = String.format("%s\nOut of Memory. Submission run terminated.", stdErr, unit.toSeconds(timeout));
+            console = String.format("Out of Memory. Submission run terminated.");
+            stdErr = String.format("Out of Memory. Submission run terminated.");
         }
 
         if (didTimeout) {
-            console = String.format("%s\nTimeout. Submission run terminated, took too long to complete.", console, unit.toSeconds(timeout));
-            stdErr = String.format("%s\nTimeout. Submission run terminated, took too long to complete.", stdErr, unit.toSeconds(timeout));
+            console = String.format("Timeout. Submission run terminated, took too long (over %s ms) to complete.", timeout);
+            stdErr = String.format("Timeout. Submission run terminated, took too long (over %s ms) to complete.", timeout);
         }
 
         long endExecutionTime = System.nanoTime();
