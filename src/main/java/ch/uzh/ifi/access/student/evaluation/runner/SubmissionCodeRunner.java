@@ -25,6 +25,8 @@ public class SubmissionCodeRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(SubmissionCodeRunner.class);
 
+    private static final int MAX_LOG_LENGTH = 100000;
+
     private static final String LOCAL_RUNNER_DIR = "./runner";
 
     private static final String PUBLIC_FOLDER = "public";
@@ -82,49 +84,75 @@ public class SubmissionCodeRunner {
         return mapSubmissionToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits));
     }
 
-    private ExecResult mapSubmissionToExecResult(RunResult runResult) {
-
+    protected ExecResult mapSubmissionToExecResult(RunResult runResult) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-
-            String trimmedConsoleOutput = "";
-            if(runResult.getConsole() != null && !runResult.getConsole().trim().isEmpty()){
-                int indexOfDelimiterStdOut = runResult.getConsole().contains(DELIMITER) ?   runResult.getConsole().lastIndexOf(DELIMITER): runResult.getConsole().length();
-                trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterStdOut);
-            }
-
-            String trimmedTestOutput ="";
-            if(runResult.getStdErr() != null && !runResult.getStdErr().trim().isEmpty()){
-                int indexOfDelimiterStdErr = runResult.getStdErr().contains(DELIMITER) ? runResult.getStdErr().lastIndexOf(DELIMITER): 0;
-                trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
-            }
-
-            return new ExecResult(trimmedConsoleOutput, "", trimmedTestOutput);
+            return new ExecResult(extractConsole(runResult), "", extractEvalLog(runResult));
         }
-
         return new ExecResult(runResult.getConsole(), "", "");
     }
 
-    private ExecResult mapSmokeToExecResult(RunResult runResult) {
-
+    protected ExecResult mapSmokeToExecResult(RunResult runResult) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-
-            String trimmedConsoleOutput = "";
-            if(runResult.getConsole() != null && !runResult.getConsole().trim().isEmpty()){
-                int indexOfDelimiterConsole = runResult.getConsole().contains(DELIMITER) ? runResult.getConsole().lastIndexOf(DELIMITER): runResult.getConsole().length();
-                trimmedConsoleOutput = runResult.getConsole().substring(0, indexOfDelimiterConsole);
-            }
-
-            String trimmedTestOutput = "";
-            if(runResult.getStdErr() != null && !runResult.getStdErr().trim().isEmpty()){
-                int indexOfDelimiterStdErr = runResult.getStdErr().contains(DELIMITER) ? runResult.getStdErr().lastIndexOf(DELIMITER): 0;
-                trimmedTestOutput = runResult.getStdErr().substring(indexOfDelimiterStdErr).replace(DELIMITER + "\n", "");
-            }
-
-            return new ExecResult(trimmedConsoleOutput, trimmedTestOutput, "");
+            return new ExecResult(extractConsole(runResult), extractTestOutput(runResult), "");
         }
-
         return new ExecResult(runResult.getConsole(), runResult.getStdErr(), "");
     }
+
+    private String extractConsole(RunResult res){
+        String extracted = "";
+        String console = res.getConsole();
+
+        if(console!= null && ! console.trim().isEmpty()){
+
+            int indexOfDelimiterStdOut = console.contains(DELIMITER) ? console.lastIndexOf(DELIMITER): console.length();
+            extracted = console.substring(0, indexOfDelimiterStdOut);
+
+            if(extracted.length() > MAX_LOG_LENGTH) {
+                logger.warn(String.format("Trim console log (keep beginning) to max length of %s.", MAX_LOG_LENGTH));
+                extracted = extracted.substring(0, MAX_LOG_LENGTH) + " ... Logs size exceeded limit. Log has been truncated.";
+            }
+        }
+
+        return extracted;
+    }
+
+    private String extractEvalLog(RunResult res){
+        String extracted = "";
+        String stderr = res.getStdErr();
+
+        if(stderr!= null && ! stderr.trim().isEmpty()){
+            if(stderr.contains(DELIMITER)) {
+                extracted = stderr.substring(stderr.lastIndexOf(DELIMITER));
+                if (extracted.length() > MAX_LOG_LENGTH) {
+                    logger.warn(String.format("Trim stdErr log (keep end) to max length of %s.", MAX_LOG_LENGTH));
+                    extracted = " ... Logs size exceeded limit. Beginning of log has been truncated ...\n" +  extracted.substring(0, MAX_LOG_LENGTH) ;
+                }
+            }else{
+                logger.warn("Did not find a delimiter to extract private suite evaluation log");
+            }
+        }
+
+        return extracted;
+    }
+
+    private String extractTestOutput(RunResult res){
+        String extracted = "";
+        String stderr = res.getStdErr();
+
+        if(stderr!= null && ! stderr.trim().isEmpty()){
+            int indexOfDelimiter = stderr.contains(DELIMITER) ? stderr.lastIndexOf(DELIMITER) : stderr.length();
+            extracted = stderr.substring(indexOfDelimiter).replace(DELIMITER + "\n", "");
+
+            if (extracted.length() > MAX_LOG_LENGTH) {
+                logger.warn(String.format("Trim stdErr log (keep end) to max length of %s.", MAX_LOG_LENGTH));
+                extracted = extracted.substring(0, MAX_LOG_LENGTH) + " ... Logs size exceeded limit. Log has been truncated.";
+            }
+
+        }
+
+        return extracted;
+    }
+
 
     private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
         if (files == null) {
