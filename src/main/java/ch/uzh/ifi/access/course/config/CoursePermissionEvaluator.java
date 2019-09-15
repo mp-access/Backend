@@ -55,6 +55,7 @@ public class CoursePermissionEvaluator {
      */
     public boolean hasAccessToExercise(CourseAuthentication authentication, Exercise exercise) {
         Assignment assignment = exercise.getAssignment();
-        return assignment.isPublished() || authentication.hasAdminAccess(exercise.getCourseId());
+        String courseId = exercise.getCourseId();
+        return authentication.hasAccess(courseId) && (assignment.isPublished() || authentication.hasAdminAccess(courseId));
     }
 }
