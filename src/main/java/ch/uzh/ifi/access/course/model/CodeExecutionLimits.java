@@ -25,7 +25,7 @@ public class CodeExecutionLimits {
     /**
      * Max 5 seconds timeout
      */
-    private static final long DEFAULT_TIMEOUT = 5 * 1000;
+    private static final long DEFAULT_TIMEOUT = 3 * 1000;
 
     public static final CodeExecutionLimits DEFAULTS = new CodeExecutionLimits(DEFAULT_MAX_RAM_USAGE_IN_MB, DEFAULT_MAX_CORES, DEFAULT_TIMEOUT, false, false);
 
