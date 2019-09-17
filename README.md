@@ -13,12 +13,12 @@ Application specific properties: `resources/application.properties`
 rest.security.enabled=true
 
 # Initializing users
-# Initialize course participants, if true, will connect to keycloak to create user accounts and course groups
+# Initialize course participants, if true, will connect to the identity provider to create user accounts and course groups
 course.users.init-on-startup=false
-# Use a default password when creating new users
+# Use a default password when creating new users for development
 course.users.use-default-password-for-new-accounts=true
 # Value of the default password
-course.users.default-password=test
+course.users.default-password=<default-pwd-for-development>
 
 # OpenID: URL to identity provider
 rest.security.auth-server=http://localhost:9999/auth
