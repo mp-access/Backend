@@ -133,7 +133,7 @@ public class KeycloakClient {
     }
 
     private Optional<UserRepresentation> findUserByEmail(final String email, UsersResource usersResource) {
-        List<UserRepresentation> usersByEmail = usersResource.search(null, null, null, email, 0, 10);
+        List<UserRepresentation> usersByEmail = usersResource.search(email, null, null, null, 0, 10);
         if (usersByEmail.isEmpty()) {
             return Optional.empty();
         }
