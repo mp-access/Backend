@@ -1,7 +1,6 @@
 {
     "repositories": [
-        "https://github.com/mp-access/course_structure.git",
-        "https://github.com/proksch/access-test-repo",
-        "git@gitlab.ifi.uzh.ch:seal/access/course-info1.git"
+        "git@gitlab.ifi.uzh.ch:seal/access/course-info1.git",
+        "git@github.com:proksch/access-playground-live.git"
     ]
 }

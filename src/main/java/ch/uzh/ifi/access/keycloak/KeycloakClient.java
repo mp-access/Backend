@@ -105,18 +105,25 @@ public class KeycloakClient {
 
         List<UserRepresentation> existingUsers = new ArrayList<>();
         List<UserRepresentation> createdUsers = new ArrayList<>();
+        List<String> failedToCreateUsers = new ArrayList<>();
 
         Consumer<UserRepresentation> addToExistingUsers = existingUsers::add;
         for (String emailAddress : emailAddresses) {
             Optional<UserRepresentation> user = findUserByEmail(emailAddress, usersResource);
 
             user.ifPresentOrElse(addToExistingUsers, () -> {
-                UserRepresentation newUser = createAndVerifyUser(emailAddress);
-                createdUsers.add(newUser);
+                try {
+                    UserRepresentation newUser = createAndVerifyUser(emailAddress);
+                    createdUsers.add(newUser);
+                } catch (Exception e) {
+                    failedToCreateUsers.add(emailAddress);
+                    logger.error("Failed to create user for email " + emailAddress, e);
+                }
             });
         }
 
         logger.info(String.format("Created %d new accounts", createdUsers.size()));
+        logger.info(String.format("Failed to create %d new accounts", failedToCreateUsers.size()));
         return new Users(existingUsers, createdUsers);
     }
 
@@ -126,7 +133,7 @@ public class KeycloakClient {
     }
 
     private Optional<UserRepresentation> findUserByEmail(final String email, UsersResource usersResource) {
-        List<UserRepresentation> usersByEmail = usersResource.search(null, null, null, email, 0, 10);
+        List<UserRepresentation> usersByEmail = usersResource.search(email, null, null, null, 0, 10);
         if (usersByEmail.isEmpty()) {
             return Optional.empty();
         }
