@@ -11,7 +11,7 @@ public class User implements Comparable<User> {
     private final String emailAddress;
 
     public static User of(UserRepresentation userRepresentation) {
-        return new User(userRepresentation.getId(), userRepresentation.getEmail());
+        return new User(userRepresentation.getId(), userRepresentation.getUsername());
     }
 
     @Override
