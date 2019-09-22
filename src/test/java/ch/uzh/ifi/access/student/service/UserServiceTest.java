@@ -64,8 +64,8 @@ public class UserServiceTest {
 
     private void createUserWithEmail(String email) {
         UserRepresentation user = new UserRepresentation();
-        user.setUsername(UUID.randomUUID().toString());
-        user.setEmail(email);
+        user.setUsername(email);
+        user.setEmail(UUID.randomUUID().toString());
         realmResource.users().create(user);
     }
 
