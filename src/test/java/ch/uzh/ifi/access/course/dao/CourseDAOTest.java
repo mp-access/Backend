@@ -5,24 +5,38 @@ import ch.uzh.ifi.access.course.event.BreakingChangeNotifier;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.util.RepoCacher;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.when;
+
 public class CourseDAOTest {
 
     private CourseDAO courseDAO;
 
+    @Mock
+    private RepoCacher repoCacher;
+
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+
         ApplicationEventPublisher noOpPublisher = (event) -> {};
         BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier(noOpPublisher);
-        courseDAO = new CourseDAO(breakingChangeNotifier);
+
+        courseDAO = new CourseDAO(breakingChangeNotifier, repoCacher);
     }
 
     @Test
@@ -190,5 +204,21 @@ public class CourseDAOTest {
 
         Course updated = courseDAO.updateCourse(before);
         Assertions.assertThat(updated).isNull();
+    }
+
+    @Test
+    public void rollbackDuringUpdateTest() {
+        String oldTitle = "title";
+        String newTitle = "New title";
+        Course before = TestObjectFactory.createCourse(oldTitle);
+        Course after = Mockito.spy(TestObjectFactory.createCourse(newTitle));
+
+        when(repoCacher.retrieveCourseData(any(String[].class))).thenReturn(List.of(after));
+        when(after.getIndexedItems()).thenThrow(new UnsupportedOperationException());
+
+        Course updated = courseDAO.updateCourse(before);
+        // Should have rolled back -> title should still be oldTitle
+        Assertions.assertThat(updated).isNull();
+        Assertions.assertThat(before.getTitle()).isEqualTo(oldTitle);
     }
 }

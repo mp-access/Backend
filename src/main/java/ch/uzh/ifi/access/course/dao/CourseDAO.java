@@ -39,15 +39,18 @@ public class CourseDAO {
 
     private BreakingChangeNotifier breakingChangeNotifier;
 
-    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier) {
+    private RepoCacher repoCacher;
+
+    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier, RepoCacher repoCacher) {
         this.breakingChangeNotifier = breakingChangeNotifier;
+        this.repoCacher = repoCacher;
 
         ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
         if (resource.exists()) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 URLList conf = mapper.readValue(resource.getFile(), URLList.class);
-                courseList = RepoCacher.retrieveCourseData(conf.repositories);
+                courseList = repoCacher.retrieveCourseData(conf.repositories);
                 exerciseIndex = buildExerciseIndex(courseList);
                 logger.info(String.format("Parsed %d courses", courseList.size()));
 
@@ -104,7 +107,7 @@ public class CourseDAO {
 
         // Try to pull new course
         try {
-            newCourse = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
+            newCourse = repoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
         } catch (Exception e) {
             logger.error("Failed to generate new course", e);
             return null;
