@@ -1,6 +1,6 @@
 {
     "repositories": [
-        "git@gitlab.ifi.uzh.ch:seal/access/course-info1.git",
-        "git@github.com:proksch/access-playground-live.git"
+        "https://github.com/mp-access/Template-Course",
+        "https://github.com/mp-access/Mock-Course"
     ]
 }
