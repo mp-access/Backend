@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 public class CourseDAOTest {
@@ -30,10 +29,11 @@ public class CourseDAOTest {
     private RepoCacher repoCacher;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        ApplicationEventPublisher noOpPublisher = (event) -> {};
+        ApplicationEventPublisher noOpPublisher = (event) -> {
+        };
         BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier(noOpPublisher);
 
         courseDAO = new CourseDAO(breakingChangeNotifier, repoCacher);
