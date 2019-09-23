@@ -20,6 +20,9 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
     private List<VirtualFile> resource_files;
     private List<VirtualFile> public_files;
 
+    private String courseId;
+    private String assignmentId;
+
     public ExerciseWithSolutionsDTO(Exercise exercise) {
         this.id = exercise.getId();
         this.gitHash = exercise.getGitHash();
@@ -35,5 +38,7 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
         this.resource_files = exercise.getResource_files();
         this.public_files = exercise.getPublic_files();
         this.executionLimits = exercise.getExecutionLimits();
+        this.courseId = exercise.getCourseId();
+        this.assignmentId = exercise.getAssignmentId();
     }
 }
