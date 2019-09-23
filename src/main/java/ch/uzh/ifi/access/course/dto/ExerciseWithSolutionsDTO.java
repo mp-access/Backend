@@ -1,10 +1,10 @@
 package ch.uzh.ifi.access.course.dto;
 
-import ch.uzh.ifi.access.course.model.*;
-import ch.uzh.ifi.access.course.util.Utils;
+import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.ExerciseConfig;
+import ch.uzh.ifi.access.course.model.VirtualFile;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,6 +19,9 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
     private List<VirtualFile> solution_files;
     private List<VirtualFile> resource_files;
     private List<VirtualFile> public_files;
+
+    private String courseId;
+    private String assignmentId;
 
     public ExerciseWithSolutionsDTO(Exercise exercise) {
         this.id = exercise.getId();
@@ -35,5 +38,7 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
         this.resource_files = exercise.getResource_files();
         this.public_files = exercise.getPublic_files();
         this.executionLimits = exercise.getExecutionLimits();
+        this.courseId = exercise.getCourseId();
+        this.assignmentId = exercise.getAssignmentId();
     }
 }
