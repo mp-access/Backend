@@ -95,9 +95,13 @@ public class CourseDAO {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
 
-        Course clone = (Course)SerializationUtils.clone(c);
+        return updateCourse(c);
+    }
+
+    protected Course updateCourse(Course c) {
+        Course clone = (Course) SerializationUtils.clone(c);
         Course newCourse;
-        
+
         // Try to pull new course
         try {
             newCourse = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
@@ -109,7 +113,7 @@ public class CourseDAO {
         // Try to update
         try {
             updateCourse(c, newCourse);
-        }catch(Exception e){
+        } catch (Exception e) {
             // If we fail during updating we try to revert to original
             logger.error("Failed to update course", e);
             updateCourse(c, clone);

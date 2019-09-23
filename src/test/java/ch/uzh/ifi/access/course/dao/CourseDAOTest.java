@@ -162,4 +162,33 @@ public class CourseDAOTest {
         Assertions.assertThat(breakingChanges).contains(exerciseBefore1);
         Assertions.assertThat(breakingChanges).contains(exerciseBefore2);
     }
+
+    @Test
+    public void rollbackNoGitUrlSetTest() {
+        Course before = TestObjectFactory.createCourse("title");
+        Course after = TestObjectFactory.createCourse(before.getTitle());
+        Assignment assignmentBefore = TestObjectFactory.createAssignment("assignment");
+        Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
+        Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
+        Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
+        exerciseBefore1.setIndex(1);
+        exerciseAfter1.setIndex(2);
+        exerciseBefore1.setPublic_files(List.of(TestObjectFactory.createVirtualFile("name", "py", false)));
+
+        Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
+        exerciseBefore2.setIndex(3);
+        exerciseAfter2.setIndex(exerciseBefore2.getIndex());
+
+        before.addAssignment(assignmentBefore);
+        assignmentBefore.addExercise(exerciseBefore1);
+        assignmentBefore.addExercise(exerciseBefore2);
+
+        after.addAssignment(assignmentAfter);
+        assignmentAfter.addExercise(exerciseAfter1);
+        assignmentAfter.addExercise(exerciseAfter2);
+
+        Course updated = courseDAO.updateCourse(before);
+        Assertions.assertThat(updated).isNull();
+    }
 }
