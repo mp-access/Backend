@@ -138,4 +138,4 @@ workflows:
             - push_to_dockerhub
           filters:
             branches:
-              only: master
+              only: dev
