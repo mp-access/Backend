@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.course.dao;
 
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.event.BreakingChangeNotifier;
+import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.util.RepoCacher;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -123,17 +125,47 @@ public class CourseDAO {
      * @return list of exercises which are breaking changes
      */
     List<Exercise> lookForBreakingChanges(Course before, Course after) {
-        List<Exercise> beforeExercises = before.getExercises();
-        List<Exercise> afterExercises = after.getExercises();
+        List<Assignment> beforeAssignments = before.getAssignments();
+        List<Assignment> afterAssignments = after.getAssignments();
 
-        return beforeExercises
-                .stream()
-                .filter(beforeExercise -> {
-                    Optional<Exercise> optAfterExercise = afterExercises.stream().filter(afterExercise -> afterExercise.hasSameIndex(beforeExercise)).findFirst();
-                    // if an exercise is found, check if it is a breaking change, else exercise was removed and is considered a breaking change
-                    return optAfterExercise.map(beforeExercise::isBreakingChange).orElse(true);
-                })
-                .collect(Collectors.toList());
+        List<Exercise> breakingChanges = new ArrayList<>();
+
+        logger.info("Checking for breaking changes in course {} (id = {})", before.getTitle(), before.getId());
+
+        if (afterAssignments.size() < beforeAssignments.size()) {
+            logger.warn("There are less assignments after the update ({}) then before ({}).", beforeAssignments.size(), afterAssignments.size());
+            logger.warn("Assignments before the update");
+            beforeAssignments.forEach(a -> logger.warn("{} (id = {})", a.getTitle(), a.getId()));
+            logger.warn("Assignments after the update");
+            afterAssignments.forEach(a -> logger.warn("{} (id = {})", a.getTitle(), a.getId()));
+        }
+
+        for (int i = 0; i < beforeAssignments.size(); i++) {
+            Assignment beforeAssignment = beforeAssignments.get(i);
+
+            logger.info("Checking assignment {} (id = {}) for breaking changes", beforeAssignment.getTitle(), beforeAssignment.getId());
+            // No assignments were deleted
+            if (i < afterAssignments.size()) {
+                Assignment afterAssignment = afterAssignments.get(i);
+                List<Exercise> beforeExercises = beforeAssignment.getExercises();
+
+                List<Exercise> breakingChangesForAssignment = beforeExercises
+                        .stream()
+                        .filter(beforeExercise -> {
+                            Optional<Exercise> optAfterExercise = afterAssignment.getExercises().stream().filter(afterExercise -> afterExercise.hasSameIndex(beforeExercise)).findFirst();
+                            // if an exercise is found, check if it is a breaking change, else exercise was removed and is considered a breaking change
+                            return optAfterExercise.map(beforeExercise::isBreakingChange).orElse(true);
+                        })
+                        .collect(Collectors.toList());
+
+                breakingChanges.addAll(breakingChangesForAssignment);
+                logger.info("Found {} breaking changes for assignment {} (id = {}): {}", breakingChangesForAssignment.size(), beforeAssignment.getTitle(), beforeAssignment.getId(), breakingChangesForAssignment);
+            }
+        }
+
+        logger.info("Done checking for breaking change");
+
+        return breakingChanges;
     }
 
     public List<Course> selectAllCourses() {
