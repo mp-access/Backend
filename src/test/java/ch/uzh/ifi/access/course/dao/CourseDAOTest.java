@@ -162,4 +162,63 @@ public class CourseDAOTest {
         Assertions.assertThat(breakingChanges).contains(exerciseBefore1);
         Assertions.assertThat(breakingChanges).contains(exerciseBefore2);
     }
+
+    @Test
+    public void addNewAssignmentShouldNotBeBreakingChange() {
+        Course before = TestObjectFactory.createCourse("title");
+        Course after = TestObjectFactory.createCourse(before.getTitle());
+
+        // Create 2 assignment for before and after updates
+        Assignment assignment1 = TestObjectFactory.createAssignment("assignment 1");
+        Assignment assignment1AfterUpdate = TestObjectFactory.createAssignment("assignment 1");
+        Assignment assignment2 = TestObjectFactory.createAssignment("assignment 2");
+        Assignment assignment2AfterUpdate = TestObjectFactory.createAssignment("assignment 2");
+
+        Exercise a1Ex1 = TestObjectFactory.createTextExercise("Question 1");
+        Exercise a1Ex1AfterUpdate = TestObjectFactory.createTextExercise(a1Ex1.getQuestion());
+        Exercise a1Ex2 = TestObjectFactory.createCodeExercise("Question 2");
+        Exercise a1Ex2AfterUpdate = TestObjectFactory.createCodeExercise(a1Ex2.getQuestion());
+        a1Ex1.setGitHash("123");
+        a1Ex1AfterUpdate.setGitHash("123");
+        a1Ex2.setGitHash("234");
+        a1Ex2AfterUpdate.setGitHash("234");
+        a1Ex1.setIndex(1);
+        a1Ex1AfterUpdate.setIndex(1);
+        a1Ex2.setIndex(2);
+        a1Ex2AfterUpdate.setIndex(2);
+
+        // The second assignment has exercises with different types and question than those in assignment 1
+        Exercise a2Ex1 = TestObjectFactory.createCodeExercise("Question xyz");
+        Exercise a2Ex1AfterUpdate = TestObjectFactory.createCodeExercise("Question xyz");
+        Exercise a2Ex2 = TestObjectFactory.createTextExercise("Question asd");
+        Exercise a2Ex2AfterUpdate = TestObjectFactory.createTextExercise("Question asd");
+        a2Ex1.setGitHash("345");
+        a2Ex1AfterUpdate.setGitHash("456");
+        a2Ex2.setGitHash("345");
+        a2Ex2AfterUpdate.setGitHash("456");
+
+        a2Ex1.setIndex(1);
+        a2Ex1AfterUpdate.setIndex(1);
+        a2Ex2.setIndex(2);
+        a2Ex2AfterUpdate.setIndex(2);
+
+        assignment1.addExercise(a1Ex1);
+        assignment1.addExercise(a1Ex2);
+        assignment1AfterUpdate.addExercise(a1Ex1AfterUpdate);
+        assignment1AfterUpdate.addExercise(a1Ex2AfterUpdate);
+        assignment2.addExercise(a2Ex1);
+        assignment2.addExercise(a2Ex2);
+        assignment2AfterUpdate.addExercise(a2Ex1AfterUpdate);
+        assignment2AfterUpdate.addExercise(a2Ex2AfterUpdate);
+
+        before.addAssignment(assignment1);
+        before.addAssignment(assignment2);
+
+        after.addAssignment(assignment1AfterUpdate);
+        after.addAssignment(assignment2AfterUpdate);
+
+        List<Exercise> breakingChanges = courseDAO.lookForBreakingChanges(before, after);
+
+        Assertions.assertThat(breakingChanges).size().isEqualTo(0);
+    }
 }
