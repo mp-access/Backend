@@ -71,6 +71,10 @@ public class VirtualFile {
         return String.format("%s.%s", name, extension);
     }
 
+    public boolean matchesFilenameWithExtension(String filename) {
+        return getNameWithExtension().equals(filename);
+    }
+
     @Override
     public boolean equals(Object o) {
         // self check

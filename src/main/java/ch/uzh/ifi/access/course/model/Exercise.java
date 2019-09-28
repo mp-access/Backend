@@ -107,6 +107,11 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
+    public Optional<VirtualFile> searchPublicOrResourcesFileByName(String fileName) {
+        Stream<VirtualFile> files = Stream.concat(public_files.stream(), resource_files.stream());
+        return files.filter(file -> file.matchesFilenameWithExtension(fileName)).findFirst();
+    }
+
     public String getAssignmentId() {
         return assignment.getId();
     }

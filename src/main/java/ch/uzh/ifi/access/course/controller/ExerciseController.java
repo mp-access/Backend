@@ -4,20 +4,19 @@ import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.course.service.CourseService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -60,6 +59,36 @@ public class ExerciseController {
 
         if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
             Optional<FileSystemResource> file = courseService.getFileCheckingPrivileges(exercise, fileId, authentication);
+
+            if (file.isPresent()) {
+                File fileHandle = file.get().getFile();
+                FileSystemResource r = new FileSystemResource(fileHandle);
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
+                        .body(r);
+            }
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{exerciseId}/files/search")
+    public ResponseEntity<Resource> searchForFile(
+            @PathVariable("exerciseId") String exerciseId,
+            @RequestBody Map<String, String> body,
+            @ApiIgnore CourseAuthentication authentication) throws IOException {
+        Exercise exercise = courseService.getExerciseById(exerciseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
+
+        var filename = body.get("filename");
+        if (permissionEvaluator.hasAccessToExercise(authentication, exercise) && filename != null) {
+            if (filename.startsWith("resource/") || filename.startsWith("public/")) {
+
+                filename = filename.split("/")[1];
+            }
+
+            Optional<VirtualFile> virtualFile = exercise.searchPublicOrResourcesFileByName(filename);
+            Optional<FileSystemResource> file = virtualFile.map(vf -> new FileSystemResource(vf.getFile()));
 
             if (file.isPresent()) {
                 File fileHandle = file.get().getFile();
