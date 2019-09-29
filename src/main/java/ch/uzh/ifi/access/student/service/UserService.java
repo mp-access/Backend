@@ -3,15 +3,21 @@ package ch.uzh.ifi.access.student.service;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.keycloak.KeycloakClient;
 import ch.uzh.ifi.access.student.model.User;
+import lombok.Value;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserService {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     private final KeycloakClient keycloakClient;
 
@@ -27,7 +33,7 @@ public class UserService {
      * @return list of user entities
      */
     @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
-    public List<User> getCourseStudents(Course course) {
+    public UserQueryResult getCourseStudents(Course course) {
         List<String> emailAddresses = course.getStudents();
         return getUsersByEmailAddresses(emailAddresses);
     }
@@ -39,27 +45,34 @@ public class UserService {
      * @param course course containing assistant email addresses
      * @return list of user entities
      */
-    public List<User> getCourseAdmins(Course course) {
+    public UserQueryResult getCourseAdmins(Course course) {
         List<String> emailAddresses = course.getAssistants();
         return getUsersByEmailAddresses(emailAddresses);
     }
 
-    private List<User> getUsersByEmailAddresses(List<String> emailAddresses) {
+    private UserQueryResult getUsersByEmailAddresses(List<String> emailAddresses) {
         List<User> users = new ArrayList<>(emailAddresses.size());
+        List<String> accountsNotFound = new ArrayList<>(emailAddresses.size());
         for (String emailAddress : emailAddresses) {
-            UserRepresentation userRepresentation = keycloakClient
-                    .findUsersByEmail(emailAddress)
-                    .orElseThrow(() -> new NoUserFoundForEmail(emailAddress));
+            Optional<UserRepresentation> userRepresentation = keycloakClient
+                    .findUsersByEmail(emailAddress);
 
-            users.add(User.of(userRepresentation));
+            if (userRepresentation.isPresent()) {
+                users.add(User.of(userRepresentation.get()));
+            } else {
+                logger.error("Could not find account matching email address {}", emailAddress);
+                accountsNotFound.add(emailAddress);
+            }
+
         }
-        return users;
+        return new UserQueryResult(accountsNotFound, users);
     }
 
-    private static class NoUserFoundForEmail extends RuntimeException {
+    @Value
+    public static class UserQueryResult {
 
-        private NoUserFoundForEmail(String emailAddress) {
-            super(String.format("No user found with email: %s", emailAddress));
-        }
+        private List<String> accountsNotFound;
+
+        private List<User> usersFound;
     }
 }

@@ -26,14 +26,14 @@ public class AdminSubmissionService {
 
     @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
     public AssignmentReport generateAssignmentReport(Course course, Assignment assignment) {
-        List<User> students = userService.getCourseStudents(course);
+        UserService.UserQueryResult students = userService.getCourseStudents(course);
 
         Map<User, List<StudentSubmission>> submissionsByStudent = new HashMap<>();
-        for (User student : students) {
+        for (User student : students.getUsersFound()) {
             List<StudentSubmission> studentSubmissionsForAssignment = submissionService.findLatestGradedSubmissionsByAssignment(assignment, student.getId());
             submissionsByStudent.put(student, studentSubmissionsForAssignment);
         }
 
-        return new AssignmentReport(assignment, students, submissionsByStudent);
+        return new AssignmentReport(assignment, students.getUsersFound(), submissionsByStudent, students.getAccountsNotFound());
     }
 }

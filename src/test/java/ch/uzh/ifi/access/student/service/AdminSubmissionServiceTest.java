@@ -123,7 +123,7 @@ public class AdminSubmissionServiceTest {
         List<User> students = List.of(user1, user2);
         course.setStudents(students.stream().map(User::getEmailAddress).collect(Collectors.toList()));
 
-        when(userService.getCourseStudents(eq(course))).thenReturn(students);
+        when(userService.getCourseStudents(eq(course))).thenReturn(new UserService.UserQueryResult(List.of(), students));
         AssignmentReport report = service.generateAssignmentReport(course, assignment);
 
         Assertions.assertThat(report).isNotNull();
