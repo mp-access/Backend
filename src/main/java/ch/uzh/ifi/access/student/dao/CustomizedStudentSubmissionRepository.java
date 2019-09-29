@@ -10,4 +10,6 @@ interface CustomizedStudentSubmissionRepository {
     void invalidateSubmissionsByExerciseId(String exerciseId);
 
     boolean existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(String userId);
+
+    List<StudentSubmission> findLastGradedSubmissionForEachUserByExerciseId(String exerciseId);
 }

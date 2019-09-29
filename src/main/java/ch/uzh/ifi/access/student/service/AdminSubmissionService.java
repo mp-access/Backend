@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.student.service;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.reporting.AssignmentReport;
@@ -35,5 +36,13 @@ public class AdminSubmissionService {
         }
 
         return new AssignmentReport(assignment, students.getUsersFound(), submissionsByStudent, students.getAccountsNotFound());
+    }
+
+    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
+    public void triggerReEvaluation(Course course, Assignment assignment) {
+        for (Exercise e : assignment.getExercises()) {
+            List<StudentSubmission> submissions = submissionService.findLastSubmissionForEachUserForExercise(e.getId());
+
+        }
     }
 }

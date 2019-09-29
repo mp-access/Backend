@@ -106,4 +106,8 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
     }
 
+    public List<StudentSubmission> findLastSubmissionForEachUserForExercise(String exerciseId) {
+        return studentSubmissionRepository.findLastGradedSubmissionForEachUserByExerciseId(exerciseId);
+    }
+
 }

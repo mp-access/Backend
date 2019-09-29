@@ -451,4 +451,32 @@ public class StudentSubmissionServiceTest {
         boolean userRateLimited = service.isUserRateLimited(userId);
         Assertions.assertThat(userRateLimited).isFalse();
     }
+
+    @Test
+    public void findLastSubmissionForEachUserForExercise() {
+        String user0 = "1";
+        String user1 = "2";
+        String user2 = "3";
+        String exerciseId = "ex1";
+
+        CodeSubmission u0s0 = CodeSubmission.builder().userId(user0).version(0).exerciseId(exerciseId).isGraded(true).isInvalid(true).build();
+        CodeSubmission u0s1 = CodeSubmission.builder().userId(user0).version(1).exerciseId(exerciseId).isGraded(true).isInvalid(true).build();
+        CodeSubmission u0s2 = CodeSubmission.builder().userId(user0).version(2).exerciseId(exerciseId).isGraded(true).build();
+
+        CodeSubmission u1s0 = CodeSubmission.builder().userId(user1).exerciseId(exerciseId).isGraded(true).isInvalid(true).build();
+
+        CodeSubmission u2s0 = CodeSubmission.builder().userId(user2).version(0).exerciseId(exerciseId).isGraded(true).isInvalid(true).build();
+        CodeSubmission u2u1 = CodeSubmission.builder().userId(user2).version(1).exerciseId(exerciseId).isGraded(true).isInvalid(true).build();
+
+        u0s0 = repository.save(u0s0);
+        u0s1 = repository.save(u0s1);
+        u0s2 = repository.save(u0s2);
+        u1s0 = repository.save(u1s0);
+        u2s0 = repository.save(u2s0);
+        u2u1 = repository.save(u2u1);
+
+        List<StudentSubmission> submissions = service.findLastSubmissionForEachUserForExercise(exerciseId);
+        Assertions.assertThat(submissions).size().isEqualTo(2);
+        Assertions.assertThat(submissions).contains(u2u1, u1s0);
+    }
 }

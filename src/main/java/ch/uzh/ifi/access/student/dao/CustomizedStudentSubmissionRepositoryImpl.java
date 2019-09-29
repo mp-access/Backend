@@ -81,4 +81,43 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
                 .and("timestamp").gt(Instant.now().minus(10, ChronoUnit.MINUTES)));
         return mongoTemplate.exists(query, StudentSubmission.class);
     }
+
+    /**
+     * Aggregation pipeline:
+     * 1. Find all submissions by exerciseId and userId
+     * 2. Sort them by version descending
+     * 3. Group all submissions by exerciseId
+     * 4. Take only first submission for every exerciseId group (the one with the highest version number == most recent)
+     * <p>
+     * Represent the following aggregation in mongo:
+     * { "aggregate" : "__collection__", "pipeline" : [{ "$match" : { "exerciseId" : { "$in" : [<exercise ids>] }, "userId" : "<user id>" } }, { "$sort" : { "version" : -1 } }, { "$group" : { "_id" : "$exerciseId", "submissions" : { "$push" : "$$ROOT" } } }, { "$replaceRoot" : { "newRoot" : { "$arrayElemAt" : ["$submissions", 0] } } }] }
+     *
+     * @param exerciseId exercise id
+     * @return list of the most recent user submissions for the given exercises
+     */
+    @Override
+    public List<StudentSubmission> findLastGradedSubmissionForEachUserByExerciseId(String exerciseId) {
+        Criteria criteria = Criteria.where("exerciseId").is(exerciseId).and("isGraded").is(true);
+        MatchOperation matchByExerciseId = Aggregation.match(criteria);
+
+        SortOperation sortByVersionDesc = Aggregation.sort(new Sort(Sort.Direction.DESC, "version"));
+
+        GroupOperation groupByExerciseId = Aggregation.group("userId").push("$$ROOT").as("submissions");
+
+        ReplaceRootOperation takeOnlyFirstElement = Aggregation.replaceRoot().withValueOf(ArrayOperators.ArrayElemAt.arrayOf("submissions").elementAt(0));
+
+        MatchOperation matchOnlyInvalidated = Aggregation.match(Criteria.where("isInvalid").is(true));
+
+        Aggregation aggregation = Aggregation.newAggregation(
+                matchByExerciseId,
+                sortByVersionDesc,
+                groupByExerciseId,
+                takeOnlyFirstElement,
+                matchOnlyInvalidated
+        );
+
+        AggregationResults<StudentSubmission> results = mongoTemplate.aggregate(aggregation, "studentSubmissions", StudentSubmission.class);
+
+        return results.getMappedResults();
+    }
 }
