@@ -84,6 +84,10 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(exerciseIds, userId);
     }
 
+    public List<StudentSubmission> findLatestGradedInvalidatedSubmissionsByAssignment(Assignment assignment, String userId) {
+        return findLatestGradedSubmissionsByAssignment(assignment, userId).stream().filter(StudentSubmission::isInvalid).collect(Collectors.toList());
+    }
+
     public void invalidateSubmissionsByExerciseIdIn(List<String> exerciseIds) {
         if (exerciseIds != null) {
             exerciseIds.forEach(this::invalidateSubmissionsByExerciseId);
