@@ -98,16 +98,16 @@ public class SubmissionCodeRunner {
         return new ExecResult(runResult.getConsole(), runResult.getStdErr(), "");
     }
 
-    private String extractConsole(RunResult res){
+    private String extractConsole(RunResult res) {
         String extracted = "";
         String console = res.getConsole();
 
-        if(console!= null && ! console.trim().isEmpty()){
+        if (console != null && !console.trim().isEmpty()) {
 
-            int indexOfDelimiterStdOut = console.contains(DELIMITER) ? console.lastIndexOf(DELIMITER): console.length();
+            int indexOfDelimiterStdOut = console.contains(DELIMITER) ? console.lastIndexOf(DELIMITER) : console.length();
             extracted = console.substring(0, indexOfDelimiterStdOut);
 
-            if(extracted.length() > MAX_LOG_LENGTH) {
+            if (extracted.length() > MAX_LOG_LENGTH) {
                 logger.warn(String.format("Trim console log (keep beginning) to max length of %s.", MAX_LOG_LENGTH));
                 extracted = extracted.substring(0, MAX_LOG_LENGTH) + " ... Logs size exceeded limit. Log has been truncated.";
             }
@@ -116,18 +116,18 @@ public class SubmissionCodeRunner {
         return extracted;
     }
 
-    private String extractEvalLog(RunResult res){
+    private String extractEvalLog(RunResult res) {
         String extracted = "";
         String stderr = res.getStdErr();
 
-        if(stderr!= null && ! stderr.trim().isEmpty()){
-            if(stderr.contains(DELIMITER)) {
+        if (stderr != null && !stderr.trim().isEmpty()) {
+            if (stderr.contains(DELIMITER)) {
                 extracted = stderr.substring(stderr.lastIndexOf(DELIMITER));
                 if (extracted.length() > MAX_LOG_LENGTH) {
                     logger.warn(String.format("Trim stdErr log (keep end) to max length of %s.", MAX_LOG_LENGTH));
-                    extracted = " ... Logs size exceeded limit. Beginning of log has been truncated ...\n" +  extracted.substring(0, MAX_LOG_LENGTH) ;
+                    extracted = " ... Logs size exceeded limit. Beginning of log has been truncated ...\n" + extracted.substring(0, MAX_LOG_LENGTH);
                 }
-            }else{
+            } else {
                 logger.warn("Did not find a delimiter to extract private suite evaluation log");
             }
         }
@@ -135,11 +135,11 @@ public class SubmissionCodeRunner {
         return extracted;
     }
 
-    private String extractTestOutput(RunResult res){
+    private String extractTestOutput(RunResult res) {
         String extracted = "";
         String stderr = res.getStdErr();
 
-        if(stderr!= null && ! stderr.trim().isEmpty()){
+        if (stderr != null && !stderr.trim().isEmpty()) {
             int indexOfDelimiter = stderr.contains(DELIMITER) ? stderr.lastIndexOf(DELIMITER) : stderr.length();
             extracted = stderr.substring(indexOfDelimiter).replace(DELIMITER + "\n", "");
 
@@ -183,8 +183,7 @@ public class SubmissionCodeRunner {
     }
 
     private String buildExecScriptCommand(VirtualFile script) {
-        final String path = String.format("%s/%s", PUBLIC_FOLDER, script.getNameWithExtension());
-        return String.format("python %s", path);
+        return String.format("python -m %s.%s", PUBLIC_FOLDER, script.getName());
     }
 
     private String buildExecTestSuiteCommand(String testFolder) {

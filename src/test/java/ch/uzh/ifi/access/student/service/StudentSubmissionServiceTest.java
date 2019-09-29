@@ -18,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,9 +34,12 @@ public class StudentSubmissionServiceTest {
 
     private StudentSubmissionService service;
 
+    private SubmissionProperties submissionProperties;
+
     @Before
     public void setUp() {
-        this.service = new StudentSubmissionService(repository, new SubmissionProperties());
+        submissionProperties = new SubmissionProperties();
+        this.service = new StudentSubmissionService(repository, submissionProperties);
     }
 
     @After
@@ -388,5 +393,62 @@ public class StudentSubmissionServiceTest {
 
         int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
         Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    }
+
+    @Test
+    public void userNotRateLimitedNoSubmission() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        repository.deleteAll();
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
+    }
+
+    @Test
+    public void userRateLimited() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now())
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isTrue();
+    }
+
+    @Test
+    public void rateLimitationDisabled() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(false);
+        repository.deleteAll();
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
+    }
+
+    @Test
+    public void userRateLimitedWithSubmissionDisabled() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(false);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now())
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
+    }
+
+    @Test
+    public void userRateLimitedWithOldSubmission() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now().minus(1, ChronoUnit.DAYS))
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
     }
 }

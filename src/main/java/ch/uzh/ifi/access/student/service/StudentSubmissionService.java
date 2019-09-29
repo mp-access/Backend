@@ -107,7 +107,7 @@ public class StudentSubmissionService {
     }
 
     public boolean hasUserCurrentlyRunningSubmissions(String userId) {
-        return (studentSubmissionRepository.findByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId).size() > 0);
+        return studentSubmissionRepository.existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
     }
 
 }
