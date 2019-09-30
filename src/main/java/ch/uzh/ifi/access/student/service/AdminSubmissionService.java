@@ -53,11 +53,8 @@ public class AdminSubmissionService {
 
         logger.info(String.format("Re-Evaluate invalidated submissions for assignment %s.", assignment.getId()));
 
-
-        List<User> students = userService.getCourseStudents(course);
-        students.addAll(userService.getCourseAdmins(course));
-        Map<User, List<StudentSubmission>> invalidatedSubsByStudent = getInvalidatedSubmissionsForUsers(assignment, students);
-
+        UserService.UserQueryResult students = userService.getCourseStudents(course);
+        Map<User, List<StudentSubmission>> invalidatedSubsByStudent = getInvalidatedSubmissionsForUsers(assignment, students.getUsersFound());
         for (User u : invalidatedSubsByStudent.keySet()) {
             logger.debug(String.format("Re-Evaluate invalidated submissions for user.", u.getId()));
             triggerReEvaluation(invalidatedSubsByStudent.get(u));
