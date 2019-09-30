@@ -15,6 +15,7 @@ public class CodeEvaluatorTest {
     private String errorTestLog;
     private String failsTestLog;
     private String hintsLog;
+    private String hints2;
     private String okTestLog;
 
     @Before
@@ -75,14 +76,27 @@ public class CodeEvaluatorTest {
                 "Traceback (most recent call last):\n" +
                 "  File \"/home/mangoman/Workspace/MasterProject/CourseService/runner/test/TestStringMethods1.py\", line 6, in test_upper\n" +
                 "    self.assertEqual('FOO'.upper(), 'Foo')\n" +
-                "AssertionError: 'FOO' != 'Foo'\n @#@Erster Hinweis@#@\n"+
+                "AssertionError: 'FOO' != 'Foo'@@Erster Hinweis@@\n"+
                 "- FOO\n" +
                 "+ Foo\n" +
-                "@#@Zweiter Hinweis@#@\n" +
-                "\n" +
                 "\n" +
                 "----------------------------------------------------------------------\n" +
                 "Ran 6 tests in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=1)";
+
+        hints2= "test_doghouse (testSuite.Task2B) ... FAIL\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: test_doghouse (testSuite.Task2B)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/home/mangoman/Workspace/MasterProject/CourseStructure/assignment_01/exercise_04/private/testSuite.py\", line 29, in test_doghouse\n" +
+                "    self.assertTrue(hasattr(self.exercise, \"dog\"), \"@@You must declare '{}'@@\".format(\"dog\"))\n" +
+                "AssertionError: False is not true : @@You must declare 'dog'@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 1 test in 0.001s\n" +
                 "\n" +
                 "FAILED (failures=1)";
 
@@ -161,6 +175,23 @@ public class CodeEvaluatorTest {
 
         Assert.assertEquals(5, grade.getPoints().getCorrect());
         Assert.assertEquals(1, grade.getHints().size());
+    }
+
+    @Test
+    public void parseHints_OnlyAssertionErrorMsg() {
+        ExecResult console = new ExecResult();
+        console.setEvalLog(hints2);
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .exerciseId(exercise.getId())
+                .console(console)
+                .build();
+
+        SubmissionEvaluation grade = new CodeEvaluator().evaluate(sub, exercise);
+
+        Assert.assertEquals(1, grade.getHints().size());
+        Assert.assertEquals("You must declare 'dog'", grade.getHints().get(0));
+
     }
 
     @Test

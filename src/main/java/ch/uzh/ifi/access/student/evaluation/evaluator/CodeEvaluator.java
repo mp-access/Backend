@@ -19,8 +19,8 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     private static final Logger logger = LoggerFactory.getLogger(CodeEvaluator.class);
 
-    private static final String HINT_ANNOTATION = "@#@";
-    private static final String HINT_PATTERN = HINT_ANNOTATION+".*"+HINT_ANNOTATION;
+    private static final String HINT_ANNOTATION = "@@";
+    private static final String HINT_PATTERN = "^Assertion.*:.*("+HINT_ANNOTATION+".*"+HINT_ANNOTATION+")$";
 
     private final String runNTestPattern = "^Ran (\\d++) test.*";
     private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
@@ -52,7 +52,10 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
         Matcher matcher = hintPattern.matcher(evalLog);
         while (matcher.find()) {
-            hints.add(matcher.group(0).replace(HINT_ANNOTATION, ""));
+            String s = matcher.group(1);
+            if(s != null && s.length()>0 && s.contains("@@")){
+                hints.add(s.replace(HINT_ANNOTATION, ""));
+            }
         }
 
         return hints;
