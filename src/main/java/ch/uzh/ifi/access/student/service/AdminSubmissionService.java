@@ -47,6 +47,7 @@ public class AdminSubmissionService {
         return new AssignmentReport(assignment, students.getUsersFound(), submissionsByStudent, students.getAccountsNotFound());
     }
 
+    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
     public void reevaluateAssignmentsInvalidSubmissions(Course course, Assignment assignment) {
         Assert.notNull(course, "Course cannot be null");
         Assert.notNull(assignment, "Assignment cannot be null");
