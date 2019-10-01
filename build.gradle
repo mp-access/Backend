@@ -66,6 +66,8 @@ dependencies {
 
     // Gatling
     implementation 'io.gatling.highcharts:gatling-charts-highcharts:3.0.2'
+
+    compile 'org.springframework.cloud:spring-cloud-starter-sleuth:2.1.4.RELEASE'
 }
 
 test {
