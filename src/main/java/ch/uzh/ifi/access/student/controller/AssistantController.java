@@ -38,4 +38,18 @@ public class AssistantController {
 
         return ResponseEntity.ok(report);
     }
+
+    @GetMapping("/courses/{courseId}/assignments/{assignmentId}/reevaluate")
+    public ResponseEntity<?> reevaluateInvalidateSubmissionsForAssignment(@PathVariable String assignmentId, @PathVariable String courseId) {
+        Course course = courseService
+                .getCourseById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        Assignment assignment = course.getAssignmentById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
+
+       adminSubmissionService.reevaluateAssignmentsInvalidSubmissions(course, assignment);
+       return ResponseEntity.ok("ok");
+    }
+
 }

@@ -49,7 +49,7 @@ public class AdminSubmissionServiceTest {
         MockitoAnnotations.initMocks(this);
 
         this.submissionService = new StudentSubmissionService(studentSubmissionRepository, new SubmissionProperties());
-        this.service = new AdminSubmissionService(submissionService, userService);
+        this.service = new AdminSubmissionService(submissionService, userService, null);
     }
 
     @After

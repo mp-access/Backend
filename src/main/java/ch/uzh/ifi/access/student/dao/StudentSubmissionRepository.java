@@ -14,5 +14,5 @@ public interface StudentSubmissionRepository extends MongoRepository<StudentSubm
 
     <T extends StudentSubmission> Optional<T> findTopByExerciseIdAndUserIdOrderByVersionDesc(String exerciseId, String userId);
 
-    int countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(String exerciseId, String userId);
+    int countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(String exerciseId, String userId);
 }

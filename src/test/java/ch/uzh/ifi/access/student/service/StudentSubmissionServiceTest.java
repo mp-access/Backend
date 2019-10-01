@@ -366,6 +366,24 @@ public class StudentSubmissionServiceTest {
     }
 
     @Test
+    public void getSubmissionCountByExerciseAndUserTwoInvalidOneAutoTriggered() {
+        final String exerciseId = "123";
+        final String userId = "user-1";
+        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
+        codeSubmission1.setInvalid(true);
+        service.saveSubmission(codeSubmission1);
+        codeSubmission2.setInvalid(true);
+        service.saveSubmission(codeSubmission2);
+        codeSubmission3.setTriggeredReSubmission(true);
+        service.saveSubmission(codeSubmission3);
+
+        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
+        Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    }
+
+    @Test
     public void getSubmissionCountByExerciseAndUserNoneValid() {
         final String exerciseId = "123";
         final String userId = "user-1";
