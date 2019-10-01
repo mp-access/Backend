@@ -99,7 +99,7 @@ public class StudentSubmissionService {
     }
 
     public int getSubmissionCountByExerciseAndUser(String exerciseId, String userId) {
-        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(exerciseId, userId);
+        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(exerciseId, userId);
     }
 
     public boolean isUserRateLimited(String userId) {
