@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <property name="springAppName" value="Backend"/>
+
     <property name="LOGS" value="./logs" />
 
-    <appender name="Console"
-              class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <Pattern>
-                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable
-            </Pattern>
+            <pattern>%black(%d{ISO8601}) %highlight(%-5level) [${springAppName},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] ${PID:-} -- [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable</pattern>
         </layout>
     </appender>
 
     <appender name="RollingFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS}/spring-boot-logger.log</file>
-        <encoder
-                class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d %p %C{1.} [%t] %m%n</Pattern>
+
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{ISO8601} %-5level [${springAppName},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] ${PID:-} -- [%t] %C{1.}: %msg%n%throwable</pattern>
         </encoder>
 
         <rollingPolicy
@@ -35,9 +36,8 @@
     <appender name="PerfFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS}/perf.log</file>
-        <encoder
-                class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%m%n</Pattern>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <Pattern>%d{ISO8601} %-5level [${springAppName},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] %m%n</Pattern>
         </encoder>
 
         <rollingPolicy
@@ -63,6 +63,13 @@
         <appender-ref ref="RollingFile" />
         <appender-ref ref="PerfFile" />
         <appender-ref ref="Console" />
+    </logger>
+
+    <!-- Request logger -->
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter">
+        <level value="DEBUG" />
+        <appender-ref ref="Console" />
+        <appender-ref ref="RollingFile" />
     </logger>
 
 </configuration>

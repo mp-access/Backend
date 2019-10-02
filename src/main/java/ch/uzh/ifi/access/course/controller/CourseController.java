@@ -9,7 +9,6 @@ import ch.uzh.ifi.access.course.dto.CourseMetadataDTO;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.course.util.CoursePermissionEnforcer;
-import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,8 +84,8 @@ public class CourseController {
         Course course = courseService.getCourseById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
 
-        List<User> users = userService.getCourseAdmins(course);
-        return ResponseEntity.ok(users);
+        UserService.UserQueryResult users = userService.getCourseAdmins(course);
+        return ResponseEntity.ok(users.getUsersFound());
     }
 
     @PostMapping(path = "{id}/update")

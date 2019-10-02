@@ -33,6 +33,8 @@ public abstract class StudentSubmission {
 
     private boolean isInvalid;
 
+    private boolean isTriggeredReSubmission;
+
     /**
      * Checks whether the given user id matches this submission's id.
      *
@@ -50,4 +52,7 @@ public abstract class StudentSubmission {
     public double getScore() {
         return result == null ? 0.0 : result.getScore();
     }
+
+    public abstract StudentSubmission stripSubmissionForReEvaluation();
+
 }
