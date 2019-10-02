@@ -60,9 +60,7 @@
 
     <!-- Performance Log -->
     <logger name="org.springframework.aop.interceptor.PerformanceMonitorInterceptor" level="trace" additivity="false">
-        <appender-ref ref="RollingFile" />
         <appender-ref ref="PerfFile" />
-        <appender-ref ref="Console" />
     </logger>
 
     <!-- Request logger -->
