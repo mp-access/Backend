@@ -104,15 +104,19 @@ public class KeycloakClientTest {
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
         course.setAssistants(List.of("ta@uzh.ch", "dr.prof@uzh.ch"));
+        course.setAdmins(List.of("admin@uzh.ch"));
 
         Group group = client.enrollUsersInCourse(course);
 
         List<String> studentEmails = group.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> assistantsEmails = group.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        List<String> adminEmails = group.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
         Assert.assertEquals(group.getName(), course.getId());
         Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
         Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
+        Assert.assertEquals(Set.copyOf(adminEmails), Set.copyOf(course.getAdmins()));
+
     }
 
     @Test
@@ -123,15 +127,18 @@ public class KeycloakClientTest {
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
         course.setAssistants(List.of(emailAddressStudentAndTa, "dr.prof@uzh.ch"));
+        course.setAdmins(List.of("admin@uzh.ch"));
 
         Group info1 = client.enrollUsersInCourse(course);
 
         List<String> studentEmails = info1.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> assistantsEmails = info1.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        List<String> adminEmails = info1.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
         Assert.assertEquals(info1.getName(), course.getId());
         Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
         Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
+        Assert.assertEquals(Set.copyOf(adminEmails), Set.copyOf(course.getAdmins()));
 
 
         // Enrolling them in a second course should not remove them from the first one
@@ -139,25 +146,30 @@ public class KeycloakClientTest {
         course2.setTitle("DBS");
         course2.setStudents(List.of("alice@example.com", "bob@example.com", emailAddressStudentAndTa));
         course2.setAssistants(List.of("dr.prof@uzh.ch"));
+        course2.setAdmins(List.of("admin@uzh.ch"));
         Group dbs = client.enrollUsersInCourse(course2);
 
         studentEmails = dbs.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         assistantsEmails = dbs.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        adminEmails = dbs.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
         Assert.assertEquals(course2.getId(), dbs.getName());
         Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course2.getStudents()));
         Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course2.getAssistants()));
+        Assert.assertEquals(Set.copyOf(adminEmails), Set.copyOf(course2.getAdmins()));
 
         // Get all students
         Set<UserRepresentation> info1Users = info1.getStudents().stream().collect(Collectors.toSet());
         Set<UserRepresentation> info1Authors = info1.getAuthors().stream().collect(Collectors.toSet());
         Set<UserRepresentation> dbsUsers = dbs.getStudents().stream().collect(Collectors.toSet());
         Set<UserRepresentation> dbsAuthors = dbs.getAuthors().stream().collect(Collectors.toSet());
+        Set<UserRepresentation> dbsAdmins = dbs.getAdmins().stream().collect(Collectors.toSet());
 
         Set<UserRepresentation> users = new HashSet<>(info1Users);
         users.addAll(info1Authors);
         users.addAll(dbsUsers);
         users.addAll(dbsAuthors);
+        users.addAll(dbsAdmins);
 
         // Get up-to-date version of users
         users = users.stream().map(user -> realmResource.users().get(user.getId()).toRepresentation()).collect(Collectors.toSet());
