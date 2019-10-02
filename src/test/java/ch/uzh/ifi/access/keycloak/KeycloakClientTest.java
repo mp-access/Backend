@@ -109,7 +109,7 @@ public class KeycloakClientTest {
         Group group = client.enrollUsersInCourse(course);
 
         List<String> studentEmails = group.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        List<String> assistantsEmails = group.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        List<String> assistantsEmails = group.getAssistants().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> adminEmails = group.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
         Assert.assertEquals(group.getName(), course.getId());
@@ -132,7 +132,7 @@ public class KeycloakClientTest {
         Group info1 = client.enrollUsersInCourse(course);
 
         List<String> studentEmails = info1.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        List<String> assistantsEmails = info1.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        List<String> assistantsEmails = info1.getAssistants().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         List<String> adminEmails = info1.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
         Assert.assertEquals(info1.getName(), course.getId());
@@ -150,7 +150,7 @@ public class KeycloakClientTest {
         Group dbs = client.enrollUsersInCourse(course2);
 
         studentEmails = dbs.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        assistantsEmails = dbs.getAuthors().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        assistantsEmails = dbs.getAssistants().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
         adminEmails = dbs.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
 
         Assert.assertEquals(course2.getId(), dbs.getName());
@@ -160,9 +160,9 @@ public class KeycloakClientTest {
 
         // Get all students
         Set<UserRepresentation> info1Users = info1.getStudents().stream().collect(Collectors.toSet());
-        Set<UserRepresentation> info1Authors = info1.getAuthors().stream().collect(Collectors.toSet());
+        Set<UserRepresentation> info1Authors = info1.getAssistants().stream().collect(Collectors.toSet());
         Set<UserRepresentation> dbsUsers = dbs.getStudents().stream().collect(Collectors.toSet());
-        Set<UserRepresentation> dbsAuthors = dbs.getAuthors().stream().collect(Collectors.toSet());
+        Set<UserRepresentation> dbsAuthors = dbs.getAssistants().stream().collect(Collectors.toSet());
         Set<UserRepresentation> dbsAdmins = dbs.getAdmins().stream().collect(Collectors.toSet());
 
         Set<UserRepresentation> users = new HashSet<>(info1Users);

@@ -78,7 +78,7 @@ public class KeycloakClient {
 
             UsersResource usersResource = realmResource.users();
             students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);
-            assistants.enrollUsersInGroup(courseGroup.getAuthorsGroupId(), usersResource);
+            assistants.enrollUsersInGroup(courseGroup.getAssistantsGroupId(), usersResource);
             admins.enrollUsersInGroup(courseGroup.getAdminsGroupId(), usersResource);
 
             return courseGroup;
