@@ -10,6 +10,7 @@ public class Group {
 
     private static final String STUDENTS_GROUP_NAME = "students";
     private static final String AUTHORS_GROUP_NAME = "authors";
+    private static final String ADMINS_GROUP_NAME = "admins";
 
     private GroupRepresentation course;
 
@@ -17,13 +18,15 @@ public class Group {
 
     private GroupRepresentation authors;
 
+    private GroupRepresentation admins;
+
     private GroupsResource resource;
 
-    public Group(GroupRepresentation course, GroupRepresentation students, GroupRepresentation authors, GroupsResource resource) {
+    public Group(GroupRepresentation course, GroupRepresentation students, GroupRepresentation authors, GroupRepresentation admins, GroupsResource resource) {
         this.course = course;
         this.students = students;
         this.authors = authors;
-
+        this.admins = admins;
         this.resource = resource;
     }
 
@@ -35,9 +38,9 @@ public class Group {
         return students.getId();
     }
 
-    public String getAuthorsGroupId() {
-        return authors.getId();
-    }
+    public String getAuthorsGroupId() { return authors.getId(); }
+
+    public String getAdminsGroupId() { return admins.getId(); }
 
     public Users getStudents() {
         return new Users(resource.group(students.getId()).members(), List.of());
@@ -45,6 +48,10 @@ public class Group {
 
     public Users getAuthors() {
         return new Users(resource.group(authors.getId()).members(), List.of());
+    }
+
+    public Users getAdmins() {
+        return new Users(resource.group(admins.getId()).members(), List.of());
     }
 
     static Group create(final String courseId, String title, GroupsResource resource) {
@@ -63,14 +70,21 @@ public class Group {
         authors.setName(String.format("%s - %s", title.replace(AUTHORS_GROUP_NAME, ""), AUTHORS_GROUP_NAME));
         authors.singleAttribute("Title", title);
 
+        GroupRepresentation admins = new GroupRepresentation();
+        admins.setName(String.format("%s - %s", title.replace(ADMINS_GROUP_NAME, ""), ADMINS_GROUP_NAME));
+        admins.singleAttribute("Title", title);
+
         String studentsGroupId = Utils.getCreatedId(course.subGroup(students));
         String authorsGroupId = Utils.getCreatedId(course.subGroup(authors));
+        String adminsGroupId = Utils.getCreatedId(course.subGroup(admins));
         GroupRepresentation studentsGroup = resource.group(studentsGroupId).toRepresentation();
         GroupRepresentation authorsGroup = resource.group(authorsGroupId).toRepresentation();
+        GroupRepresentation adminsGroup = resource.group(adminsGroupId).toRepresentation();
 
         return new Group(course.toRepresentation(),
                 studentsGroup,
                 authorsGroup,
+                adminsGroup,
                 resource);
     }
 

@@ -10,12 +10,14 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class CourseConfig {
+
     protected String title;
     protected String description;
     protected String owner;
     protected LocalDateTime startDate;
     protected LocalDateTime endDate;
 
+    protected List<String> admins = List.of();
     protected List<String> assistants = List.of();
     protected List<String> students = List.of();
 
@@ -23,4 +25,5 @@ public class CourseConfig {
         this.description = "";
         this.owner = "";
     }
+
 }
