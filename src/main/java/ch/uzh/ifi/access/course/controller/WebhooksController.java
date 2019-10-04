@@ -39,7 +39,7 @@ public class WebhooksController {
     }
 
     @PostMapping(path = "/courses/update/github")
-    public ResponseEntity<?> updateCourseWithoutIdInUrl(@RequestBody JsonNode payload, ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
+    public ResponseEntity<?> updateCourse(@RequestBody JsonNode payload, ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
         logger.info("Received github web hook");
 
         if (!authentication.matchesHmacSignature(payload.toString())) {
@@ -63,7 +63,7 @@ public class WebhooksController {
     }
 
     @PostMapping(path = "/courses/update/gitlab")
-    public ResponseEntity<?> updateCourseWithoutId(@RequestBody JsonNode payload, ApiTokenAuthenticationProvider.GitlabHeaderAuthentication authentication) {
+    public ResponseEntity<?> updateCourse(@RequestBody JsonNode payload, ApiTokenAuthenticationProvider.GitlabHeaderAuthentication authentication) {
         logger.info("Received gitlab web hook");
 
         if (!authentication.isMatchesSecret()) {
