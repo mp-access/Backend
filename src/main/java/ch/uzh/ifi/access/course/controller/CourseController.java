@@ -1,6 +1,5 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
 import ch.uzh.ifi.access.course.CheckCoursePermission;
 import ch.uzh.ifi.access.course.FilterByPublishingDate;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
@@ -14,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.ArrayList;
@@ -87,18 +88,4 @@ public class CourseController {
         UserService.UserQueryResult users = userService.getCourseAdmins(course);
         return ResponseEntity.ok(users.getUsersFound());
     }
-
-    @PostMapping(path = "{id}/update")
-    public void updateCourse(@PathVariable("id") String id, @RequestBody String json,
-                             ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
-        logger.debug("Received web hook");
-
-        if (!authentication.matchesHmacSignature(json)) {
-            throw new BadCredentialsException("Hmac signature does not match!");
-        }
-
-        logger.debug("Updating courses");
-        courseService.updateCourseById(id);
-    }
-
 }

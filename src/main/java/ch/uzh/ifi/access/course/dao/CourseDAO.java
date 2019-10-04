@@ -95,6 +95,9 @@ public class CourseDAO {
     public Course updateCourseById(String id) {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        logger.info("Updating course {} {}", c.getTitle(), id);
+
         try {
             Course courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
             updateCourse(c, courseUpdate);
