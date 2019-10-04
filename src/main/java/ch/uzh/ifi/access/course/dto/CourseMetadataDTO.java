@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.BreadCrumb;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class CourseMetadataDTO {
     private String gitHash;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+
+    private List<BreadCrumb> breadCrumbs;
     private List<AssignmentMetadataDTO> assignments = new ArrayList<>();
 
     public CourseMetadataDTO(Course course) {
@@ -30,6 +33,7 @@ public class CourseMetadataDTO {
         this.gitHash = course.getGitHash();
         this.startDate = course.getStartDate();
         this.endDate = course.getEndDate();
+        this.breadCrumbs = course.getBreadCrumbs();
 
         for (Assignment a : course.getAssignments()) {
             this.assignments.add(new AssignmentMetadataDTO(a));

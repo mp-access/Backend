@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.Assignment;
+import ch.uzh.ifi.access.course.model.BreadCrumb;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.HasPublishingDate;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class AssignmentMetadataDTO implements HasPublishingDate {
     private LocalDateTime publishDate;
     private LocalDateTime dueDate;
 
+    private List<BreadCrumb> breadCrumbs;
     private List<ExerciseMetadataDTO> exercises = new ArrayList<>();
 
     public AssignmentMetadataDTO(Assignment assignment) {
@@ -26,6 +28,7 @@ public class AssignmentMetadataDTO implements HasPublishingDate {
         this.description = assignment.getDescription();
         this.publishDate = assignment.getPublishDate();
         this.dueDate = assignment.getDueDate();
+        this.breadCrumbs = assignment.getBreadCrumbs();
 
         if (assignment.getExercises() != null) {
             for (Exercise e : assignment.getExercises()) {

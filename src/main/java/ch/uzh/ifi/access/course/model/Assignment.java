@@ -16,7 +16,7 @@ import java.util.Optional;
 @Data
 @ToString(callSuper=true)
 @EqualsAndHashCode(callSuper = true)
-public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment> {
+public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment>, HasBreadCrumbs {
     private final String id;
     private int index;
 
@@ -81,6 +81,17 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
     @Override
     public List<Exercise> getIndexedItems() {
         return exercises;
+    }
+
+    @Override
+    public List<BreadCrumb> getBreadCrumbs() {
+        List<BreadCrumb> bc = new ArrayList<>();
+        BreadCrumb c = new BreadCrumb(this.getCourse().title, "courses/" + this.getCourse().getId());
+        BreadCrumb a = new BreadCrumb(this.title, "courses/" + this.getCourse().getId() + "/assignments/" + this.id);
+        bc.add(c);
+        bc.add(a);
+
+        return bc;
     }
 }
 
