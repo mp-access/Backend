@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Component
 public class RepoCacher {
 
     private static final Logger logger = LoggerFactory.getLogger(RepoCacher.class);
@@ -43,7 +45,7 @@ public class RepoCacher {
     private List<String> ignore_dir = Arrays.asList(".git");
     private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static List<Course> retrieveCourseData(String urls[]) {
+    public List<Course> retrieveCourseData(String[] urls) {
         initializeMapper();
 
         List<Course> courses = new ArrayList<>();

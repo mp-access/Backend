@@ -5,24 +5,38 @@ import ch.uzh.ifi.access.course.event.BreakingChangeNotifier;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.course.util.RepoCacher;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 public class CourseDAOTest {
 
     private CourseDAO courseDAO;
 
+    @Mock
+    private RepoCacher repoCacher;
+
     @Before
-    public void setUp() throws Exception {
-        ApplicationEventPublisher noOpPublisher = (event) -> {};
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+
+        ApplicationEventPublisher noOpPublisher = (event) -> {
+        };
         BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier(noOpPublisher);
-        courseDAO = new CourseDAO(breakingChangeNotifier);
+
+        courseDAO = new CourseDAO(breakingChangeNotifier, repoCacher);
     }
 
     @Test
@@ -220,5 +234,50 @@ public class CourseDAOTest {
         List<Exercise> breakingChanges = courseDAO.lookForBreakingChanges(before, after);
 
         Assertions.assertThat(breakingChanges).size().isEqualTo(0);
+    }
+
+    @Test
+    public void rollbackNoGitUrlSetTest() {
+        Course before = TestObjectFactory.createCourse("title");
+        Course after = TestObjectFactory.createCourse(before.getTitle());
+        Assignment assignmentBefore = TestObjectFactory.createAssignment("assignment");
+        Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
+        Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
+        Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
+        exerciseBefore1.setIndex(1);
+        exerciseAfter1.setIndex(2);
+        exerciseBefore1.setPublic_files(List.of(TestObjectFactory.createVirtualFile("name", "py", false)));
+
+        Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
+        Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
+        exerciseBefore2.setIndex(3);
+        exerciseAfter2.setIndex(exerciseBefore2.getIndex());
+
+        before.addAssignment(assignmentBefore);
+        assignmentBefore.addExercise(exerciseBefore1);
+        assignmentBefore.addExercise(exerciseBefore2);
+
+        after.addAssignment(assignmentAfter);
+        assignmentAfter.addExercise(exerciseAfter1);
+        assignmentAfter.addExercise(exerciseAfter2);
+
+        Course updated = courseDAO.updateCourse(before);
+        Assertions.assertThat(updated).isNull();
+    }
+
+    @Test
+    public void rollbackDuringUpdateTest() {
+        String oldTitle = "title";
+        String newTitle = "New title";
+        Course before = TestObjectFactory.createCourse(oldTitle);
+        Course after = Mockito.spy(TestObjectFactory.createCourse(newTitle));
+
+        when(repoCacher.retrieveCourseData(any(String[].class))).thenReturn(List.of(after));
+        when(after.getIndexedItems()).thenThrow(new UnsupportedOperationException());
+
+        Course updated = courseDAO.updateCourse(before);
+        // Should have rolled back -> title should still be oldTitle
+        Assertions.assertThat(updated).isNull();
+        Assertions.assertThat(before.getTitle()).isEqualTo(oldTitle);
     }
 }
