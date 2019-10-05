@@ -12,6 +12,8 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Repository
@@ -68,5 +70,15 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
 
         UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
         logger.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
+    }
+
+    @Override
+    public boolean existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(String userId) {
+        Query query = Query.query(Criteria
+                .where("userId").is(userId)
+                .and("console").exists(false)
+                .and("result").exists(false)
+                .and("timestamp").gt(Instant.now().minus(1, ChronoUnit.MINUTES)));
+        return mongoTemplate.exists(query, StudentSubmission.class);
     }
 }

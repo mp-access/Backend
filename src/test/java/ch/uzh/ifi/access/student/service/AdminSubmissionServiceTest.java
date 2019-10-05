@@ -49,7 +49,7 @@ public class AdminSubmissionServiceTest {
         MockitoAnnotations.initMocks(this);
 
         this.submissionService = new StudentSubmissionService(studentSubmissionRepository, new SubmissionProperties());
-        this.service = new AdminSubmissionService(submissionService, userService);
+        this.service = new AdminSubmissionService(submissionService, userService, null);
     }
 
     @After
@@ -123,7 +123,7 @@ public class AdminSubmissionServiceTest {
         List<User> students = List.of(user1, user2);
         course.setStudents(students.stream().map(User::getEmailAddress).collect(Collectors.toList()));
 
-        when(userService.getCourseStudents(eq(course))).thenReturn(students);
+        when(userService.getCourseStudents(eq(course))).thenReturn(new UserService.UserQueryResult(List.of(), students));
         AssignmentReport report = service.generateAssignmentReport(course, assignment);
 
         Assertions.assertThat(report).isNotNull();

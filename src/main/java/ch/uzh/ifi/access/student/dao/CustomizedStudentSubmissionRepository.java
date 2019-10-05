@@ -8,4 +8,6 @@ interface CustomizedStudentSubmissionRepository {
     List<StudentSubmission> findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List<String> exerciseIds, String userId);
 
     void invalidateSubmissionsByExerciseId(String exerciseId);
+
+    boolean existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(String userId);
 }

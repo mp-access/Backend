@@ -45,4 +45,15 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean("courseUpdateWorkerExecutor")
+    public Executor getCourseUpdateExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setThreadNamePrefix("course-update-worker-");
+        executor.setCorePoolSize(THREAD_POOL_SIZE);
+        executor.setMaxPoolSize(MAX_POOL_SIZE);
+        executor.setQueueCapacity(QUEUE_CAPACITY);
+        executor.initialize();
+        return executor;
+    }
 }

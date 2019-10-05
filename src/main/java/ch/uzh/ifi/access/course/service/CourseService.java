@@ -11,6 +11,7 @@ import ch.uzh.ifi.access.course.model.VirtualFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class CourseService {
         this.courseSetup = courseSetup;
     }
 
+    @Async("courseUpdateWorkerExecutor")
     public void updateCourseById(String id) {
         Course course = courseDao.updateCourseById(id);
         if (course != null) {

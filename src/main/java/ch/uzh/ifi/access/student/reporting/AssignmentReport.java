@@ -21,14 +21,20 @@ public class AssignmentReport {
 
     private final Map<String, Map<String, SubmissionEvaluation>> byStudents;
 
+    private final Map<String, Double> totalsByStudent;
+
     private final List<String> exerciseIds;
 
     private final List<String> students;
 
-    public AssignmentReport(Assignment assignment, List<User> students, Map<User, List<StudentSubmission>> assignmentSubmissionsByUser) {
+    private final List<String> usersNotFound;
+
+    public AssignmentReport(Assignment assignment, List<User> students, Map<User, List<StudentSubmission>> assignmentSubmissionsByUser, List<String> usersNotFound) {
         this.assignmentId = assignment.getId();
         this.byExercises = new LinkedHashMap<>(assignment.getExercises().size());
         this.byStudents = new LinkedHashMap<>(students.size());
+        this.totalsByStudent = new LinkedHashMap<>(students.size());
+        this.usersNotFound = usersNotFound;
 
         // Sort lexicographically to ensure students always occur in the same order in the report
         List<User> sortedStudents = students.stream().sorted().collect(Collectors.toList());
@@ -52,12 +58,17 @@ public class AssignmentReport {
         for (var entry : assignmentSubmissionsByUser.entrySet()) {
             var user = entry.getKey();
             var submissions = entry.getValue();
+            double totalScore = 0.0;
             for (var submission : submissions) {
                 var exerciseId = submission.getExerciseId();
                 this.byExercises.get(exerciseId).put(user.getEmailAddress(), submission.getResult());
 
                 this.byStudents.get(user.getEmailAddress()).put(exerciseId, submission.getResult());
+
+                totalScore += submission.getScore();
             }
+
+            totalsByStudent.put(user.getEmailAddress(), totalScore);
         }
     }
 }

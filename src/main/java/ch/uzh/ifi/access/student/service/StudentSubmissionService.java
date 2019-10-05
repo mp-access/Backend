@@ -84,6 +84,10 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(exerciseIds, userId);
     }
 
+    public List<StudentSubmission> findLatestGradedInvalidatedSubmissionsByAssignment(Assignment assignment, String userId) {
+        return findLatestGradedSubmissionsByAssignment(assignment, userId).stream().filter(StudentSubmission::isInvalid).collect(Collectors.toList());
+    }
+
     public void invalidateSubmissionsByExerciseIdIn(List<String> exerciseIds) {
         if (exerciseIds != null) {
             exerciseIds.forEach(this::invalidateSubmissionsByExerciseId);
@@ -95,7 +99,7 @@ public class StudentSubmissionService {
     }
 
     public int getSubmissionCountByExerciseAndUser(String exerciseId, String userId) {
-        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrue(exerciseId, userId);
+        return studentSubmissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(exerciseId, userId);
     }
 
     public boolean isUserRateLimited(String userId) {
@@ -103,7 +107,7 @@ public class StudentSubmissionService {
     }
 
     public boolean hasUserCurrentlyRunningSubmissions(String userId) {
-        return (studentSubmissionRepository.findByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId).size() > 0);
+        return studentSubmissionRepository.existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
     }
 
 }

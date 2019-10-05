@@ -23,8 +23,8 @@ public class CodeSubmission extends StudentSubmission {
     private ExecResult console;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, List<VirtualFile> publicFiles, int selectedFile, ExecResult console) {
-        super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid);
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, List<VirtualFile> publicFiles, int selectedFile, ExecResult console) {
+        super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
         this.publicFiles = publicFiles;
         this.selectedFile = selectedFile;
         this.console = console;
@@ -35,6 +35,18 @@ public class CodeSubmission extends StudentSubmission {
             return publicFiles.get(index);
         }
         throw new IllegalArgumentException(String.format("Cannot access index %d of public files (size %d)", index, publicFiles.size()));
+    }
+
+    @Override
+    public StudentSubmission stripSubmissionForReEvaluation() {
+        CodeSubmission stripped = new CodeSubmission();
+        stripped.setUserId(this.getUserId());
+        stripped.setCommitId(this.getCommitId());
+        stripped.setExerciseId(this.getExerciseId());
+        stripped.setGraded(this.isGraded());
+        stripped.setPublicFiles(this.publicFiles);
+        stripped.setSelectedFile(this.getSelectedFile());
+        return stripped;
     }
 
 }
