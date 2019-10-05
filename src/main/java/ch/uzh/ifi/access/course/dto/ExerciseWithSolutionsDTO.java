@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.course.dto;
 
+import ch.uzh.ifi.access.course.model.BreadCrumb;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseConfig;
 import ch.uzh.ifi.access.course.model.VirtualFile;
@@ -15,6 +16,8 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
     private String gitHash;
 
     private String question;
+
+    private List<BreadCrumb> breadCrumbs;
 
     private List<VirtualFile> solution_files;
     private List<VirtualFile> resource_files;
@@ -40,5 +43,6 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
         this.executionLimits = exercise.getExecutionLimits();
         this.courseId = exercise.getCourseId();
         this.assignmentId = exercise.getAssignmentId();
+        this.breadCrumbs = exercise.getBreadCrumbs();
     }
 }

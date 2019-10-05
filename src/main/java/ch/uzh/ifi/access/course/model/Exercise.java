@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @ToString(callSuper=true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
+public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs {
 
     private final String id;
     private int index;
@@ -182,5 +182,18 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
                         !Objects.equals(this.public_files, other.public_files)
             )
         );
+    }
+
+    @Override
+    public List<BreadCrumb> getBreadCrumbs() {
+        List<BreadCrumb> bc = new ArrayList<>();
+        BreadCrumb c = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getId());
+        BreadCrumb a = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getId() + "/assignments/" + this.getAssignment().getId());
+        BreadCrumb e = new BreadCrumb("Task", "exercises/" + this.id);
+        bc.add(c);
+        bc.add(a);
+        bc.add(e);
+
+        return bc;
     }
 }

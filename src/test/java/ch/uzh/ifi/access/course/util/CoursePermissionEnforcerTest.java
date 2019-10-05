@@ -69,11 +69,17 @@ public class CoursePermissionEnforcerTest {
     }
 
     private Assignment publishedAssignment() {
-        return Assignment.builder().publishDate(LocalDateTime.now().minusYears(1)).build();
+        Course course = TestObjectFactory.createCourse("");
+        Assignment assignment = Assignment.builder().publishDate(LocalDateTime.now().minusYears(1)).build();
+        assignment.setCourse(course);
+        return assignment;
     }
 
     private Assignment notYetPublishedAssignment() {
-        return Assignment.builder().publishDate(LocalDateTime.now().plusYears(1)).build();
+        Course course = TestObjectFactory.createCourse("");
+        Assignment assignment = Assignment.builder().publishDate(LocalDateTime.now().plusYears(1)).build();
+        assignment.setCourse(course);
+        return assignment;
     }
 
     private GrantedCourseAccess adminAccess() {

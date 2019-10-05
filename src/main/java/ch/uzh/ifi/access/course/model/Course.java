@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Data
 @ToString(callSuper=true)
 @EqualsAndHashCode(callSuper = true)
-public class Course extends CourseConfig implements IndexedCollection<Assignment> {
+public class Course extends CourseConfig implements IndexedCollection<Assignment>, HasBreadCrumbs {
     private final String id;
 
     @ToString.Exclude
@@ -87,5 +87,14 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
     @JsonIgnore
     public List<Exercise> getExercises() {
         return assignments.stream().flatMap(assignment -> assignment.getExercises().stream()).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BreadCrumb> getBreadCrumbs() {
+        List<BreadCrumb> bc = new ArrayList<>();
+        BreadCrumb c = new BreadCrumb(this.title, "courses/" + this.id);
+        bc.add(c);
+
+        return bc;
     }
 }
