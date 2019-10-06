@@ -9,6 +9,8 @@ import lombok.Data;
 public class ExerciseMetadataDTO {
     private final String id;
 
+    private String title;
+    private String longTile;
     private String gitHash;
     private ExerciseType type;
     private String language;
@@ -17,6 +19,8 @@ public class ExerciseMetadataDTO {
 
     public ExerciseMetadataDTO(Exercise exercise){
         this.id = exercise.getId();
+        this.title = exercise.getTitle();
+        this.longTile = exercise.getLongTitle();
         this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();
