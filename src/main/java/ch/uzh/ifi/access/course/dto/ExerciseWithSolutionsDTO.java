@@ -28,6 +28,8 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
 
     public ExerciseWithSolutionsDTO(Exercise exercise) {
         this.id = exercise.getId();
+        this.title = exercise.getTitle();
+        this.longTitle = exercise.getLongTitle();
         this.gitHash = exercise.getGitHash();
         this.type = exercise.getType();
         this.language = exercise.getLanguage();

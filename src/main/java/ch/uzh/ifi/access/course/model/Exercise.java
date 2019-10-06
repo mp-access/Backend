@@ -51,8 +51,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits) {
-        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle) {
+        super(title, longTitle, type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
         this.id = id;
         this.index = index;
         this.gitHash = gitHash;
@@ -64,26 +64,38 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
         this.public_files = public_files;
     }
 
+    /**
+     * Copy all values from ExerciseConfig ino this Exercise object
+     *
+     * @param other The other ExerciseConfig
+     */
     public void set(ExerciseConfig other) {
-        this.type = other.getType();
-        this.language = other.getLanguage();
-        this.isGraded = other.getIsGraded();
-        this.maxScore = other.getMaxScore();
+        this.title      = other.getTitle();
+        this.longTitle  = other.getLongTitle() == null ? other.getTitle() : other.getLongTitle();
+        this.type       = other.getType();
+        this.language   = other.getLanguage();
+        this.isGraded   = other.getIsGraded();
+        this.maxScore   = other.getMaxScore();
         this.maxSubmits = other.getMaxSubmits();
-        this.options = other.getOptions();
-        this.solutions = other.getSolutions();
-        this.hints = other.getHints();
+        this.options    = other.getOptions();
+        this.solutions  = other.getSolutions();
+        this.hints      = other.getHints();
         this.executionLimits = other.getExecutionLimits();
     }
 
+    /**
+     * Update this instance of Exercise with all attributes of the other Exercise object
+     *
+     * @param other The other Exercise
+     */
     public void update(Exercise other) {
         set(other);
-        this.gitHash = other.gitHash;
-        this.private_files = other.private_files;
-        this.public_files = other.public_files;
+        this.gitHash        = other.gitHash;
+        this.private_files  = other.private_files;
+        this.public_files   = other.public_files;
         this.solution_files = other.solution_files;
         this.resource_files = other.resource_files;
-        this.question = other.question;
+        this.question       = other.question;
     }
 
     /**
@@ -189,7 +201,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
         List<BreadCrumb> bc = new ArrayList<>();
         BreadCrumb c = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getId());
         BreadCrumb a = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getId() + "/assignments/" + this.getAssignment().getId());
-        BreadCrumb e = new BreadCrumb("Task", "exercises/" + this.id);
+        BreadCrumb e = new BreadCrumb(this.getTitle(), "exercises/" + this.id);
         bc.add(c);
         bc.add(a);
         bc.add(e);
