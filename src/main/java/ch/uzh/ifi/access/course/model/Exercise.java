@@ -49,7 +49,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
         this.resource_files = new ArrayList<>();
         this.public_files = new ArrayList<>();
     }
-/*
+
     @Builder
     private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle) {
         super(title, longTitle, type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
@@ -63,7 +63,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
         this.resource_files = resource_files;
         this.public_files = public_files;
     }
-*/
+
     /**
      * Copy all values from ExerciseConfig ino this Exercise object
      *
