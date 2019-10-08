@@ -44,6 +44,31 @@ public class CoursePermissionEnforcerTest {
     }
 
     @Test
+    public void shouldAccessNotPublishedAssignmentAssistant() {
+        Assignment assignment = notYetPublishedAssignment();
+
+        AssignmentMetadataDTO dto = new AssignmentMetadataDTO(assignment);
+        GrantedCourseAccess access = assistantAccess();
+        CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
+        Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
+
+        Assertions.assertThat(hasAccess).hasValue(dto);
+    }
+
+    @Test
+    public void shouldAccessPublishedAssignmentAssistant() {
+        Assignment assignment = publishedAssignment();
+
+        AssignmentMetadataDTO dto = new AssignmentMetadataDTO(assignment);
+        GrantedCourseAccess access = assistantAccess();
+        CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
+        Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
+
+        Assertions.assertThat(hasAccess).isNotEmpty();
+        Assertions.assertThat(hasAccess).hasValue(dto);
+    }
+
+    @Test
     public void shouldAccessNotPublishedAssignmentAdmin() {
         Assignment assignment = notYetPublishedAssignment();
 
@@ -77,10 +102,15 @@ public class CoursePermissionEnforcerTest {
     }
 
     private GrantedCourseAccess adminAccess() {
-        return new GrantedCourseAccess(course.getId(), false, true);
+        return new GrantedCourseAccess(course.getId(), false, false, true);
     }
 
+    private GrantedCourseAccess assistantAccess() {
+        return new GrantedCourseAccess(course.getId(), false, true, false);
+    }
+
+
     private GrantedCourseAccess studentAccess() {
-        return new GrantedCourseAccess(course.getId(), true, false);
+        return new GrantedCourseAccess(course.getId(), true, false, false);
     }
 }
