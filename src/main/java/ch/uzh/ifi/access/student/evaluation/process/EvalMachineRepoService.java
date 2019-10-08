@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.student.evaluation.process;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,4 +28,17 @@ public class EvalMachineRepoService {
         machines.put(key, machine);
     }
 
+    public long count() {
+        return machines.size();
+    }
+
+    public void removeMachinesOlderThan(Instant threshold) {
+        for (String machineKey : machines.keySet()) {
+            StateMachine machine = machines.get(machineKey);
+            Instant completionTime = (Instant) machine.getExtendedState().getVariables().get(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME);
+            if (completionTime.isBefore(threshold)) {
+                machines.remove(machineKey);
+            }
+        }
+    }
 }
