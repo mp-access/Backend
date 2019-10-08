@@ -64,7 +64,7 @@ public class DevSecurityConfigurer extends WebSecurityConfigurerAdapter {
             Authentication auth = new UsernamePasswordAuthenticationToken("testUser", "---", List.of(new SimpleGrantedAuthority("USER")));
             boolean isAdmin = Boolean.parseBoolean(admin);
             boolean isStudent = !isAdmin;
-            GrantedCourseAccess access = new GrantedCourseAccess(Optional.ofNullable(courseId).orElse(""), isStudent, isAdmin);
+            GrantedCourseAccess access = new GrantedCourseAccess(Optional.ofNullable(courseId).orElse(""), isStudent, false, isAdmin);
             return new CourseAuthentication(request, auth, Set.of(access), "") {
                 @Override
                 public boolean hasAccess(String courseId) {
