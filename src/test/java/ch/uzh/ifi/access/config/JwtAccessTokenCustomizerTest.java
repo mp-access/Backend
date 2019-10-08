@@ -77,7 +77,7 @@ public class JwtAccessTokenCustomizerTest {
 
         Assert.assertEquals(authentication.getUserId(), "e095b656-f219-4e13-bc39-c6329f725cc1");
         Assert.assertEquals(authentication.getName(), "carl-friedlich.abel@uzh.ch");
-        Assert.assertEquals(authentication.getCourseAccesses(), Set.of(new GrantedCourseAccess("b75be786-f1c1-32d3-99fc-8af4ff155ade", true, false)));
+        Assert.assertEquals(authentication.getCourseAccesses(), Set.of(new GrantedCourseAccess("b75be786-f1c1-32d3-99fc-8af4ff155ade", true, false, false)));
     }
 
     @Test
@@ -99,18 +99,32 @@ public class JwtAccessTokenCustomizerTest {
 
         Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
         Assert.assertTrue(grantedCourseAccess.isStudent());
-        Assert.assertFalse(grantedCourseAccess.isAuthor());
+        Assert.assertFalse(grantedCourseAccess.isAssistant());
+        Assert.assertFalse(grantedCourseAccess.isAdmin());
     }
 
     @Test
-    public void parseCourseAccessAuthor() {
+    public void parseCourseAccessAssistant() {
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
 
-        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - authors");
+        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - assistants");
 
         Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
         Assert.assertFalse(grantedCourseAccess.isStudent());
-        Assert.assertTrue(grantedCourseAccess.isAuthor());
+        Assert.assertTrue(grantedCourseAccess.isAssistant());
+        Assert.assertFalse(grantedCourseAccess.isAdmin());
+    }
+
+    @Test
+    public void parseCourseAccessAdmin() {
+        JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
+
+        GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - admins");
+
+        Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
+        Assert.assertFalse(grantedCourseAccess.isStudent());
+        Assert.assertFalse(grantedCourseAccess.isAssistant());
+        Assert.assertTrue(grantedCourseAccess.isAdmin());
     }
 
     @Test(expected = IllegalArgumentException.class)
