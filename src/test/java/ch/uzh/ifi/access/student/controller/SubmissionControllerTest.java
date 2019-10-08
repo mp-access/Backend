@@ -67,7 +67,7 @@ public class SubmissionControllerTest {
     private CourseServiceSetup courseServiceSetup;
 
     private CourseAuthentication studentAuthentication;
-    private CourseAuthentication adminAuthentication;
+    private CourseAuthentication assistantAuthentication;
 
     private Course course;
     private String exerciseIdAlreadyPublished;
@@ -100,7 +100,7 @@ public class SubmissionControllerTest {
         when(courseDAO.selectExerciseById(exerciseIdNotYetPublished)).thenReturn(Optional.of(exercise));
 
         studentAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createStudentAccess(course.getId())));
-        adminAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAdminAccess(course.getId())));
+        assistantAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAdminAccess(course.getId())));
     }
 
     @After
@@ -414,7 +414,7 @@ public class SubmissionControllerTest {
     }
 
     @Test
-    public void submitNotYetPublishedButAdmin() throws Exception {
+    public void submitNotYetPublishedButAssistant() throws Exception {
         final boolean isGraded = false;
         final String fileName1 = "script";
         final String fileName2 = "testsuite";
@@ -445,13 +445,13 @@ public class SubmissionControllerTest {
 
         mvc.perform(post("/submissions/exercises/" + exerciseIdNotYetPublished + "?admin=true&courseId=" + course.getId())
                 .with(csrf())
-                .with(authentication(adminAuthentication))
+                .with(authentication(assistantAuthentication))
                 .contentType("application/json")
                 .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.evalId").exists());
 
-        StudentSubmission submission = repository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseIdNotYetPublished, adminAuthentication.getUserId()).orElse(null);
+        StudentSubmission submission = repository.findTopByExerciseIdAndUserIdOrderByVersionDesc(exerciseIdNotYetPublished, assistantAuthentication.getUserId()).orElse(null);
         Assertions.assertThat(submission).isNotNull();
         Assertions.assertThat(submission).isInstanceOf(CodeSubmission.class);
         Assertions.assertThat(((CodeSubmission) submission).getPublicFiles()).size().isEqualTo(2);
