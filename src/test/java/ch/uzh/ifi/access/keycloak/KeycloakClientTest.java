@@ -179,15 +179,15 @@ public class KeycloakClientTest {
             Assert.assertEquals(groups.size(), 2);
         }
 
-        // ta-student should be both student and author depending on the course
+        // ta-student should be both student and assistant depending on the course
         UserRepresentation taStudent = users.stream().filter(u -> u.getEmail().equals(emailAddressStudentAndTa)).findFirst().orElseThrow();
         List<GroupRepresentation> groups = realmResource.users().get(taStudent.getId()).groups();
         for (GroupRepresentation group : groups) {
             if (group.getPath().contains(course.getId())) {
                 Assertions
                         .assertThat(group.getName())
-                        .withFailMessage(String.format("ta-student should be an 'author' of course '%s'", course.getId()))
-                        .contains("authors");
+                        .withFailMessage(String.format("ta-student should be an 'assistant' of course '%s'", course.getId()))
+                        .contains("assistants");
             } else {
                 Assertions
                         .assertThat(group.getName())
