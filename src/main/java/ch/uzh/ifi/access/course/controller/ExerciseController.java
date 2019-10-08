@@ -103,6 +103,6 @@ public class ExerciseController {
     }
 
     private boolean hasAccessToExerciseSolutions(Exercise exercise, CourseAuthentication authentication) {
-        return exercise.isPastDueDate() || authentication.hasAdminAccess(exercise.getCourseId());
+        return exercise.isPastDueDate() || authentication.hasPrivilegedAccess(exercise.getCourseId());
     }
 }

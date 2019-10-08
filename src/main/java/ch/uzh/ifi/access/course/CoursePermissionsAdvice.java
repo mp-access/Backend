@@ -48,7 +48,7 @@ public class CoursePermissionsAdvice {
                         .getAssignments()
                         .removeIf(assignment -> {
                             // A course admin of a course has unrestricted access to said course
-                            if (authentication.hasAdminAccess(course.getId())) {
+                            if (authentication.hasPrivilegedAccess(course.getId())) {
                                 return false;
                             }
                             return !assignment.isPublished();
