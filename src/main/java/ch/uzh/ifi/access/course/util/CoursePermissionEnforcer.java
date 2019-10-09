@@ -10,7 +10,7 @@ import java.util.Optional;
 public class CoursePermissionEnforcer {
 
     public <T extends HasPublishingDate> Optional<T> shouldAccessAssignment(T assignment, String courseId, CourseAuthentication authentication) {
-        if (assignment.isPublished() || authentication.hasAdminAccess(courseId)) {
+        if (assignment.isPublished() || authentication.hasPrivilegedAccess(courseId)) {
             return Optional.of(assignment);
         }
         return Optional.empty();
