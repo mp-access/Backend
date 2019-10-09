@@ -44,6 +44,8 @@ public class SubmissionHistoryDTO {
 
         private final boolean isInvalid;
 
+        private final boolean isTriggeredReSubmission;
+
         private SubmissionEvaluation result;
 
         SubmissionMetadata(StudentSubmission submission) {
@@ -53,9 +55,10 @@ public class SubmissionHistoryDTO {
             this.commitHash = submission.getCommitId();
             this.result = submission.getResult();
             this.isInvalid = submission.isInvalid();
+            this.isTriggeredReSubmission = submission.isTriggeredReSubmission();
 
             if (submission instanceof CodeSubmission) {
-                this.graded = ((CodeSubmission) submission).isGraded();
+                this.graded = submission.isGraded();
             } else {
                 this.graded = true;
             }
