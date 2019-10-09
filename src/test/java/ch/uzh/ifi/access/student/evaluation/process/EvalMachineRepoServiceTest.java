@@ -23,8 +23,8 @@ public class EvalMachineRepoServiceTest {
         StateMachine<EvalMachine.States, EvalMachine.Events> m1 = EvalMachineFactory.initSMForSubmission("123");
         StateMachine<EvalMachine.States, EvalMachine.Events> m2 = EvalMachineFactory.initSMForSubmission("345");
 
-        m1.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now().minus(30, ChronoUnit.MINUTES));
-        m2.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now().minus(1, ChronoUnit.MINUTES));
+        m1.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now().minus(1, ChronoUnit.MINUTES));
+        m2.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now().minus(30, ChronoUnit.MINUTES));
 
         EvalMachineRepoService repo = new EvalMachineRepoService();
         repo.store(id1, m1);
@@ -36,8 +36,8 @@ public class EvalMachineRepoServiceTest {
         Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
         repo.removeMachinesOlderThan(fiveMinutesAgo);
 
-        Assertions.assertThat(repo.get(id1)).isNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
+        Assertions.assertThat(repo.get(id1)).isNotNull();
+        Assertions.assertThat(repo.get(id2)).isNull();
     }
 
     @Test

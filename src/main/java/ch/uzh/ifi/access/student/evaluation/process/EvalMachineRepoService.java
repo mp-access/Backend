@@ -33,12 +33,10 @@ public class EvalMachineRepoService {
     }
 
     public void removeMachinesOlderThan(Instant threshold) {
-        for (String machineKey : machines.keySet()) {
-            StateMachine machine = machines.get(machineKey);
+        machines.entrySet().removeIf(entry -> {
+            StateMachine machine = entry.getValue();
             Instant completionTime = (Instant) machine.getExtendedState().getVariables().get(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME);
-            if (completionTime.isBefore(threshold)) {
-                machines.remove(machineKey);
-            }
-        }
+            return completionTime.isBefore(threshold);
+        });
     }
 }
