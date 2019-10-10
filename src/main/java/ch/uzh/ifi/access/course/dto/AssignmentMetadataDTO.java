@@ -6,7 +6,7 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.HasPublishingDate;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +16,11 @@ public class AssignmentMetadataDTO implements HasPublishingDate {
 
     private String title;
     private String description;
-    private LocalDateTime publishDate;
-    private LocalDateTime dueDate;
+    private ZonedDateTime publishDate;
+    private ZonedDateTime dueDate;
+
+    private boolean isPublished;
+    private boolean isPastDueDate;
 
     private List<BreadCrumb> breadCrumbs;
     private List<ExerciseMetadataDTO> exercises = new ArrayList<>();
@@ -28,6 +31,8 @@ public class AssignmentMetadataDTO implements HasPublishingDate {
         this.description = assignment.getDescription();
         this.publishDate = assignment.getPublishDate();
         this.dueDate = assignment.getDueDate();
+        this.isPublished = assignment.isPublished();
+        this.isPastDueDate = assignment.isPastDueDate();
         this.breadCrumbs = assignment.getBreadCrumbs();
 
         if (assignment.getExercises() != null) {

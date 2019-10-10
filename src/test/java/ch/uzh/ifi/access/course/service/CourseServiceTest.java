@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.io.FileSystemResource;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -63,8 +63,8 @@ public class CourseServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("");
         course.addAssignment(assignment);
         assignment.addExercise(exercise);
-        assignment.setPublishDate(LocalDateTime.now().minusYears(1));
-        assignment.setDueDate(LocalDateTime.now().plusYears(1));
+        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
+        assignment.setDueDate(ZonedDateTime.now().plusYears(1));
 
         VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
         VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
@@ -99,8 +99,8 @@ public class CourseServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("");
         course.addAssignment(assignment);
         assignment.addExercise(exercise);
-        assignment.setPublishDate(LocalDateTime.now().minusYears(1));
-        assignment.setDueDate(LocalDateTime.now().minusDays(1));
+        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
+        assignment.setDueDate(ZonedDateTime.now().minusDays(1));
 
         VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
         VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
@@ -134,8 +134,8 @@ public class CourseServiceTest {
         Course course = TestObjectFactory.createCourseWithOneAssignmentAndOneExercise("Course", "Assignment", "exercise question");
         Assignment assignment = course.getAssignments().get(0);
         Exercise exercise = assignment.getExercises().get(0);
-        assignment.setPublishDate(LocalDateTime.now().minusYears(1));
-        assignment.setDueDate(LocalDateTime.now().plusYears(1));
+        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
+        assignment.setDueDate(ZonedDateTime.now().plusYears(1));
 
         VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
         VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);

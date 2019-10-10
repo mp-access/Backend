@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Data
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Course extends CourseConfig implements IndexedCollection<Assignment>, HasBreadCrumbs {
     private final String id;
@@ -35,7 +35,7 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
     }
 
     @Builder
-    public Course(String title, String description, String owner, LocalDateTime startDate, LocalDateTime endDate, List<String> assistants, List<String> students, String id, String gitHash, String gitURL, String directory, List<Assignment> assignments) {
+    public Course(String title, String description, String owner, ZonedDateTime startDate, ZonedDateTime endDate, List<String> assistants, List<String> students, String id, String gitHash, String gitURL, String directory, List<Assignment> assignments) {
         super(title, description, owner, startDate, endDate, assistants, students);
         this.id = id;
         this.gitHash = gitHash;

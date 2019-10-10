@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs {
@@ -70,16 +70,16 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
      * @param other The other ExerciseConfig
      */
     public void set(ExerciseConfig other) {
-        this.title      = other.getTitle();
-        this.longTitle  = other.getLongTitle() == null ? other.getTitle() : other.getLongTitle();
-        this.type       = other.getType();
-        this.language   = other.getLanguage();
-        this.isGraded   = other.getIsGraded();
-        this.maxScore   = other.getMaxScore();
+        this.title = other.getTitle();
+        this.longTitle = other.getLongTitle() == null ? other.getTitle() : other.getLongTitle();
+        this.type = other.getType();
+        this.language = other.getLanguage();
+        this.isGraded = other.getIsGraded();
+        this.maxScore = other.getMaxScore();
         this.maxSubmits = other.getMaxSubmits();
-        this.options    = other.getOptions();
-        this.solutions  = other.getSolutions();
-        this.hints      = other.getHints();
+        this.options = other.getOptions();
+        this.solutions = other.getSolutions();
+        this.hints = other.getHints();
         this.executionLimits = other.getExecutionLimits();
     }
 
@@ -90,12 +90,12 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
      */
     public void update(Exercise other) {
         set(other);
-        this.gitHash        = other.gitHash;
-        this.private_files  = other.private_files;
-        this.public_files   = other.public_files;
+        this.gitHash = other.gitHash;
+        this.private_files = other.private_files;
+        this.public_files = other.public_files;
         this.solution_files = other.solution_files;
         this.resource_files = other.resource_files;
-        this.question       = other.question;
+        this.question = other.question;
     }
 
     /**
@@ -136,7 +136,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
         return assignment.isPastDueDate();
     }
 
-    public LocalDateTime getDueDate() {
+    public ZonedDateTime getDueDate() {
         return assignment.getDueDate();
     }
 
@@ -180,8 +180,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
 
     public boolean isBreakingChange(Exercise other) {
         return (!Objects.equals(this.gitHash, other.gitHash) && (
-                        // From config
-                        !Objects.equals(this.type, other.type) ||
+                // From config
+                !Objects.equals(this.type, other.type) ||
                         !Objects.equals(this.language, other.language) ||
                         !Objects.equals(this.options, other.options) ||
                         !Objects.equals(this.solutions, other.solutions) ||
@@ -192,7 +192,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
                         !Objects.equals(this.private_files, other.private_files) ||
                         !Objects.equals(this.resource_files, other.resource_files) ||
                         !Objects.equals(this.public_files, other.public_files)
-            )
+        )
         );
     }
 

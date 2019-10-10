@@ -21,7 +21,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +138,7 @@ public class SubmissionController {
         SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
         Optional<Exercise> exercise = courseService.getExerciseById(exerciseId);
         boolean isPastDueDate = exercise.map(Exercise::isPastDueDate).orElse(false);
-        LocalDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
+        ZonedDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
 
         return new SubmissionHistoryDTO(submissions, runs, submissionCount, dueDate, isPastDueDate);
     }
