@@ -3,10 +3,9 @@ package ch.uzh.ifi.access.course.dto;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.BreadCrumb;
 import ch.uzh.ifi.access.course.model.Course;
-import ch.uzh.ifi.access.course.util.Utils;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +18,8 @@ public class CourseMetadataDTO {
     private String description;
     private String owner;
     private String gitHash;
-    private LocalDateTime startDate;
-    private LocalDateTime endDate;
+    private ZonedDateTime startDate;
+    private ZonedDateTime endDate;
 
     private List<BreadCrumb> breadCrumbs;
     private List<AssignmentMetadataDTO> assignments = new ArrayList<>();
@@ -39,9 +38,4 @@ public class CourseMetadataDTO {
             this.assignments.add(new AssignmentMetadataDTO(a));
         }
     }
-
-    public CourseMetadataDTO() {
-        this.id = new Utils().getID();
-    }
-
 }

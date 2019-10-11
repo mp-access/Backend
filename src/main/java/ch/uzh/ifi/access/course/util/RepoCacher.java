@@ -1,18 +1,23 @@
 package ch.uzh.ifi.access.course.util;
 
 import ch.uzh.ifi.access.course.model.*;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
@@ -101,14 +106,33 @@ public class RepoCacher {
                 .toFormatter();
 
         JavaTimeModule javaTimeModule = new JavaTimeModule();
-        LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
-        javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
+//        InstantDeserializer.ZONED_DATE_TIME;
+//        InstantDeserializer deserializer = new InstantDeserializer(fmt);
+        javaTimeModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
 
         mapper = new ObjectMapper();
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
 
         mapper.registerModule(javaTimeModule);
+    }
+
+    public static class ZonedDateTimeDeserializer extends JsonDeserializer<ZonedDateTime> {
+
+        @Override
+        public ZonedDateTime deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+            DateTimeFormatter fmt = new DateTimeFormatterBuilder()
+                    .appendPattern("yyyy-MM-dd")
+                    .optionalStart()
+                    .appendPattern(" HH:mm")
+                    .optionalEnd()
+                    .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
+                    .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
+                    .toFormatter();
+            LocalDateTime localDateTime = LocalDateTime.parse(jsonParser.getText(), fmt);
+
+            return localDateTime.atZone(ZoneId.of("Europe/Zurich"));
+        }
     }
 
     private static String readFile(File file) {
@@ -232,7 +256,7 @@ public class RepoCacher {
         String cleanName = name;
         int commentIndex = StringUtils.ordinalIndexOf(name, "_", 2);
 
-        if(commentIndex != -1)
+        if (commentIndex != -1)
             cleanName = name.substring(0, commentIndex);
 
         return cleanName;
