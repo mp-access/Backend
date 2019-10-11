@@ -5,9 +5,12 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class CodeEvaluatorTest {
 
@@ -17,6 +20,7 @@ public class CodeEvaluatorTest {
     private String hintsLog;
     private String hints2;
     private String okTestLog;
+    private String hintsNotParsed;
 
     @Before
     public void setUp() {
@@ -76,7 +80,7 @@ public class CodeEvaluatorTest {
                 "Traceback (most recent call last):\n" +
                 "  File \"/home/mangoman/Workspace/MasterProject/CourseService/runner/test/TestStringMethods1.py\", line 6, in test_upper\n" +
                 "    self.assertEqual('FOO'.upper(), 'Foo')\n" +
-                "AssertionError: 'FOO' != 'Foo'@@Erster Hinweis@@\n"+
+                "AssertionError: 'FOO' != 'Foo'@@Erster Hinweis@@\n" +
                 "- FOO\n" +
                 "+ Foo\n" +
                 "\n" +
@@ -85,7 +89,7 @@ public class CodeEvaluatorTest {
                 "\n" +
                 "FAILED (failures=1)";
 
-        hints2= "test_doghouse (testSuite.Task2B) ... FAIL\n" +
+        hints2 = "test_doghouse (testSuite.Task2B) ... FAIL\n" +
                 "\n" +
                 "======================================================================\n" +
                 "FAIL: test_doghouse (testSuite.Task2B)\n" +
@@ -112,6 +116,51 @@ public class CodeEvaluatorTest {
                 "Ran 6 tests in 0.001s\n" +
                 "\n" +
                 "OK\n";
+
+        hintsNotParsed = "" +
+                "test_case0 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case1 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case10 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case11 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case2 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case3 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case4 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case5 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case6 (tests.PrivateTestSuite) ... FAIL\n" +
+                "test_case7 (tests.PrivateTestSuite) ... FAIL\n" +
+                "test_case8 (tests.PrivateTestSuite) ... ok\n" +
+                "test_case9 (tests.PrivateTestSuite) ... ok\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: test_case6 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 53, in test_case6\n" +
+                "    self._assert(\"abzAZ!\", 27, \"bcaBA!\", None)\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 32, in _assert\n" +
+                "    self.assertEqual(expected, actual, msg)\n" +
+                "AssertionError: 'bcaBA!' != 'abzAZ!'\n" +
+                "- bcaBA!\n" +
+                "+ abzAZ!\n" +
+                " : @@ROT27 of 'abzAZ!' should be 'bcaBA!', but was 'abzAZ!'.@@\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: test_case7 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 56, in test_case7\n" +
+                "    self._assert(\"abzAZ!\", -27, \"zayZY!\", None)\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 32, in _assert\n" +
+                "    self.assertEqual(expected, actual, msg)\n" +
+                "AssertionError: 'zayZY!' != 'abzAZ!'\n" +
+                "- zayZY!\n" +
+                "+ abzAZ!\n" +
+                " : @@ROT-27 of 'abzAZ!' should be 'zayZY!', but was 'abzAZ!'.@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 12 tests in 0.016s\n" +
+                "\n" +
+                "FAILED (failures=2)\n";
     }
 
     @Test
@@ -143,6 +192,7 @@ public class CodeEvaluatorTest {
 
         Assert.assertEquals(5, grade.getPoints().getCorrect());
         Assert.assertEquals(8.25, grade.getScore(), 0.25);
+        Assert.assertTrue(grade.getHints().isEmpty());
     }
 
     @Test
@@ -225,5 +275,25 @@ public class CodeEvaluatorTest {
         Assert.assertEquals(0, grade.getPoints().getCorrect());
         Assert.assertEquals(0.0, grade.getScore(), 0.1);
         Assert.assertEquals(0, grade.getHints().size());
+    }
+
+    @Test
+    public void hintsNotParsed() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(hintsNotParsed);
+
+        Assertions.assertThat(hints).size().isEqualTo(2);
+        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!', but was 'abzAZ!'.");
+        Assertions.assertThat(hints.get(1)).isEqualTo("ROT-27 of 'abzAZ!' should be 'zayZY!', but was 'abzAZ!'.");
+
+        ExecResult console = new ExecResult();
+        console.setEvalLog(hintsNotParsed);
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .exerciseId(exercise.getId())
+                .console(console)
+                .build();
+
+        hints = new CodeEvaluator().evaluate(sub, exercise).getHints();
+        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!', but was 'abzAZ!'.");
     }
 }

@@ -8,6 +8,7 @@ import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +21,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(CodeEvaluator.class);
 
     private static final String HINT_ANNOTATION = "@@";
-    private static final String HINT_PATTERN = "^Assertion.*:.*("+HINT_ANNOTATION+".*"+HINT_ANNOTATION+")$";
+    private static final String HINT_PATTERN = "Assertion.*?:.*?(" + HINT_ANNOTATION + ".*?" + HINT_ANNOTATION + ")";
 
     private final String runNTestPattern = "^Ran (\\d++) test.*";
     private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
@@ -29,7 +30,6 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     public CodeEvaluator() {
         this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE);
-        //this.hintPattern = Pattern.compile(HINT_PATTERN);
     }
 
     @Override
@@ -40,21 +40,22 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         SubmissionEvaluation.Points scoredPoints = parseScoreFromLog(codeSub.getConsole().getEvalLog());
         List<String> hints = parseHintsFromLog(codeSub.getConsole().getEvalLog());
 
-        return  SubmissionEvaluation.builder()
+        return SubmissionEvaluation.builder()
                 .points(scoredPoints)
                 .maxScore(exercise.getMaxScore())
                 .hints(hints)
                 .build();
     }
 
-    private List<String> parseHintsFromLog(String evalLog) {
+    List<String> parseHintsFromLog(String evalLog) {
         List<String> hints = new ArrayList<>();
 
-        Matcher matcher = hintPattern.matcher(evalLog);
+        String log = evalLog.replace("\n", " ");
+        Matcher matcher = hintPattern.matcher(log);
         while (matcher.find()) {
-            String s = matcher.group(1);
-            if(s != null && s.length()>0 && s.contains("@@")){
-                hints.add(s.replace(HINT_ANNOTATION, ""));
+            String possibleHint = matcher.group(1);
+            if (!StringUtils.isEmpty(possibleHint) && possibleHint.contains(HINT_ANNOTATION)) {
+                hints.add(possibleHint.replace(HINT_ANNOTATION, ""));
             }
         }
 
@@ -69,7 +70,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             List<String> lines = Arrays.asList(log.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
-             nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
+            nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
 
             if (resultLine.startsWith("OK")) {
                 points = nrOfTest;
