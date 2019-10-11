@@ -5,18 +5,26 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class CodeEvaluatorTest {
 
     private Exercise exercise;
     private String errorTestLog;
-    private String failsTestLog;
+    private String failedWithNoHint;
     private String hintsLog;
     private String hints2;
     private String okTestLog;
+    private String hintsNotParsed;
+    private String failLog;
+    private String assertCountHint;
+    private String assertListEqualHint;
+    private String crashedLog;
 
     @Before
     public void setUp() {
@@ -42,7 +50,7 @@ public class CodeEvaluatorTest {
                 "\n" +
                 "FAILED (errors=1)\n";
 
-        failsTestLog = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
+        failedWithNoHint = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
                 "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
                 "test_upper (test.TestStringMethods1.TestStringMethods1) ... FAIL\n" +
                 "test_isupper (test.TestStringMethods2.TestStringMethods2) ... ok\n" +
@@ -76,7 +84,7 @@ public class CodeEvaluatorTest {
                 "Traceback (most recent call last):\n" +
                 "  File \"/home/mangoman/Workspace/MasterProject/CourseService/runner/test/TestStringMethods1.py\", line 6, in test_upper\n" +
                 "    self.assertEqual('FOO'.upper(), 'Foo')\n" +
-                "AssertionError: 'FOO' != 'Foo'@@Erster Hinweis@@\n"+
+                "AssertionError: 'FOO' != 'Foo'@@Erster Hinweis@@\n" +
                 "- FOO\n" +
                 "+ Foo\n" +
                 "\n" +
@@ -85,7 +93,7 @@ public class CodeEvaluatorTest {
                 "\n" +
                 "FAILED (failures=1)";
 
-        hints2= "test_doghouse (testSuite.Task2B) ... FAIL\n" +
+        hints2 = "test_doghouse (testSuite.Task2B) ... FAIL\n" +
                 "\n" +
                 "======================================================================\n" +
                 "FAIL: test_doghouse (testSuite.Task2B)\n" +
@@ -112,6 +120,146 @@ public class CodeEvaluatorTest {
                 "Ran 6 tests in 0.001s\n" +
                 "\n" +
                 "OK\n";
+
+        hintsNotParsed = "" +
+                "........FF..\n" +
+                "======================================================================\n" +
+                "FAIL: test_case6 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 53, in test_case6\n" +
+                "    self._assert(\"abzAZ!\", 27, \"bcaBA!\", None)\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 32, in _assert\n" +
+                "    self.assertEqual(expected, actual, msg)\n" +
+                "AssertionError: 'bcaBA!' != 'abzAZ!'\n" +
+                "- bcaBA!\n" +
+                "+ abzAZ!\n" +
+                " : @@ROT27 of 'abzAZ!' should be 'bcaBA!'\n" +
+                ", but was 'abzAZ!'.@@\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: test_case7 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 56, in test_case7\n" +
+                "    self._assert(\"abzAZ!\", -27, \"zayZY!\", None)\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 32, in _assert\n" +
+                "    self.assertEqual(expected, actual, msg)\n" +
+                "AssertionError: 'zayZY!' != 'abzAZ!'\n" +
+                "- zayZY!\n" +
+                "+ abzAZ!\n" +
+                " : @@ROT-27 of 'abzAZ!' should be 'zayZY!'\n" +
+                ", but was 'abzAZ!'.@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 12 tests in 0.016s\n" +
+                "\n" +
+                "FAILED (failures=2)\n";
+
+        failLog = "" +
+                "F\n" +
+                "======================================================================\n" +
+                "FAIL: testFail (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 84, in testFail\n" +
+                "    self.fail(m)\n" +
+                "AssertionError: @@After the encoding, some letters have become non-letters.@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 1 test in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=1)\n";
+
+        assertCountHint = "" +
+                "FF\n" +
+                "======================================================================\n" +
+                "FAIL: testFail (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 84, in testFail\n" +
+                "    self.assertCountEqual([], [1], m)\n" +
+                "AssertionError: Element counts were not equal:\n" +
+                "First has 0, Second has 1:  1 : @@blablabla@@\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: testFail2 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 88, in testFail2\n" +
+                "    self.assertCountEqual([], [1], m)\n" +
+                "AssertionError: Element counts were not equal:\n" +
+                "First has 0, Second has 1:  1 : @@blablablablablabla@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 2 tests in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=2)\n";
+
+        assertListEqualHint = "" +
+                "FF\n" +
+                "======================================================================\n" +
+                "FAIL: testFail (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 84, in testFail\n" +
+                "    self.assertListEqual([], [1], m)\n" +
+                "AssertionError: Lists differ: [] != [1]\n" +
+                "\n" +
+                "Second list contains 1 additional elements.\n" +
+                "First extra element 0:\n" +
+                "1\n" +
+                "\n" +
+                "- []\n" +
+                "+ [1]\n" +
+                "?  +\n" +
+                " : @@blablabla@@\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: testFail2 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 88, in testFail2\n" +
+                "    self.assertListEqual([], [1], m)\n" +
+                "AssertionError: Lists differ: [] != [1]\n" +
+                "\n" +
+                "Second list contains 1 additional elements.\n" +
+                "First extra element 0:\n" +
+                "1\n" +
+                "\n" +
+                "- []\n" +
+                "+ [1]\n" +
+                "?  +\n" +
+                " : @@blablablablablabla@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 2 tests in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=2)\n";
+
+        crashedLog = "" +
+                "E\n" +
+                "======================================================================\n" +
+                "ERROR: tests (unittest.loader._FailedTest)\n" +
+                "----------------------------------------------------------------------\n" +
+                "ImportError: Failed to import test module: tests\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"//anaconda3/lib/python3.7/unittest/loader.py\", line 436, in _find_test_path\n" +
+                "    module = self._get_module_from_name(name)\n" +
+                "  File \"//anaconda3/lib/python3.7/unittest/loader.py\", line 377, in _get_module_from_name\n" +
+                "    __import__(name)\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 17, in <module>\n" +
+                "    from public import script\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/public/script.py\", line 14\n" +
+                "    from string import ascii_lowercase as lc, ascii_uppercase as uc\n" +
+                "       ^\n" +
+                "IndentationError: expected an indented block\n" +
+                "\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 1 test in 0.000s\n" +
+                "\n" +
+                "FAILED (errors=1)\n";
     }
 
     @Test
@@ -132,7 +280,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execWithFailures() {
         ExecResult console = new ExecResult();
-        console.setEvalLog(failsTestLog);
+        console.setEvalLog(failedWithNoHint);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -143,6 +291,8 @@ public class CodeEvaluatorTest {
 
         Assert.assertEquals(5, grade.getPoints().getCorrect());
         Assert.assertEquals(8.25, grade.getScore(), 0.25);
+        Assert.assertEquals(grade.getHints().size(), 1);
+        Assert.assertEquals(grade.getHints().get(0), CodeEvaluator.TEST_FAILED_WITHOUT_HINTS);
     }
 
     @Test
@@ -225,5 +375,59 @@ public class CodeEvaluatorTest {
         Assert.assertEquals(0, grade.getPoints().getCorrect());
         Assert.assertEquals(0.0, grade.getScore(), 0.1);
         Assert.assertEquals(0, grade.getHints().size());
+    }
+
+    @Test
+    public void hintsNotParsed() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(hintsNotParsed);
+
+        Assertions.assertThat(hints).size().isEqualTo(2);
+        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!'\n, but was 'abzAZ!'.");
+        Assertions.assertThat(hints.get(1)).isEqualTo("ROT-27 of 'abzAZ!' should be 'zayZY!'\n, but was 'abzAZ!'.");
+
+        ExecResult console = new ExecResult();
+        console.setEvalLog(hintsNotParsed);
+
+        CodeSubmission sub = CodeSubmission.builder()
+                .exerciseId(exercise.getId())
+                .console(console)
+                .build();
+
+        hints = new CodeEvaluator().evaluate(sub, exercise).getHints();
+        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!'\n, but was 'abzAZ!'.");
+    }
+
+    @Test
+    public void failLogHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(failLog);
+
+        Assertions.assertThat(hints).size().isEqualTo(1);
+        Assertions.assertThat(hints.get(0)).isEqualTo("After the encoding, some letters have become non-letters.");
+    }
+
+    @Test
+    public void assertCountHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(assertCountHint);
+
+        Assertions.assertThat(hints).size().isEqualTo(2);
+        Assertions.assertThat(hints.get(0)).isEqualTo("blablabla");
+        Assertions.assertThat(hints.get(1)).isEqualTo("blablablablablabla");
+    }
+
+    @Test
+    public void assertListEqualHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(assertListEqualHint);
+
+        Assertions.assertThat(hints).size().isEqualTo(2);
+        Assertions.assertThat(hints.get(0)).isEqualTo("blablabla");
+        Assertions.assertThat(hints.get(1)).isEqualTo("blablablablablabla");
+    }
+
+    @Test
+    public void crashedLogHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(crashedLog);
+
+        Assertions.assertThat(hints).size().isEqualTo(1);
+        Assertions.assertThat(hints.get(0)).isEqualTo("IndentationError");
     }
 }

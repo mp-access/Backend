@@ -8,6 +8,7 @@ import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,16 +21,24 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(CodeEvaluator.class);
 
     private static final String HINT_ANNOTATION = "@@";
-    private static final String HINT_PATTERN = "^Assertion.*:.*("+HINT_ANNOTATION+".*"+HINT_ANNOTATION+")$";
+    private static final String HINT_PATTERN = "^Assertion.*?:.*?(" + HINT_ANNOTATION + ".*?" + HINT_ANNOTATION + ")$";
+    private static final String LAST_CRASH_PATTERN = "^(.*?Error):.*?";
+
+    private static final String PYTHON_ASSERTION_ERROR = "AssertionError";
+    static final String TEST_FAILED_WITHOUT_HINTS = "Test failed without solution hints";
 
     private final String runNTestPattern = "^Ran (\\d++) test.*";
     private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
 
     private Pattern hintPattern;
+    private Pattern crashPattern;
+
+    private Pattern failedTestPattern;
 
     public CodeEvaluator() {
-        this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE);
-        //this.hintPattern = Pattern.compile(HINT_PATTERN);
+        this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE | Pattern.DOTALL);
+        this.crashPattern = Pattern.compile(LAST_CRASH_PATTERN, Pattern.MULTILINE);
+        this.failedTestPattern = Pattern.compile(nokNTestPattern, Pattern.MULTILINE);
     }
 
     @Override
@@ -40,21 +49,42 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         SubmissionEvaluation.Points scoredPoints = parseScoreFromLog(codeSub.getConsole().getEvalLog());
         List<String> hints = parseHintsFromLog(codeSub.getConsole().getEvalLog());
 
-        return  SubmissionEvaluation.builder()
+        return SubmissionEvaluation.builder()
                 .points(scoredPoints)
                 .maxScore(exercise.getMaxScore())
                 .hints(hints)
                 .build();
     }
 
-    private List<String> parseHintsFromLog(String evalLog) {
+    List<String> parseHintsFromLog(String evalLog) {
         List<String> hints = new ArrayList<>();
 
         Matcher matcher = hintPattern.matcher(evalLog);
         while (matcher.find()) {
-            String s = matcher.group(1);
-            if(s != null && s.length()>0 && s.contains("@@")){
-                hints.add(s.replace(HINT_ANNOTATION, ""));
+            String possibleHint = matcher.group(1);
+            if (!StringUtils.isEmpty(possibleHint) && possibleHint.contains(HINT_ANNOTATION)) {
+                hints.add(possibleHint.replace(HINT_ANNOTATION, ""));
+            }
+        }
+
+        boolean hasFailedTests = failedTestPattern.matcher(evalLog).find();
+        if (hints.isEmpty() && hasFailedTests) {
+            matcher = crashPattern.matcher(evalLog);
+
+            String lastCrash = null;
+            while (matcher.find()) {
+                String error = matcher.group(1);
+
+                if (!error.equals(PYTHON_ASSERTION_ERROR)) {
+                    lastCrash = error;
+                }
+            }
+            if (lastCrash != null) {
+                hints.add(lastCrash);
+            }
+
+            if (hints.isEmpty()) {
+                hints.add(TEST_FAILED_WITHOUT_HINTS);
             }
         }
 
@@ -69,7 +99,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             List<String> lines = Arrays.asList(log.split("\n"));
             String resultLine = lines.get(lines.size() - 1);
 
-             nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
+            nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
 
             if (resultLine.startsWith("OK")) {
                 points = nrOfTest;
@@ -99,8 +129,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     private int extractNrOfNOKTests(String line) {
         int nrTests = 0;
-        Pattern p = Pattern.compile(nokNTestPattern);
-        Matcher m = p.matcher(line);
+        Matcher m = failedTestPattern.matcher(line);
         if (m.find()) {
             // group0 = line
             // group1 = failures / errors
