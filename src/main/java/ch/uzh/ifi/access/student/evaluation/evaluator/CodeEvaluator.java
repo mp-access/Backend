@@ -22,14 +22,23 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     private static final String HINT_ANNOTATION = "@@";
     private static final String HINT_PATTERN = "^Assertion.*?:.*?(" + HINT_ANNOTATION + ".*?" + HINT_ANNOTATION + ")$";
+    private static final String LAST_CRASH_PATTERN = "^(.*?Error):.*?";
+
+    private static final String PYTHON_ASSERTION_ERROR = "AssertionError";
+    static final String TEST_FAILED_WITHOUT_HINTS = "Test failed without solution hints";
 
     private final String runNTestPattern = "^Ran (\\d++) test.*";
     private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
 
     private Pattern hintPattern;
+    private Pattern crashPattern;
+
+    private Pattern failedTestPattern;
 
     public CodeEvaluator() {
         this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE | Pattern.DOTALL);
+        this.crashPattern = Pattern.compile(LAST_CRASH_PATTERN, Pattern.MULTILINE);
+        this.failedTestPattern = Pattern.compile(nokNTestPattern, Pattern.MULTILINE);
     }
 
     @Override
@@ -55,6 +64,27 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             String possibleHint = matcher.group(1);
             if (!StringUtils.isEmpty(possibleHint) && possibleHint.contains(HINT_ANNOTATION)) {
                 hints.add(possibleHint.replace(HINT_ANNOTATION, ""));
+            }
+        }
+
+        boolean hasFailedTests = failedTestPattern.matcher(evalLog).find();
+        if (hints.isEmpty() && hasFailedTests) {
+            matcher = crashPattern.matcher(evalLog);
+
+            String lastCrash = null;
+            while (matcher.find()) {
+                String error = matcher.group(1);
+
+                if (!error.equals(PYTHON_ASSERTION_ERROR)) {
+                    lastCrash = error;
+                }
+            }
+            if (lastCrash != null) {
+                hints.add(lastCrash);
+            }
+
+            if (hints.isEmpty()) {
+                hints.add(TEST_FAILED_WITHOUT_HINTS);
             }
         }
 
@@ -99,8 +129,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     private int extractNrOfNOKTests(String line) {
         int nrTests = 0;
-        Pattern p = Pattern.compile(nokNTestPattern);
-        Matcher m = p.matcher(line);
+        Matcher m = failedTestPattern.matcher(line);
         if (m.find()) {
             // group0 = line
             // group1 = failures / errors

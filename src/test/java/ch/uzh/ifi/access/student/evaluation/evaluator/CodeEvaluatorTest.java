@@ -16,7 +16,7 @@ public class CodeEvaluatorTest {
 
     private Exercise exercise;
     private String errorTestLog;
-    private String failsTestLog;
+    private String failedWithNoHint;
     private String hintsLog;
     private String hints2;
     private String okTestLog;
@@ -24,6 +24,7 @@ public class CodeEvaluatorTest {
     private String failLog;
     private String assertCountHint;
     private String assertListEqualHint;
+    private String crashedLog;
 
     @Before
     public void setUp() {
@@ -49,7 +50,7 @@ public class CodeEvaluatorTest {
                 "\n" +
                 "FAILED (errors=1)\n";
 
-        failsTestLog = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
+        failedWithNoHint = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
                 "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n" +
                 "test_upper (test.TestStringMethods1.TestStringMethods1) ... FAIL\n" +
                 "test_isupper (test.TestStringMethods2.TestStringMethods2) ... ok\n" +
@@ -235,6 +236,30 @@ public class CodeEvaluatorTest {
                 "Ran 2 tests in 0.001s\n" +
                 "\n" +
                 "FAILED (failures=2)\n";
+
+        crashedLog = "" +
+                "E\n" +
+                "======================================================================\n" +
+                "ERROR: tests (unittest.loader._FailedTest)\n" +
+                "----------------------------------------------------------------------\n" +
+                "ImportError: Failed to import test module: tests\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"//anaconda3/lib/python3.7/unittest/loader.py\", line 436, in _find_test_path\n" +
+                "    module = self._get_module_from_name(name)\n" +
+                "  File \"//anaconda3/lib/python3.7/unittest/loader.py\", line 377, in _get_module_from_name\n" +
+                "    __import__(name)\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 17, in <module>\n" +
+                "    from public import script\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/public/script.py\", line 14\n" +
+                "    from string import ascii_lowercase as lc, ascii_uppercase as uc\n" +
+                "       ^\n" +
+                "IndentationError: expected an indented block\n" +
+                "\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 1 test in 0.000s\n" +
+                "\n" +
+                "FAILED (errors=1)\n";
     }
 
     @Test
@@ -255,7 +280,7 @@ public class CodeEvaluatorTest {
     @Test
     public void execWithFailures() {
         ExecResult console = new ExecResult();
-        console.setEvalLog(failsTestLog);
+        console.setEvalLog(failedWithNoHint);
 
         CodeSubmission sub = CodeSubmission.builder()
                 .exerciseId(exercise.getId())
@@ -266,7 +291,8 @@ public class CodeEvaluatorTest {
 
         Assert.assertEquals(5, grade.getPoints().getCorrect());
         Assert.assertEquals(8.25, grade.getScore(), 0.25);
-        Assert.assertTrue(grade.getHints().isEmpty());
+        Assert.assertEquals(grade.getHints().size(), 1);
+        Assert.assertEquals(grade.getHints().get(0), CodeEvaluator.TEST_FAILED_WITHOUT_HINTS);
     }
 
     @Test
@@ -395,5 +421,13 @@ public class CodeEvaluatorTest {
         Assertions.assertThat(hints).size().isEqualTo(2);
         Assertions.assertThat(hints.get(0)).isEqualTo("blablabla");
         Assertions.assertThat(hints.get(1)).isEqualTo("blablablablablabla");
+    }
+
+    @Test
+    public void crashedLogHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(crashedLog);
+
+        Assertions.assertThat(hints).size().isEqualTo(1);
+        Assertions.assertThat(hints.get(0)).isEqualTo("IndentationError");
     }
 }
