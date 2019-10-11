@@ -1,9 +1,6 @@
 package ch.uzh.ifi.access.course.dto;
 
-import ch.uzh.ifi.access.course.model.Assignment;
-import ch.uzh.ifi.access.course.model.BreadCrumb;
-import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.HasPublishingDate;
+import ch.uzh.ifi.access.course.model.*;
 import lombok.Data;
 
 import java.time.ZonedDateTime;
@@ -11,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class AssignmentMetadataDTO implements HasPublishingDate {
+public class AssignmentMetadataDTO implements HasPublishingDate, HasDueDate {
     private final String id;
 
     private String title;

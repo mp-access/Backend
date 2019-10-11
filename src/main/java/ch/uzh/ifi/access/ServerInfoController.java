@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +26,9 @@ public class ServerInfoController {
     @GetMapping("/info")
     public ResponseEntity<?> info() {
         Map<String, String> response = new HashMap<>();
-        response.put("time", ZonedDateTime.now().toOffsetDateTime().toString());
+        response.put("offsetDateTime", ZonedDateTime.now().toOffsetDateTime().toString());
+        response.put("utcTime", Instant.now().toString());
+        response.put("zoneId", ZoneId.systemDefault().toString());
 
         if (serverInfo != null) {
             response.put("version", serverInfo.version);
