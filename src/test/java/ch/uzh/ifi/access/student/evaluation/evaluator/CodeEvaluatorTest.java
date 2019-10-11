@@ -21,6 +21,9 @@ public class CodeEvaluatorTest {
     private String hints2;
     private String okTestLog;
     private String hintsNotParsed;
+    private String failLog;
+    private String assertCountHint;
+    private String assertListEqualHint;
 
     @Before
     public void setUp() {
@@ -149,6 +152,87 @@ public class CodeEvaluatorTest {
                 "\n" +
                 "----------------------------------------------------------------------\n" +
                 "Ran 12 tests in 0.016s\n" +
+                "\n" +
+                "FAILED (failures=2)\n";
+
+        failLog = "" +
+                "F\n" +
+                "======================================================================\n" +
+                "FAIL: testFail (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 84, in testFail\n" +
+                "    self.fail(m)\n" +
+                "AssertionError: @@After the encoding, some letters have become non-letters.@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 1 test in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=1)\n";
+
+        assertCountHint = "" +
+                "FF\n" +
+                "======================================================================\n" +
+                "FAIL: testFail (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 84, in testFail\n" +
+                "    self.assertCountEqual([], [1], m)\n" +
+                "AssertionError: Element counts were not equal:\n" +
+                "First has 0, Second has 1:  1 : @@blablabla@@\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: testFail2 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 88, in testFail2\n" +
+                "    self.assertCountEqual([], [1], m)\n" +
+                "AssertionError: Element counts were not equal:\n" +
+                "First has 0, Second has 1:  1 : @@blablablablablabla@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 2 tests in 0.001s\n" +
+                "\n" +
+                "FAILED (failures=2)\n";
+
+        assertListEqualHint = "" +
+                "FF\n" +
+                "======================================================================\n" +
+                "FAIL: testFail (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 84, in testFail\n" +
+                "    self.assertListEqual([], [1], m)\n" +
+                "AssertionError: Lists differ: [] != [1]\n" +
+                "\n" +
+                "Second list contains 1 additional elements.\n" +
+                "First extra element 0:\n" +
+                "1\n" +
+                "\n" +
+                "- []\n" +
+                "+ [1]\n" +
+                "?  +\n" +
+                " : @@blablabla@@\n" +
+                "\n" +
+                "======================================================================\n" +
+                "FAIL: testFail2 (tests.PrivateTestSuite)\n" +
+                "----------------------------------------------------------------------\n" +
+                "Traceback (most recent call last):\n" +
+                "  File \"/Users/alexhofmann/Downloads/exercise_03/private/tests.py\", line 88, in testFail2\n" +
+                "    self.assertListEqual([], [1], m)\n" +
+                "AssertionError: Lists differ: [] != [1]\n" +
+                "\n" +
+                "Second list contains 1 additional elements.\n" +
+                "First extra element 0:\n" +
+                "1\n" +
+                "\n" +
+                "- []\n" +
+                "+ [1]\n" +
+                "?  +\n" +
+                " : @@blablablablablabla@@\n" +
+                "\n" +
+                "----------------------------------------------------------------------\n" +
+                "Ran 2 tests in 0.001s\n" +
                 "\n" +
                 "FAILED (failures=2)\n";
     }
@@ -285,5 +369,31 @@ public class CodeEvaluatorTest {
 
         hints = new CodeEvaluator().evaluate(sub, exercise).getHints();
         Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!'\n, but was 'abzAZ!'.");
+    }
+
+    @Test
+    public void failLogHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(failLog);
+
+        Assertions.assertThat(hints).size().isEqualTo(1);
+        Assertions.assertThat(hints.get(0)).isEqualTo("After the encoding, some letters have become non-letters.");
+    }
+
+    @Test
+    public void assertCountHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(assertCountHint);
+
+        Assertions.assertThat(hints).size().isEqualTo(2);
+        Assertions.assertThat(hints.get(0)).isEqualTo("blablabla");
+        Assertions.assertThat(hints.get(1)).isEqualTo("blablablablablabla");
+    }
+
+    @Test
+    public void assertListEqualHint() {
+        List<String> hints = new CodeEvaluator().parseHintsFromLog(assertListEqualHint);
+
+        Assertions.assertThat(hints).size().isEqualTo(2);
+        Assertions.assertThat(hints.get(0)).isEqualTo("blablabla");
+        Assertions.assertThat(hints.get(1)).isEqualTo("blablablablablabla");
     }
 }
