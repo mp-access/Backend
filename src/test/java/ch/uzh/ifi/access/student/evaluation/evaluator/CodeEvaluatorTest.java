@@ -118,19 +118,7 @@ public class CodeEvaluatorTest {
                 "OK\n";
 
         hintsNotParsed = "" +
-                "test_case0 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case1 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case10 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case11 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case2 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case3 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case4 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case5 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case6 (tests.PrivateTestSuite) ... FAIL\n" +
-                "test_case7 (tests.PrivateTestSuite) ... FAIL\n" +
-                "test_case8 (tests.PrivateTestSuite) ... ok\n" +
-                "test_case9 (tests.PrivateTestSuite) ... ok\n" +
-                "\n" +
+                "........FF..\n" +
                 "======================================================================\n" +
                 "FAIL: test_case6 (tests.PrivateTestSuite)\n" +
                 "----------------------------------------------------------------------\n" +
@@ -142,7 +130,8 @@ public class CodeEvaluatorTest {
                 "AssertionError: 'bcaBA!' != 'abzAZ!'\n" +
                 "- bcaBA!\n" +
                 "+ abzAZ!\n" +
-                " : @@ROT27 of 'abzAZ!' should be 'bcaBA!', but was 'abzAZ!'.@@\n" +
+                " : @@ROT27 of 'abzAZ!' should be 'bcaBA!'\n" +
+                ", but was 'abzAZ!'.@@\n" +
                 "\n" +
                 "======================================================================\n" +
                 "FAIL: test_case7 (tests.PrivateTestSuite)\n" +
@@ -155,7 +144,8 @@ public class CodeEvaluatorTest {
                 "AssertionError: 'zayZY!' != 'abzAZ!'\n" +
                 "- zayZY!\n" +
                 "+ abzAZ!\n" +
-                " : @@ROT-27 of 'abzAZ!' should be 'zayZY!', but was 'abzAZ!'.@@\n" +
+                " : @@ROT-27 of 'abzAZ!' should be 'zayZY!'\n" +
+                ", but was 'abzAZ!'.@@\n" +
                 "\n" +
                 "----------------------------------------------------------------------\n" +
                 "Ran 12 tests in 0.016s\n" +
@@ -282,8 +272,8 @@ public class CodeEvaluatorTest {
         List<String> hints = new CodeEvaluator().parseHintsFromLog(hintsNotParsed);
 
         Assertions.assertThat(hints).size().isEqualTo(2);
-        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!', but was 'abzAZ!'.");
-        Assertions.assertThat(hints.get(1)).isEqualTo("ROT-27 of 'abzAZ!' should be 'zayZY!', but was 'abzAZ!'.");
+        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!'\n, but was 'abzAZ!'.");
+        Assertions.assertThat(hints.get(1)).isEqualTo("ROT-27 of 'abzAZ!' should be 'zayZY!'\n, but was 'abzAZ!'.");
 
         ExecResult console = new ExecResult();
         console.setEvalLog(hintsNotParsed);
@@ -294,6 +284,6 @@ public class CodeEvaluatorTest {
                 .build();
 
         hints = new CodeEvaluator().evaluate(sub, exercise).getHints();
-        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!', but was 'abzAZ!'.");
+        Assertions.assertThat(hints.get(0)).isEqualTo("ROT27 of 'abzAZ!' should be 'bcaBA!'\n, but was 'abzAZ!'.");
     }
 }

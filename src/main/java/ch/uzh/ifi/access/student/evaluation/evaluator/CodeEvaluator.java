@@ -21,7 +21,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     private static final Logger logger = LoggerFactory.getLogger(CodeEvaluator.class);
 
     private static final String HINT_ANNOTATION = "@@";
-    private static final String HINT_PATTERN = "Assertion.*?:.*?(" + HINT_ANNOTATION + ".*?" + HINT_ANNOTATION + ")";
+    private static final String HINT_PATTERN = "^Assertion.*?:.*?(" + HINT_ANNOTATION + ".*?" + HINT_ANNOTATION + ")$";
 
     private final String runNTestPattern = "^Ran (\\d++) test.*";
     private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
@@ -29,7 +29,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     private Pattern hintPattern;
 
     public CodeEvaluator() {
-        this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE);
+        this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE | Pattern.DOTALL);
     }
 
     @Override
@@ -50,8 +50,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     List<String> parseHintsFromLog(String evalLog) {
         List<String> hints = new ArrayList<>();
 
-        String log = evalLog.replace("\n", " ");
-        Matcher matcher = hintPattern.matcher(log);
+        Matcher matcher = hintPattern.matcher(evalLog);
         while (matcher.find()) {
             String possibleHint = matcher.group(1);
             if (!StringUtils.isEmpty(possibleHint) && possibleHint.contains(HINT_ANNOTATION)) {
