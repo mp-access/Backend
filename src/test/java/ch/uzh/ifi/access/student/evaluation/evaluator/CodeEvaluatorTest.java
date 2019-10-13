@@ -144,15 +144,6 @@ public class CodeEvaluatorTest {
 	}
 
 	@Test
-	public void nonsenseLog() {
-		SubmissionEvaluation grade = evaluate("asdfklajd blkasjd falsdjf  \n aljöflkjsd fasdf \n asdfjkl adsflkja sdf");
-
-		Assert.assertEquals(0, grade.getPoints().getCorrect());
-		Assert.assertEquals(0.0, grade.getScore(), 0.1);
-		Assert.assertEquals(hints(), grade.getHints());
-	}
-
-	@Test
 	public void hintsNotParsed() {
 		String output = "........FF..\n" + "======================================================================\n"
 				+ "FAIL: test_case6 (tests.PrivateTestSuite)\n"
@@ -252,7 +243,7 @@ public class CodeEvaluatorTest {
 	}
 
 	@Test
-	public void crashedLogHint() {
+	public void errorDueToIndentation() {
 		List<String> actuals = extractAllHints("E\n"
 				+ "======================================================================\n"
 				+ "ERROR: tests (unittest.loader._FailedTest)\n"
@@ -269,7 +260,170 @@ public class CodeEvaluatorTest {
 				+ "IndentationError: expected an indented block\n" + "\n" + "\n"
 				+ "----------------------------------------------------------------------\n" + "Ran 1 test in 0.000s\n"
 				+ "\n" + "FAILED (errors=1)\n");
-		List<String> expecteds = hints("IndentationError");
+		List<String> expecteds = hints("Error during execution: IndentationError");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void extractionWorksWithMultipleHints() {
+		List<String> actuals = extractAllHints("FF\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_1 (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 52, in test_1\n"
+				+ "    self._assert([], [], [], \"empty\")\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 41, in _assert\n"
+				+ "    self._assertType(list, actual)\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 23, in _assertType\n"
+				+ "    self.fail(m)\n" + "AssertionError: @@First hint@@\n" + "\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_2 (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 55, in test_2\n"
+				+ "    self._assert([1], [2], [(1, 2)])\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 41, in _assert\n"
+				+ "    self._assertType(list, actual)\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 23, in _assertType\n"
+				+ "    self.fail(m)\n" + "AssertionError: @@second hint@@\n" + "\n"
+				+ "----------------------------------------------------------------------\n" + "Ran 2 tests in 0.001s\n"
+				+ "\n" + "FAILED (failures=2)");
+		List<String> expecteds = hints("First hint", "second hint");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void importError() {
+		List<String> actuals = extractAllHints("F\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_1 (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 52, in test_1\n"
+				+ "    self._assert([], [], [], \"empty\")\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 30, in _assert\n"
+				+ "    self.fail(m)\n" + "AssertionError: @@Could not import solution for testing: NameError@@\n" + "\n"
+				+ "----------------------------------------------------------------------\n" + "Ran 1 test in 0.000s\n"
+				+ "\n" + "FAILED (failures=1)");
+		List<String> expecteds = hints("Could not import solution for testing: NameError");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void executionError() {
+		List<String> actuals = extractAllHints("F\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_1 (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 34, in _assert\n"
+				+ "    actual = merge(a, b)\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/public/script.py\", line 4, in merge\n"
+				+ "    xxx\n" + "NameError: name 'xxx' is not defined\n" + "\n"
+				+ "During handling of the above exception, another exception occurred:\n" + "\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 52, in test_1\n"
+				+ "    self._assert([], [], [], \"empty\")\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 38, in _assert\n"
+				+ "    self.fail(m)\n" + "AssertionError: @@Could not execute the solution for testing: NameError@@\n"
+				+ "\n" + "----------------------------------------------------------------------\n"
+				+ "Ran 1 test in 0.000s\n" + "\n" + "FAILED (failures=1)");
+		List<String> expecteds = hints("Could not execute the solution for testing: NameError");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void assertEqual_lists() {
+		List<String> actuals = extractAllHints("F\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_1 (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 52, in test_1\n"
+				+ "    self._assert([], [], [], \"@@Empty lists are not handled correctly.@@\")\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_01_merge_lists/private/tests.py\", line 48, in _assert\n"
+				+ "    self.assertEqual(expected, actual, m)\n" + "AssertionError: Lists differ: [] != ['a']\n" + "\n"
+				+ "Second list contains 1 additional elements.\n" + "First extra element 0:\n" + "'a'\n" + "\n"
+				+ "- []\n" + "+ ['a'] : @@Empty lists are not handled correctly.@@\n" + "\n"
+				+ "----------------------------------------------------------------------\n" + "Ran 1 test in 0.000s\n"
+				+ "\n" + "FAILED (failures=1)");
+		List<String> expecteds = hints("Empty lists are not handled correctly.");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void assertEqual_dicts() {
+		List<String> actuals = extractAllHints("F\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_2 (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_02_invert_dict/private/tests.py\", line 59, in test_2\n"
+				+ "    self._assert({1:2}, {2:[1]})\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_02_invert_dict/private/tests.py\", line 52, in _assert\n"
+				+ "    self.assertEqual(expected, actual, m)\n" + "AssertionError: {2: [1]} != {}\n" + "- {2: [1]}\n"
+				+ "+ {} : @@Result is incorrect for input {1: 2}.@@\n" + "\n"
+				+ "----------------------------------------------------------------------\n" + "Ran 1 test in 0.001s\n"
+				+ "\n" + "FAILED (failures=1)");
+		List<String> expecteds = hints("Result is incorrect for input {1: 2}.");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void errorDuringImport() {
+		List<String> actuals = extractAllHints("Traceback (most recent call last):\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/runpy.py\", line 193, in _run_module_as_main\n"
+				+ "    \"__main__\", mod_spec)\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/runpy.py\", line 85, in _run_code\n"
+				+ "    exec(code, run_globals)\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/__main__.py\", line 18, in <module>\n"
+				+ "    main(module=None)\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/main.py\", line 94, in __init__\n"
+				+ "    self.parseArgs(argv)\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/main.py\", line 141, in parseArgs\n"
+				+ "    self.createTests()\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/main.py\", line 148, in createTests\n"
+				+ "    self.module)\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/loader.py\", line 219, in loadTestsFromNames\n"
+				+ "    suites = [self.loadTestsFromName(name, module) for name in names]\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/loader.py\", line 219, in <listcomp>\n"
+				+ "    suites = [self.loadTestsFromName(name, module) for name in names]\n"
+				+ "  File \"/opt/local/Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/loader.py\", line 153, in loadTestsFromName\n"
+				+ "    module = __import__(module_name)\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_03_count_hashtags/private/tests.py\", line 12, in <module>\n"
+				+ "    from public.script import analyze\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_03_count_hashtags/public/script.py\", line 3, in <module>\n"
+				+ "    xxx\n" + "NameError: name 'xxx' is not defined");
+		List<String> expecteds = hints("Error during import: NameError");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void errorDuringExecution() {
+		List<String> actuals = extractAllHints("E\n"
+				+ "======================================================================\n"
+				+ "ERROR: test01_empty_list (private.tests.PrivateTestSuite)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_03_count_hashtags/private/tests.py\", line 60, in test01_empty_list\n"
+				+ "    self._assert([], {}, \"@@The result is not correct for an empty list of posts.@@\")\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_03_count_hashtags/private/tests.py\", line 42, in _assert\n"
+				+ "    actual = self._exec(_in)\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_03_count_hashtags/private/tests.py\", line 29, in _exec\n"
+				+ "    return analyze(_in)\n"
+				+ "  File \"/Users/seb/versioned/access/access-playground-staging-tutors/assignment_05/exercise_03_count_hashtags/public/script.py\", line 4, in analyze\n"
+				+ "    xxx\n" + "NameError: name 'xxx' is not defined\n" + "\n"
+				+ "----------------------------------------------------------------------\n" + "Ran 1 test in 0.001s\n"
+				+ "\n" + "FAILED (errors=1)");
+		List<String> expecteds = hints("Error during execution: NameError");
+		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void errorUnspecified() {
+		List<String> actuals = extractAllHints("Some output, no ok, no testing...");
+		List<String> expecteds = hints("No hint could be provided. This is likely caused by a crash during the execution.");
 		assertEquals(expecteds, actuals);
 	}
 }
