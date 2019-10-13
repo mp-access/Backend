@@ -1,11 +1,11 @@
 package ch.uzh.ifi.access.student.evaluation.evaluator;
 
+import static ch.uzh.ifi.access.student.evaluation.evaluator.CodeEvaluator.TEST_FAILED_WITHOUT_HINTS;
 import static com.spotify.docker.client.shaded.com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,7 +56,7 @@ public class CodeEvaluatorTest {
 				+ "\n" + "\n" + "----------------------------------------------------------------------\n"
 				+ "Ran 1 test in 0.001s\n" + "\n" + "FAILED (errors=1)\n");
 
-		Assert.assertEquals(0.0, grade.getScore(), 0.25);
+		assertEquals(0.0, grade.getScore(), 0.25);
 	}
 
 	@Test
@@ -76,10 +76,9 @@ public class CodeEvaluatorTest {
 				+ "+ Foo\n" + "\n" + "\n" + "----------------------------------------------------------------------\n"
 				+ "Ran 6 tests in 0.001s\n" + "\n" + "FAILED (failures=1)");
 
-		Assert.assertEquals(5, grade.getPoints().getCorrect());
-		Assert.assertEquals(8.25, grade.getScore(), 0.25);
-		Assert.assertEquals(1, grade.getHints().size());
-		Assert.assertEquals(hints(CodeEvaluator.TEST_FAILED_WITHOUT_HINTS), grade.getHints());
+		assertEquals(5, grade.getPoints().getCorrect());
+		assertEquals(8.25, grade.getScore(), 0.25);
+		assertEquals(hints(TEST_FAILED_WITHOUT_HINTS), grade.getHints());
 	}
 
 	@Test
@@ -93,8 +92,8 @@ public class CodeEvaluatorTest {
 				+ "----------------------------------------------------------------------\n" + "Ran 6 tests in 0.001s\n"
 				+ "\n" + "OK\n");
 
-		Assert.assertEquals(6, grade.getPoints().getCorrect());
-		Assert.assertEquals(10.0, grade.getScore(), 0.25);
+		assertEquals(6, grade.getPoints().getCorrect());
+		assertEquals(10.0, grade.getScore(), 0.25);
 	}
 
 	@Test
@@ -113,12 +112,12 @@ public class CodeEvaluatorTest {
 				+ "----------------------------------------------------------------------\n" + "Ran 6 tests in 0.001s\n"
 				+ "\n" + "FAILED (failures=1)");
 
-		Assert.assertEquals(5, grade.getPoints().getCorrect());
-		Assert.assertEquals(1, grade.getHints().size());
+		assertEquals(5, grade.getPoints().getCorrect());
+		assertEquals(hints("Erster Hinweis"), grade.getHints());
 	}
 
 	@Test
-	public void parseHints_OnlyAssertionErrorMsg() {
+	public void parseHintsOnlyAssertionErrorMsg() {
 		SubmissionEvaluation grade = evaluate("test_doghouse (testSuite.Task2B) ... FAIL\n" + "\n"
 				+ "======================================================================\n"
 				+ "FAIL: test_doghouse (testSuite.Task2B)\n"
@@ -130,8 +129,7 @@ public class CodeEvaluatorTest {
 				+ "----------------------------------------------------------------------\n" + "Ran 1 test in 0.001s\n"
 				+ "\n" + "FAILED (failures=1)");
 
-		Assert.assertEquals(1, grade.getHints().size());
-		Assert.assertEquals(hints("You must declare 'dog'"), grade.getHints());
+		assertEquals(hints("You must declare 'dog'"), grade.getHints());
 
 	}
 
@@ -139,8 +137,8 @@ public class CodeEvaluatorTest {
 	public void outOfMemoryHasEmptyEvalLog() {
 		SubmissionEvaluation grade = evaluate("");
 
-		Assert.assertEquals(0, grade.getPoints().getCorrect());
-		Assert.assertEquals(exercise.getMaxScore(), grade.getMaxScore());
+		assertEquals(0, grade.getPoints().getCorrect());
+		assertEquals(exercise.getMaxScore(), grade.getMaxScore());
 	}
 
 	@Test
@@ -334,7 +332,7 @@ public class CodeEvaluatorTest {
 	}
 
 	@Test
-	public void assertEqual_lists() {
+	public void assertEqualDists() {
 		List<String> actuals = extractAllHints("F\n"
 				+ "======================================================================\n"
 				+ "FAIL: test_1 (private.tests.PrivateTestSuite)\n"
@@ -353,7 +351,7 @@ public class CodeEvaluatorTest {
 	}
 
 	@Test
-	public void assertEqual_dicts() {
+	public void assertEqualDicts() {
 		List<String> actuals = extractAllHints("F\n"
 				+ "======================================================================\n"
 				+ "FAIL: test_2 (private.tests.PrivateTestSuite)\n"
@@ -423,7 +421,8 @@ public class CodeEvaluatorTest {
 	@Test
 	public void errorUnspecified() {
 		List<String> actuals = extractAllHints("Some output, no ok, no testing...");
-		List<String> expecteds = hints("No hint could be provided. This is likely caused by a crash during the execution.");
+		List<String> expecteds = hints(
+				"No hint could be provided. This is likely caused by a crash during the execution.");
 		assertEquals(expecteds, actuals);
 	}
 }
