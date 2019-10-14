@@ -164,7 +164,7 @@ public class CodeEvaluatorTest {
 				+ "- zayZY!\n" + "+ abzAZ!\n" + " : @@ROT-27 of 'abzAZ!' should be 'zayZY!'\n"
 				+ ", but was 'abzAZ!'.@@\n" + "\n"
 				+ "----------------------------------------------------------------------\n"
-				+ "Ran 12 tests in 0.016s\n" + "\n" + "FAILED (failures=2)\n";
+				+ "Ran 10 tests in 0.016s\n" + "\n" + "FAILED (failures=2)\n";
 
 		List<String> actuals = extractAllHints(output);
 		List<String> expecteds = hints("ROT27 of 'abzAZ!' should be 'bcaBA!'\n, but was 'abzAZ!'.",
@@ -419,10 +419,24 @@ public class CodeEvaluatorTest {
 	}
 
 	@Test
-	public void errorUnspecified() {
+	public void noPointsErrorUnspecified() {
 		List<String> actuals = extractAllHints("Some output, no ok, no testing...");
 		List<String> expecteds = hints(
 				"No hint could be provided. This is likely caused by a crash during the execution.");
 		assertEquals(expecteds, actuals);
+	}
+
+	@Test
+	public void maxPointsNoError() {
+		exercise.setMaxScore(0);
+		String in = "Some output, no ok, no testing...";
+		List<String> actuals = extractAllHints(in);
+		List<String> expecteds = hints(
+				"No hint could be provided. This is likely caused by a crash during the execution.");
+		assertEquals(expecteds, actuals);
+
+		// evaluate gets rid of hints, in case of a correct implementation (score == maxScore)
+		actuals = evaluate(in).getHints();
+		assertEquals(hints(), actuals);
 	}
 }
