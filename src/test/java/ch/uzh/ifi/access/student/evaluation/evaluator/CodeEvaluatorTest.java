@@ -428,15 +428,23 @@ public class CodeEvaluatorTest {
 
 	@Test
 	public void maxPointsNoError() {
-		exercise.setMaxScore(0);
-		String in = "Some output, no ok, no testing...";
+
+		String in = "test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n"
+				+ "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n"
+				+ "test_upper (test.TestStringMethods1.TestStringMethods1) ... ok\n"
+				+ "test_isupper (test.TestStringMethods2.TestStringMethods2) ... ok\n"
+				+ "test_split (test.TestStringMethods2.TestStringMethods2) ... ok\n"
+				+ "test_upper (test.TestStringMethods2.TestStringMethods2) ... ok\n" + "\n"
+				+ "----------------------------------------------------------------------\n" + "Ran 6 tests in 0.001s\n"
+				+ "\n" + "OK\n";
+
 		List<String> actuals = extractAllHints(in);
 		List<String> expecteds = hints(
 				"No hint could be provided. This is likely caused by a crash during the execution.");
 		assertEquals(expecteds, actuals);
 
-		// evaluate gets rid of hints, in case of a correct implementation (score == maxScore)
 		actuals = evaluate(in).getHints();
-		assertEquals(hints(), actuals);
+		expecteds = hints();
+		assertEquals(expecteds, actuals);
 	}
 }

@@ -49,21 +49,10 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
 		String log = codeSub.getConsole().getEvalLog();
 
-		SubmissionEvaluation.Points scoredPoints = parseScoreFromLog(log);
-		List<String> hints = parseHintsFromLog(log);
+		SubmissionEvaluation.Points testResults = parseScoreFromLog(log);
+		List<String> hints = testResults.isEverythingCorrect() ? new ArrayList<String>() : parseHintsFromLog(log);
 
-		if (exercise.getMaxScore() != scoredPoints.getMax()) {
-			logger.info(String.format("Weird inconsistency: exercise says maxSore=%d, log parsing says maxScore=%d",
-					exercise.getMaxScore(), scoredPoints.getMax()));
-		}
-
-		int maxScore = Math.max(exercise.getMaxScore(), scoredPoints.getMax());
-		if (scoredPoints.getCorrect() == maxScore) {
-			hints.clear();
-		}
-
-		return SubmissionEvaluation.builder().points(scoredPoints).maxScore(exercise.getMaxScore()).hints(hints)
-				.build();
+		return SubmissionEvaluation.builder().points(testResults).maxScore(exercise.getMaxScore()).hints(hints).build();
 	}
 
 	public List<String> parseHintsFromLog(String evalLog) {
