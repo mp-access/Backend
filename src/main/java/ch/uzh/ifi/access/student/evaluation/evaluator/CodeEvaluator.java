@@ -47,14 +47,15 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 		validate(submission, exercise);
 		CodeSubmission codeSub = (CodeSubmission) submission;
 
-		SubmissionEvaluation.Points scoredPoints = parseScoreFromLog(codeSub.getConsole().getEvalLog());
-		List<String> hints = parseHintsFromLog(codeSub.getConsole().getEvalLog());
+		String log = codeSub.getConsole().getEvalLog();
 
-		return SubmissionEvaluation.builder().points(scoredPoints).maxScore(exercise.getMaxScore()).hints(hints)
-				.build();
+		SubmissionEvaluation.Points testResults = parseScoreFromLog(log);
+		List<String> hints = testResults.isEverythingCorrect() ? new ArrayList<String>() : parseHintsFromLog(log);
+
+		return SubmissionEvaluation.builder().points(testResults).maxScore(exercise.getMaxScore()).hints(hints).build();
 	}
 
-	List<String> parseHintsFromLog(String evalLog) {
+	public List<String> parseHintsFromLog(String evalLog) {
 		List<String> hints = new ArrayList<>();
 
 		Matcher matcher = hintPattern.matcher(evalLog);
@@ -98,10 +99,10 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 			}
 		}
 
-		if(hints.isEmpty()) {
+		if (hints.isEmpty()) {
 			hints.add("No hint could be provided. This is likely caused by a crash during the execution.");
 		}
-		
+
 		return hints;
 	}
 
@@ -111,14 +112,20 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
 		if (log != null && !log.trim().isEmpty()) {
 			List<String> lines = Arrays.asList(log.split("\n"));
-			String resultLine = lines.get(lines.size() - 1);
+			if (lines.size() >= 3) {
+				String resultLine = lines.get(lines.size() - 1);
 
-			nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
+				nrOfTest = extractNrOfTests(lines.get(lines.size() - 3));
 
-			if (resultLine.startsWith("OK")) {
-				points = nrOfTest;
-			} else if (resultLine.startsWith("FAILED")) {
-				points = nrOfTest - extractNrOfNOKTests(resultLine);
+				if (resultLine.startsWith("OK")) {
+					points = nrOfTest;
+				} else if (resultLine.startsWith("FAILED")) {
+					points = nrOfTest - extractNrOfNOKTests(resultLine);
+				}
+			} else {
+				points = 0;
+				nrOfTest = 1;
+				logger.info("Log is too short, likely not a valid test output.");
 			}
 		} else {
 			logger.info("No console log to evaluate.");
