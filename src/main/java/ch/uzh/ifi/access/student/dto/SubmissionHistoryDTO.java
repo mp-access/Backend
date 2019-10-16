@@ -6,7 +6,7 @@ import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import lombok.Value;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,9 +20,9 @@ public class SubmissionHistoryDTO {
 
     private final boolean isPastDueDate;
 
-    private final LocalDateTime dueDate;
+    private final ZonedDateTime dueDate;
 
-    public SubmissionHistoryDTO(List<StudentSubmission> submissions, List<StudentSubmission> runs, SubmissionCount submissionCount, LocalDateTime dueDate, boolean isPastDueDate) {
+    public SubmissionHistoryDTO(List<StudentSubmission> submissions, List<StudentSubmission> runs, SubmissionCount submissionCount, ZonedDateTime dueDate, boolean isPastDueDate) {
         this.submissions = submissions.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
         this.runs = runs.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
         this.submissionCount = submissionCount;

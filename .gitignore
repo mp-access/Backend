@@ -1,3 +1,10 @@
+# Eclipse-specific files
+.classpath
+.project
+.settings/**/*
+bin/**/*
+
+
 # Compiled class file
 *.class
 
@@ -165,3 +172,4 @@ runner/
 courses_db
 
 #load_testing/
+

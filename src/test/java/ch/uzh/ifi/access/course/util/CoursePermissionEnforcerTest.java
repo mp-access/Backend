@@ -9,7 +9,7 @@ import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 
@@ -70,14 +70,14 @@ public class CoursePermissionEnforcerTest {
 
     private Assignment publishedAssignment() {
         Course course = TestObjectFactory.createCourse("");
-        Assignment assignment = Assignment.builder().publishDate(LocalDateTime.now().minusYears(1)).build();
+        Assignment assignment = Assignment.builder().publishDate(ZonedDateTime.now().minusYears(1)).build();
         assignment.setCourse(course);
         return assignment;
     }
 
     private Assignment notYetPublishedAssignment() {
         Course course = TestObjectFactory.createCourse("");
-        Assignment assignment = Assignment.builder().publishDate(LocalDateTime.now().plusYears(1)).build();
+        Assignment assignment = Assignment.builder().publishDate(ZonedDateTime.now().plusYears(1)).build();
         assignment.setCourse(course);
         return assignment;
     }

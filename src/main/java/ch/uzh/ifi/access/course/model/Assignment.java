@@ -7,14 +7,14 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 @Data
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment>, HasBreadCrumbs {
     private final String id;
@@ -33,7 +33,7 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
     }
 
     @Builder
-    private Assignment(String title, String description, LocalDateTime publishDate, LocalDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
+    private Assignment(String title, String description, ZonedDateTime publishDate, ZonedDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
         super(title, description, publishDate, dueDate);
         this.id = id;
         this.index = index;
@@ -67,10 +67,6 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
 
     public Optional<Exercise> findExerciseById(String id) {
         return exercises.stream().filter(e -> e.getId().equals(id)).findFirst();
-    }
-
-    public boolean isPastDueDate() {
-        return LocalDateTime.now().isAfter(this.getDueDate());
     }
 
     public int getMaxScore() {

@@ -29,7 +29,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -86,16 +86,16 @@ public class SubmissionControllerTest {
         Assignment assignment = course.getAssignments().get(0);
         Exercise exercise = assignment.getExercises().get(0);
         exerciseIdAlreadyPublished = exercise.getId();
-        assignment.setPublishDate(LocalDateTime.now().minusDays(1));
-        assignment.setDueDate(LocalDateTime.now().plusDays(7));
+        assignment.setPublishDate(ZonedDateTime.now().minusDays(1));
+        assignment.setDueDate(ZonedDateTime.now().plusDays(7));
         when(courseDAO.selectExerciseById(exerciseIdAlreadyPublished)).thenReturn(Optional.of(exercise));
 
         assignment = TestObjectFactory.createAssignment("asdf");
         exercise = TestObjectFactory.createCodeExercise("adfsf");
         assignment.addExercise(exercise);
         course.addAssignment(assignment);
-        assignment.setPublishDate(LocalDateTime.now().plusDays(1));
-        assignment.setDueDate(LocalDateTime.now().plusDays(7));
+        assignment.setPublishDate(ZonedDateTime.now().plusDays(1));
+        assignment.setDueDate(ZonedDateTime.now().plusDays(7));
         exerciseIdNotYetPublished = exercise.getId();
         when(courseDAO.selectExerciseById(exerciseIdNotYetPublished)).thenReturn(Optional.of(exercise));
 
