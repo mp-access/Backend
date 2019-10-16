@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Data;
+import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -40,15 +41,18 @@ public class CourseDAO {
 
     private BreakingChangeNotifier breakingChangeNotifier;
 
-    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier) {
+    private RepoCacher repoCacher;
+
+    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier, RepoCacher repoCacher) {
         this.breakingChangeNotifier = breakingChangeNotifier;
+        this.repoCacher = repoCacher;
 
         ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
         if (resource.exists()) {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 URLList conf = mapper.readValue(resource.getFile(), URLList.class);
-                courseList = RepoCacher.retrieveCourseData(conf.repositories);
+                courseList = repoCacher.retrieveCourseData(conf.repositories);
                 exerciseIndex = buildExerciseIndex(courseList);
                 logger.info(String.format("Parsed %d courses", courseList.size()));
 
@@ -95,14 +99,35 @@ public class CourseDAO {
     public Course updateCourseById(String id) {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        logger.info("Updating course {} {}", c.getTitle(), id);
+
+        return updateCourse(c);
+    }
+
+    protected Course updateCourse(Course c) {
+        Course clone = (Course) SerializationUtils.clone(c);
+        Course newCourse;
+
+        // Try to pull new course
         try {
-            Course courseUpdate = RepoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
-            updateCourse(c, courseUpdate);
-            return c;
+            newCourse = repoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
         } catch (Exception e) {
-            logger.error("Failed to update course", e);
+            logger.error("Failed to generate new course", e);
+            return null;
         }
-        return null;
+
+        // Try to update
+        try {
+            updateCourse(c, newCourse);
+        } catch (Exception e) {
+            // If we fail during updating we try to revert to original
+            logger.error("Failed to update course", e);
+            updateCourse(c, clone);
+            return null;
+        }
+
+        return c;
     }
 
     void updateCourse(Course before, Course after) {

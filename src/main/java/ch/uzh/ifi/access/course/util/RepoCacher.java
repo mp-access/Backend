@@ -4,20 +4,19 @@ import ch.uzh.ifi.access.course.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Component
 public class RepoCacher {
 
     private static final Logger logger = LoggerFactory.getLogger(RepoCacher.class);
@@ -43,7 +42,7 @@ public class RepoCacher {
     private List<String> ignore_dir = Arrays.asList(".git");
     private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
 
-    public static List<Course> retrieveCourseData(String urls[]) {
+    public List<Course> retrieveCourseData(String[] urls) {
         initializeMapper();
 
         List<Course> courses = new ArrayList<>();
@@ -87,27 +86,6 @@ public class RepoCacher {
         return courses;
     }
 
-    private static void initializeMapper() {
-        DateTimeFormatter fmt = new DateTimeFormatterBuilder()
-                .appendPattern("yyyy-MM-dd")
-                .optionalStart()
-                .appendPattern(" HH:mm")
-                .optionalEnd()
-                .parseDefaulting(ChronoField.HOUR_OF_DAY, 0)
-                .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)
-                .toFormatter();
-
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        LocalDateTimeDeserializer deserializer = new LocalDateTimeDeserializer(fmt);
-        javaTimeModule.addDeserializer(LocalDateTime.class, deserializer);
-
-        mapper = new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-
-        mapper.registerModule(javaTimeModule);
-    }
-
     private static String readFile(File file) {
         try {
             String content = Files.readString(file.toPath());
@@ -126,14 +104,22 @@ public class RepoCacher {
             Object next_context = context;
             if (file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)) {
                 Course c = ((Course) context);
-                Assignment assignment = new Assignment(c.getGitURL() + file.getName());
-                assignment.setIndex(Integer.parseInt(file.getName().replace(ASSIGNMENT_FOLDER_PREFIX, "")));
+
+                String cleanName = cleanFolderName(file.getName());
+                int index = Integer.parseInt(cleanName.replace(ASSIGNMENT_FOLDER_PREFIX, ""));
+
+                Assignment assignment = new Assignment(c.getGitURL() + cleanName);
+                assignment.setIndex(index);
                 c.addAssignment(assignment);
                 next_context = assignment;
             } else if (file.getName().startsWith(EXERCISE_FOLDER_PREFIX)) {
                 Assignment a = ((Assignment) context);
-                Exercise exercise = new Exercise(a.getId() + file.getName());
-                exercise.setIndex(Integer.parseInt(file.getName().replace(EXERCISE_FOLDER_PREFIX, "")));
+
+                String cleanName = cleanFolderName(file.getName());
+                int index = Integer.parseInt(cleanName.replace(EXERCISE_FOLDER_PREFIX, ""));
+
+                Exercise exercise = new Exercise(a.getId() + cleanName);
+                exercise.setIndex(index);
                 exercise.setGitHash(((Assignment) context).getCourse().getGitHash());
                 a.addExercise(exercise);
                 next_context = exercise;
@@ -215,5 +201,26 @@ public class RepoCacher {
         } else {
             return new GitClient().clone(url, gitDir);
         }
+    }
+
+    private static String cleanFolderName(String name) {
+        String cleanName = name;
+        int commentIndex = StringUtils.ordinalIndexOf(name, "_", 2);
+
+        if (commentIndex != -1)
+            cleanName = name.substring(0, commentIndex);
+
+        return cleanName;
+    }
+
+    private static void initializeMapper() {
+        JavaTimeModule javaTimeModule = new JavaTimeModule();
+        javaTimeModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
+
+        mapper = new ObjectMapper();
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
+
+        mapper.registerModule(javaTimeModule);
     }
 }

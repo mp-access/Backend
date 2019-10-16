@@ -2,19 +2,19 @@ package ch.uzh.ifi.access.course.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Data
 @AllArgsConstructor
-public class AssignmentConfig implements HasPublishingDate {
+public class AssignmentConfig implements HasPublishingDate, HasDueDate, Serializable {
     protected String title;
     protected String description;
-    protected LocalDateTime publishDate;
-    protected LocalDateTime dueDate;
+    protected ZonedDateTime publishDate;
+    protected ZonedDateTime dueDate;
 
-    public AssignmentConfig(){
+    public AssignmentConfig() {
         this.description = "";
     }
 }

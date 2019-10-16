@@ -113,7 +113,7 @@ public class CodeRunner {
 
         ContainerCreation creation = docker.createContainer(containerConfig);
         String containerId = creation.id();
-        logger.trace(String.format("Created container %s", containerId));
+        logger.debug("Created container {}", containerId);
 
         if (creation.warnings() != null) {
             creation.warnings().forEach(logger::warn);
@@ -147,6 +147,8 @@ public class CodeRunner {
         long executionTime = endExecutionTime - startExecutionTime;
 
         stopAndRemoveContainer(containerId);
+
+        logger.trace("Code execution logs start --------------------\n{}\n-------------------- Code execution logs end", console);
 
         return new RunResult(console, stdOut, stdErr, executionTime, didTimeout, isOomKilled);
     }
@@ -184,7 +186,7 @@ public class CodeRunner {
         } catch (IOException e) {
             logger.warn(e.getMessage(), e);
         }
-        logger.trace(joiner.toString());
+        logger.debug(joiner.toString());
     }
 
     private void startAndWaitContainer(String id) throws DockerException, InterruptedException {
@@ -205,7 +207,7 @@ public class CodeRunner {
     }
 
     private void stopAndRemoveContainer(String id) throws DockerException, InterruptedException {
-        logger.debug(String.format("Stopping and removing container %s", id));
+        logger.debug("Stopping and removing container {}", id);
         docker.stopContainer(id, 1);
         docker.removeContainer(id);
     }

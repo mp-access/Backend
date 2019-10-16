@@ -16,6 +16,7 @@ public class EvalMachineFactory {
     public static final String EXTENDED_VAR_SUBMISSION_ID = "submissionId";
     public static final String EXTENDED_VAR_NEXT_STEP = "nextStep";
     public static final String EXTENDED_VAR_NEXT_STEP_DELAY = "nextStepDelay";
+    public static final String EXTENDED_VAR_COMPLETION_TIME = "completionTime";
 
     public static StateMachine<EvalMachine.States, EvalMachine.Events> initSMForSubmission(String submissionId) throws Exception {
 
@@ -57,6 +58,7 @@ public class EvalMachineFactory {
 
         StateMachine<EvalMachine.States, EvalMachine.Events> machine = builder.build();
         machine.getExtendedState().getVariables().put(EXTENDED_VAR_SUBMISSION_ID, submissionId);
+        machine.addStateListener(new StateMachineEventListener(machine));
         return machine;
     }
 

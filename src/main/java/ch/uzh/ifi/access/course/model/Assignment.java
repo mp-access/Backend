@@ -7,16 +7,16 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 @Data
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment> {
+public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment>, HasBreadCrumbs {
     private final String id;
     private int index;
 
@@ -33,7 +33,7 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
     }
 
     @Builder
-    private Assignment(String title, String description, LocalDateTime publishDate, LocalDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
+    private Assignment(String title, String description, ZonedDateTime publishDate, ZonedDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
         super(title, description, publishDate, dueDate);
         this.id = id;
         this.index = index;
@@ -69,10 +69,6 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
         return exercises.stream().filter(e -> e.getId().equals(id)).findFirst();
     }
 
-    public boolean isPastDueDate() {
-        return LocalDateTime.now().isAfter(this.getDueDate());
-    }
-
     public int getMaxScore() {
         return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
     }
@@ -81,6 +77,17 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
     @Override
     public List<Exercise> getIndexedItems() {
         return exercises;
+    }
+
+    @Override
+    public List<BreadCrumb> getBreadCrumbs() {
+        List<BreadCrumb> bc = new ArrayList<>();
+        BreadCrumb c = new BreadCrumb(this.getCourse().title, "courses/" + this.getCourse().getId());
+        BreadCrumb a = new BreadCrumb(this.title, "courses/" + this.getCourse().getId() + "/assignments/" + this.id);
+        bc.add(c);
+        bc.add(a);
+
+        return bc;
     }
 }
 
