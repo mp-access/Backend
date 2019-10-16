@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.course.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -17,6 +18,7 @@ public class ExerciseConfig implements Serializable {
     protected Boolean isGraded;
     protected int maxScore;
     protected int maxSubmits;
+    protected String gradingSetup;
 
     protected List<String> options;
     protected List<String> solutions;
@@ -24,10 +26,15 @@ public class ExerciseConfig implements Serializable {
 
     protected CodeExecutionLimits executionLimits;
 
+
     public ExerciseConfig() {
         this.isGraded = true;
         this.maxSubmits = 1;
         this.maxScore = 1;
         this.executionLimits = CodeExecutionLimits.DEFAULTS;
+    }
+
+    public boolean hasGradingSetup() {
+        return !StringUtils.isEmpty(gradingSetup);
     }
 }
