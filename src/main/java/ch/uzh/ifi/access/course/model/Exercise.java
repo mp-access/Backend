@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs {
+public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs, HasSetupScript {
 
     private final String id;
     private int index;
