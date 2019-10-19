@@ -66,7 +66,7 @@ public class RepoCacher {
         return courses;
     }
 
-    public static List<Course> retrieveCourseData(List<File> repos) {
+    public static List<Course> retrieveLocalCourseData(List<File> repos) {
         initializeMapper();
 
         List<Course> courses = new ArrayList<>();
