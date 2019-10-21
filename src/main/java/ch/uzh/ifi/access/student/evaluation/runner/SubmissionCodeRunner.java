@@ -100,7 +100,7 @@ public class SubmissionCodeRunner {
 
     protected ExecResult mapSubmissionToExecResult(RunResult runResult) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            return new ExecResult(extractConsole(runResult), "", extractEvalLog(runResult));
+            return new ExecResult("", "", extractEvalLog(runResult));
         }
         return new ExecResult(runResult.getConsole(), "", "");
     }
