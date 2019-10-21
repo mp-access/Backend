@@ -90,7 +90,7 @@ jobs:
           name: Create ACCESS local tester
           command: gradle customFatJar
       - store_artifacts:
-          path: ./build/libs/ACCESSTester.jar
+          path: ./build/libs
 
   push_to_dockerhub:
     docker:
