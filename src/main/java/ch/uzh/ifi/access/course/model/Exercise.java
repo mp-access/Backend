@@ -104,9 +104,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
      *
      * @param id file id
      */
-    // TODO: should private files ever be visible to a student? (for example after the due date)?
     public Optional<VirtualFile> getAnyFileById(String id) {
-        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
+        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), Stream.concat(solution_files.stream(), private_files.stream()));
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
