@@ -118,12 +118,12 @@ public class CourseServiceTest {
         Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), student);
         Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), student);
         Optional<FileSystemResource> shouldGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), student);
-        Optional<FileSystemResource> shouldNotGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), student);
+        Optional<FileSystemResource> shouldGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), student);
 
         assertThat(shouldGetVFile1.isPresent()).isTrue();
         assertThat(shouldGetVFile2.isPresent()).isTrue();
         assertThat(shouldGetSolutionFile.isPresent()).isTrue();
-        assertThat(shouldNotGetPrivateFile.isPresent()).isFalse();
+        assertThat(shouldGetPrivateFile.isPresent()).isTrue();
         assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
         assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());
         assertThat(shouldGetSolutionFile.get().getFilename()).isEqualTo(solutionFile.getNameWithExtension());
@@ -157,7 +157,7 @@ public class CourseServiceTest {
 
         assertThat(shouldGetVFile1.isPresent()).isTrue();
         assertThat(shouldGetVFile2.isPresent()).isTrue();
-        assertThat(shouldGetPrivateFile.isPresent()).isFalse();
+        assertThat(shouldGetPrivateFile.isPresent()).isTrue();
         assertThat(shouldGetSolutionFile.isPresent()).isTrue();
         assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
         assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());

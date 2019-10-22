@@ -7,7 +7,6 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
-import ch.uzh.ifi.access.student.model.StudentSubmission;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import org.assertj.core.api.Assertions;
@@ -57,7 +56,7 @@ public class SubmissionCodeRunnerTest {
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStdout()).containsIgnoringCase("Intercontinental flight Boeing-747");
+        Assertions.assertThat(result.getStdout()).isEmpty();
         Assertions.assertThat(result.getTestLog()).isEmpty();
         Assertions.assertThat(result.getEvalLog()).containsIgnoringCase("Ran 8 tests in");
     }
@@ -138,7 +137,7 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult execResult = new SubmissionCodeRunner(null).mapSubmissionToExecResult(rr);
 
-        Assertions.assertThat(execResult.getStdout()).isNotEmpty();
+        Assertions.assertThat(execResult.getStdout()).isEmpty();
         Assertions.assertThat(execResult.getEvalLog()).isEmpty();
     }
 
