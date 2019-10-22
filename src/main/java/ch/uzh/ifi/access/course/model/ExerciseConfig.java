@@ -17,12 +17,14 @@ public class ExerciseConfig implements Serializable {
     protected Boolean isGraded;
     protected int maxScore;
     protected int maxSubmits;
+    protected String gradingSetup;
 
     protected List<String> options;
     protected List<String> solutions;
     protected List<String> hints;
 
     protected CodeExecutionLimits executionLimits;
+
 
     public ExerciseConfig() {
         this.isGraded = true;

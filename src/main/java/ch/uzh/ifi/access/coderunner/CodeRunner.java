@@ -134,8 +134,8 @@ public class CodeRunner {
         String stdErr = readStdErr(containerId);
 
         if (isOomKilled) {
-            console = String.format("Out of Memory. Submission run terminated.");
-            stdErr = String.format("Out of Memory. Submission run terminated.");
+            console = "Out of Memory. Submission run terminated.";
+            stdErr = "Out of Memory. Submission run terminated.";
         }
 
         if (didTimeout) {

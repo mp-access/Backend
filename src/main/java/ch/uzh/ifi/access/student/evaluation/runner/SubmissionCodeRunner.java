@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SubmissionCodeRunner {
@@ -67,26 +69,38 @@ public class SubmissionCodeRunner {
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
 
-        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        List<String> commands = List.of(executeScriptCommand, DELIMITER_CMD, testCommand)
+                .stream()
+                .filter(cmd -> !StringUtils.isEmpty(cmd))
+                .collect(Collectors.toList());
+
+        final String fullCommand = String.join(" ; ", commands);
         return mapSmokeToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits));
     }
 
     private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
         persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
+
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
+        String setupScriptCommand = exercise.hasGradingSetupScript() ? buildSetupScriptCommand(exercise.getGradingSetup()) : "";
 
-        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        List<String> commands = List.of(setupScriptCommand, executeScriptCommand, DELIMITER_CMD, testCommand)
+                .stream()
+                .filter(cmd -> !StringUtils.isEmpty(cmd))
+                .collect(Collectors.toList());
+
+        final String fullCommand = String.join(" ; ", commands);
         return mapSubmissionToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits));
     }
 
     protected ExecResult mapSubmissionToExecResult(RunResult runResult) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            return new ExecResult(extractConsole(runResult), "", extractEvalLog(runResult));
+            return new ExecResult("", "", extractEvalLog(runResult));
         }
         return new ExecResult(runResult.getConsole(), "", "");
     }
@@ -182,6 +196,10 @@ public class SubmissionCodeRunner {
         }
     }
 
+    private String buildSetupScriptCommand(String pathToScript) {
+        return String.format("sh %s", pathToScript);
+    }
+
     private String buildExecScriptCommand(VirtualFile script) {
         return String.format("python -m %s.%s", PUBLIC_FOLDER, script.getName());
     }
@@ -196,7 +214,6 @@ public class SubmissionCodeRunner {
                 .walk(path)
                 .sorted(Comparator.reverseOrder())
                 .forEach(this::removeFile);
-
     }
 
     private void removeFile(Path path) {

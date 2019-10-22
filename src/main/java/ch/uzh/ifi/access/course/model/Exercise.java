@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs {
+public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs, HasSetupScript {
 
     private final String id;
     private int index;
@@ -51,8 +51,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle) {
-        super(title, longTitle, type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, String gradingSetup, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle) {
+        super(title, longTitle, type, language, isGraded, maxScore, maxSubmits, gradingSetup, options, solutions, hints, executionLimits);
         this.id = id;
         this.index = index;
         this.gitHash = gitHash;
@@ -77,6 +77,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
         this.isGraded = other.getIsGraded();
         this.maxScore = other.getMaxScore();
         this.maxSubmits = other.getMaxSubmits();
+        this.gradingSetup = other.getGradingSetup();
         this.options = other.getOptions();
         this.solutions = other.getSolutions();
         this.hints = other.getHints();
@@ -103,9 +104,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
      *
      * @param id file id
      */
-    // TODO: should private files ever be visible to a student? (for example after the due date)?
     public Optional<VirtualFile> getAnyFileById(String id) {
-        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
+        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), Stream.concat(solution_files.stream(), private_files.stream()));
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
