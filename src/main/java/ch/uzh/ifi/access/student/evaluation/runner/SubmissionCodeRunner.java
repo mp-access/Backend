@@ -170,7 +170,7 @@ public class SubmissionCodeRunner {
     }
 
     private String buildSetupScriptCommand(String pathToScript) {
-        return String.format("sh %s", pathToScript);
+        return String.format("chmod u+x %s && ./%s", pathToScript, pathToScript);
     }
 
     private String buildExecScriptCommand(VirtualFile script) {
