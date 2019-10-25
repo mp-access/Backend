@@ -168,7 +168,7 @@ gradle-app.setting
 
 
 course_repositories/
-runner/
+/runner/
 courses_db
 
 #load_testing/
