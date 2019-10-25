@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,9 +41,12 @@ public class SubmissionCodeRunner {
 
     private CodeRunner runner;
 
+    private FSHierarchySerializer hierarchySerializer;
+
     @Autowired
-    public SubmissionCodeRunner(CodeRunner runner) {
+    public SubmissionCodeRunner(CodeRunner runner, FSHierarchySerializer hierarchySerializer) {
         this.runner = runner;
+        this.hierarchySerializer = hierarchySerializer;
     }
 
 
@@ -56,13 +58,13 @@ public class SubmissionCodeRunner {
         CodeExecutionLimits executionLimits = exercise.getExecutionLimits();
         ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise, executionLimits) : executeSmokeTest(path, submission, executionLimits);
 
-        removeDirectory(path);
+        hierarchySerializer.removeDirectory(path);
 
         return res;
     }
 
     private ExecResult executeSmokeTest(Path workPath, CodeSubmission submission, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
-        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
@@ -79,8 +81,8 @@ public class SubmissionCodeRunner {
     }
 
     private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
-        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
-        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
 
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
@@ -167,35 +169,6 @@ public class SubmissionCodeRunner {
         return extracted;
     }
 
-
-    private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
-        if (files == null) {
-            logger.debug("No files to persist into " + folderPath);
-            return;
-        }
-
-        Path path = Paths.get(folderPath);
-        logger.debug(path.toAbsolutePath().normalize().toString());
-
-        if (!Files.exists(path)) {
-            try {
-                Files.createDirectories(path);
-
-                for (VirtualFile vf : files) {
-                    Path file = Files.createFile(Paths.get(folderPath, vf.getName() + "." + vf.getExtension()));
-                    Files.writeString(file, vf.getContent());
-                }
-
-                if (!Files.exists(Paths.get(folderPath, INIT_FILE))) {
-                    Files.createFile(Paths.get(folderPath, INIT_FILE));
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     private String buildSetupScriptCommand(String pathToScript) {
         return String.format("sh %s", pathToScript);
     }
@@ -206,21 +179,5 @@ public class SubmissionCodeRunner {
 
     private String buildExecTestSuiteCommand(String testFolder) {
         return String.format("python -m unittest discover %s -v", testFolder);
-    }
-
-    private void removeDirectory(Path path) throws IOException {
-        logger.debug("Removing temp directory @ " + path);
-        Files
-                .walk(path)
-                .sorted(Comparator.reverseOrder())
-                .forEach(this::removeFile);
-    }
-
-    private void removeFile(Path path) {
-        try {
-            Files.deleteIfExists(path);
-        } catch (IOException e) {
-            logger.error(String.format("Failed to remove file @ %s", path), e);
-        }
     }
 }
