@@ -7,14 +7,12 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.util.RepoCacher;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class LocalTester {
-    public static void main(String[] args){
-        if(args.length <= 0){
-            System.out.println("ERROR: To few arguments. You gave " + args.length + ". Please provide path to local repository!");
+    public static void main(String[] args) {
+        if (args.length <= 0) {
+            System.out.println("ERROR: Too few arguments. You gave " + args.length + ". Please provide path to local repository!");
             return;
         }
 
@@ -22,7 +20,7 @@ public class LocalTester {
 
 
         File dir = new File(args[0]);
-        if(!dir.exists() || !dir.isDirectory()){
+        if (!dir.exists() || !dir.isDirectory()) {
             System.out.println("ERROR: The folder \"" + dir.getName() + "\" was not found!");
             return;
         }
@@ -30,7 +28,7 @@ public class LocalTester {
         Course c = RepoCacher.retrieveLocalCourseData(List.of(dir)).get(0);
 
 
-        if(showDetails) {
+        if (showDetails) {
             System.out.println("----------------- START PARSED FIELDS ------------------");
 
             String s = c.toString()
@@ -56,11 +54,11 @@ public class LocalTester {
         err += testCourse(c);
         ascnt += c.getAssignments().size();
 
-        for(Assignment a : c.getAssignments()){
+        for (Assignment a : c.getAssignments()) {
             err += testAssignment(a);
             excnt += a.getExercises().size();
-            for(Exercise e : a.getExercises()){
-                err +=  testExercise(e);
+            for (Exercise e : a.getExercises()) {
+                err += testExercise(e);
             }
         }
 
@@ -70,27 +68,27 @@ public class LocalTester {
         System.out.println("Found " + excnt + " total Exercises");
         System.out.println("------------------------------------------------------");
         System.out.println(("Test ended with " + err + " errors"));
-        if(err == 0){
+        if (err == 0) {
             System.out.println("Everything seems to be fine :)");
-        }else{
+        } else {
             System.out.println("You have some errors to fix :(");
         }
 
         System.out.println("----------------- END PARSING TEST ------------------\n");
     }
 
-    public static int testCourse(Course c){
-        if(c.getTitle() == null) {
+    private static int testCourse(Course c) {
+        if (c.getTitle() == null) {
             System.out.println("ERROR: Course 'title' must not be empty!");
             return 1;
         }
 
-        if(c.getStartDate() == null){
+        if (c.getStartDate() == null) {
             System.out.println("ERROR: Course 'startDate' must not be empty! (" + c.getTitle() + ")");
             return 1;
         }
 
-        if(c.getEndDate() == null){
+        if (c.getEndDate() == null) {
             System.out.println("ERROR: Course 'endDate' must not be empty! (" + c.getTitle() + ")");
             return 1;
         }
@@ -98,19 +96,19 @@ public class LocalTester {
         return 0;
     }
 
-    public static int testAssignment(Assignment a){
+    private static int testAssignment(Assignment a) {
 
-        if(a.getTitle() == null){
+        if (a.getTitle() == null) {
             System.out.println("ERROR: Assignment 'title' must not be empty! (Assignment " + a.getIndex() + " - " + a.getTitle() + ")");
             return 1;
         }
 
-        if(a.getPublishDate() == null){
+        if (a.getPublishDate() == null) {
             System.out.println("ERROR: Assignment 'publishDate' must not be empty! (Assignment " + a.getIndex() + " - " + a.getTitle() + ")");
             return 1;
         }
 
-        if(a.getDueDate()== null){
+        if (a.getDueDate() == null) {
             System.out.println("ERROR: Assignment 'dueDate' must not be empty! (Assignment " + a.getIndex() + " - " + a.getTitle() + ")");
             return 1;
         }
@@ -118,27 +116,27 @@ public class LocalTester {
         return 0;
     }
 
-    public static int testExercise(Exercise e){
+    private static int testExercise(Exercise e) {
         Assignment a = e.getAssignment();
 
-        if(e.getType() == null) {
+        if (e.getType() == null) {
             System.out.println("ERROR: Exercise 'type' must not be empty! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
             return 1;
-        }else{
+        } else {
             if ((e.getType() == ExerciseType.code || e.getType() == ExerciseType.codeSnippet) &&
-            e.getLanguage() == null){
+                    e.getLanguage() == null) {
                 System.out.println("ERROR: Exercise of type 'code' and 'codeSnippet' needs to provide a 'language'! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
                 return 1;
             }
 
             if ((e.getType() == ExerciseType.multipleChoice || e.getType() == ExerciseType.singleChoice) &&
-                    e.getOptions() == null){
+                    e.getOptions() == null) {
                 System.out.println("ERROR: Exercise of type 'singleChoice' and 'multipleChoice' must provide ¨options¨! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
                 return 1;
             }
 
             if ((e.getType() == ExerciseType.multipleChoice || e.getType() == ExerciseType.singleChoice || e.getType() == ExerciseType.text) &&
-                    e.getSolutions() == null){
+                    e.getSolutions() == null) {
                 System.out.println("ERROR: Exercise of type 'singleChoice', 'multipleChoice' and 'text' must provide 'solutions'! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
                 return 1;
             }
