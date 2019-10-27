@@ -92,4 +92,37 @@ public class EvalMachineRepoServiceTest {
         Assertions.assertThat(repo.get(id2)).isNotNull();
         Assertions.assertThat(repo.get(id3)).isNotNull();
     }
+
+    @Test
+    public void zombieMachine() throws Exception {
+        String id1 = UUID.randomUUID().toString();
+        String id2 = UUID.randomUUID().toString();
+        String id3 = UUID.randomUUID().toString();
+
+        StateMachine<EvalMachine.States, EvalMachine.Events> m1 = EvalMachineFactory.initSMForSubmission("123");
+        StateMachine<EvalMachine.States, EvalMachine.Events> m2 = EvalMachineFactory.initSMForSubmission("345");
+        StateMachine<EvalMachine.States, EvalMachine.Events> m3 = EvalMachineFactory.initSMForSubmission("678");
+
+        m1.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_STARTED_TIME, Instant.now().minus(10, ChronoUnit.MINUTES));
+        m1.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now().minus(10, ChronoUnit.MINUTES));
+        m2.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_STARTED_TIME, Instant.now().minus(10, ChronoUnit.MINUTES));
+        m3.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_STARTED_TIME, Instant.now().minus(1, ChronoUnit.MINUTES));
+        m3.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now().minus(1, ChronoUnit.MINUTES));
+
+        EvalMachineRepoService repo = new EvalMachineRepoService();
+        repo.store(id1, m1);
+        repo.store(id2, m2);
+        repo.store(id3, m3);
+
+        Assertions.assertThat(repo.get(id1)).isNotNull();
+        Assertions.assertThat(repo.get(id2)).isNotNull();
+        Assertions.assertThat(repo.get(id3)).isNotNull();
+
+        Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
+        repo.removeMachinesOlderThan(fiveMinutesAgo);
+
+        Assertions.assertThat(repo.get(id1)).isNull();
+        Assertions.assertThat(repo.get(id2)).isNull();
+        Assertions.assertThat(repo.get(id3)).isNotNull();
+    }
 }
