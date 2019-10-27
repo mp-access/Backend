@@ -35,8 +35,18 @@ public class EvalMachineRepoService {
     public void removeMachinesOlderThan(Instant threshold) {
         machines.entrySet().removeIf(entry -> {
             StateMachine machine = entry.getValue();
-            Instant completionTime = (Instant) machine.getExtendedState().getVariables().get(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME);
-            return completionTime.isBefore(threshold);
+
+            Map<Object, Object> machineVariables = machine.getExtendedState().getVariables();
+
+            Instant startedTime = (Instant) machineVariables.get(EvalMachineFactory.EXTENDED_VAR_STARTED_TIME);
+            Instant completionTime = (Instant) machineVariables.get(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME);
+            // A machine which has never completed and has been running for too long, should be removed
+            boolean isZombieMachine = startedTime != null && startedTime.isBefore(threshold);
+
+            // A machine which has completed normally and has finished for longer than threshold, can be safely removed
+            boolean isSafeToRemove = completionTime != null && completionTime.isBefore(threshold);
+
+            return isZombieMachine || isSafeToRemove;
         });
     }
 }

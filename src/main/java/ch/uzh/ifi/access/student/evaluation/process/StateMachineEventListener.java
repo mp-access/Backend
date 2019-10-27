@@ -17,6 +17,10 @@ public class StateMachineEventListener
 
     @Override
     public void stateEntered(State<EvalMachine.States, EvalMachine.Events> state) {
+        if (EvalMachine.States.SUBMITTED.equals(state.getId())) {
+            machine.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_STARTED_TIME, Instant.now());
+        }
+
         if (EvalMachine.States.FINISHED.equals(state.getId())) {
             machine.getExtendedState().getVariables().put(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME, Instant.now());
         }
