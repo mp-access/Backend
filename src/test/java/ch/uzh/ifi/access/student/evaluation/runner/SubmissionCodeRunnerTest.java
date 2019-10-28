@@ -7,7 +7,6 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
-import ch.uzh.ifi.access.student.model.StudentSubmission;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
 import org.assertj.core.api.Assertions;
@@ -32,13 +31,13 @@ public class SubmissionCodeRunnerTest {
         FileSystemUtils.deleteRecursively(path);
 
         Path psrc = Paths.get("./src/test/resources/test_code/solutioncode.py");
-        src = new VirtualFile(psrc.toAbsolutePath().normalize().toString(), "");
+        src = new VirtualFile(psrc.toAbsolutePath().normalize().toString(), "/solutioncode.py");
 
         Path ptest = Paths.get("./src/test/resources/test_code/test_suite.py");
-        test = new VirtualFile(ptest.toAbsolutePath().normalize().toString(), "");
+        test = new VirtualFile(ptest.toAbsolutePath().normalize().toString(), "/test_suite.py");
 
         Path pInit = Paths.get("./src/test/resources/test_code/__init__.py");
-        init = new VirtualFile(pInit.toAbsolutePath().normalize().toString(), "");
+        init = new VirtualFile(pInit.toAbsolutePath().normalize().toString(), "/__init__.py");
     }
 
     @Test
@@ -56,8 +55,8 @@ public class SubmissionCodeRunnerTest {
                 .isGraded(true)
                 .build();
 
-        ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStdout()).containsIgnoringCase("Intercontinental flight Boeing-747");
+        ExecResult result = new SubmissionCodeRunner(new CodeRunner(), new FSHierarchySerializer()).execSubmissionForExercise(sub, ex);
+        Assertions.assertThat(result.getStdout()).isEmpty();
         Assertions.assertThat(result.getTestLog()).isEmpty();
         Assertions.assertThat(result.getEvalLog()).containsIgnoringCase("Ran 8 tests in");
     }
@@ -78,7 +77,7 @@ public class SubmissionCodeRunnerTest {
                 .isGraded(false)
                 .build();
 
-        ExecResult result = new SubmissionCodeRunner(new CodeRunner()).execSubmissionForExercise(sub, ex);
+        ExecResult result = new SubmissionCodeRunner(new CodeRunner(), new FSHierarchySerializer()).execSubmissionForExercise(sub, ex);
         Assertions.assertThat(result.getStdout()).isNotEmpty();
         Assertions.assertThat(result.getTestLog()).isNotEmpty();
         Assertions.assertThat(result.getEvalLog()).isEmpty();
@@ -93,7 +92,7 @@ public class SubmissionCodeRunnerTest {
         }
         RunResult rr = new RunResult(sb.toString(), null, null, 1000, false, false);
 
-        ExecResult execResult = new SubmissionCodeRunner(null).mapSmokeToExecResult(rr);
+        ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSmokeToExecResult(rr);
 
         Assertions.assertThat(execResult.getStdout().length()).isLessThan(100055);
         Assertions.assertThat(execResult.getStdout()).contains("Logs size exceeded limit. Log has been truncated.");
@@ -112,7 +111,7 @@ public class SubmissionCodeRunnerTest {
         }
         RunResult rr = new RunResult(null, null, sb.toString(), 1000, false, false);
 
-        ExecResult execResult = new SubmissionCodeRunner(null).mapSubmissionToExecResult(rr);
+        ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSubmissionToExecResult(rr);
 
         Assertions.assertThat(execResult.getEvalLog().length()).isLessThan(100075);
         Assertions.assertThat(execResult.getEvalLog()).contains("Logs size exceeded limit. Beginning of log has been truncated ");
@@ -126,7 +125,7 @@ public class SubmissionCodeRunnerTest {
         }
         RunResult rr = new RunResult(null, null, sb.toString(), 1000, false, false);
 
-        ExecResult execResult = new SubmissionCodeRunner(null).mapSubmissionToExecResult(rr);
+        ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSubmissionToExecResult(rr);
 
         Assertions.assertThat(execResult.getEvalLog()).isEmpty();
     }
@@ -136,9 +135,9 @@ public class SubmissionCodeRunnerTest {
 
         RunResult rr = new RunResult("SomeText", null, "", 1000, false, false);
 
-        ExecResult execResult = new SubmissionCodeRunner(null).mapSubmissionToExecResult(rr);
+        ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSubmissionToExecResult(rr);
 
-        Assertions.assertThat(execResult.getStdout()).isNotEmpty();
+        Assertions.assertThat(execResult.getStdout()).isEmpty();
         Assertions.assertThat(execResult.getEvalLog()).isEmpty();
     }
 

@@ -12,13 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SubmissionCodeRunner {
@@ -40,9 +41,12 @@ public class SubmissionCodeRunner {
 
     private CodeRunner runner;
 
+    private FSHierarchySerializer hierarchySerializer;
+
     @Autowired
-    public SubmissionCodeRunner(CodeRunner runner) {
+    public SubmissionCodeRunner(CodeRunner runner, FSHierarchySerializer hierarchySerializer) {
         this.runner = runner;
+        this.hierarchySerializer = hierarchySerializer;
     }
 
 
@@ -54,39 +58,51 @@ public class SubmissionCodeRunner {
         CodeExecutionLimits executionLimits = exercise.getExecutionLimits();
         ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise, executionLimits) : executeSmokeTest(path, submission, executionLimits);
 
-        removeDirectory(path);
+        hierarchySerializer.removeDirectory(path);
 
         return res;
     }
 
     private ExecResult executeSmokeTest(Path workPath, CodeSubmission submission, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
-        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
 
-        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        List<String> commands = List.of(executeScriptCommand, DELIMITER_CMD, testCommand)
+                .stream()
+                .filter(cmd -> !StringUtils.isEmpty(cmd))
+                .collect(Collectors.toList());
+
+        final String fullCommand = String.join(" ; ", commands);
         return mapSmokeToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits));
     }
 
     private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
-        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
-        persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
+
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
+        String setupScriptCommand = exercise.hasGradingSetupScript() ? buildSetupScriptCommand(exercise.getGradingSetup()) : "";
 
-        final String fullCommand = String.join(" ; ", executeScriptCommand, DELIMITER_CMD, testCommand);
+        List<String> commands = List.of(setupScriptCommand, executeScriptCommand, DELIMITER_CMD, testCommand)
+                .stream()
+                .filter(cmd -> !StringUtils.isEmpty(cmd))
+                .collect(Collectors.toList());
+
+        final String fullCommand = String.join(" ; ", commands);
         return mapSubmissionToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits));
     }
 
     protected ExecResult mapSubmissionToExecResult(RunResult runResult) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            return new ExecResult(extractConsole(runResult), "", extractEvalLog(runResult));
+            return new ExecResult("", "", extractEvalLog(runResult));
         }
         return new ExecResult(runResult.getConsole(), "", "");
     }
@@ -153,33 +169,8 @@ public class SubmissionCodeRunner {
         return extracted;
     }
 
-
-    private void persistFilesIntoFolder(String folderPath, List<VirtualFile> files) {
-        if (files == null) {
-            logger.debug("No files to persist into " + folderPath);
-            return;
-        }
-
-        Path path = Paths.get(folderPath);
-        logger.debug(path.toAbsolutePath().normalize().toString());
-
-        if (!Files.exists(path)) {
-            try {
-                Files.createDirectories(path);
-
-                for (VirtualFile vf : files) {
-                    Path file = Files.createFile(Paths.get(folderPath, vf.getName() + "." + vf.getExtension()));
-                    Files.writeString(file, vf.getContent());
-                }
-
-                if (!Files.exists(Paths.get(folderPath, INIT_FILE))) {
-                    Files.createFile(Paths.get(folderPath, INIT_FILE));
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+    private String buildSetupScriptCommand(String pathToScript) {
+        return String.format("chmod u+x %s && ./%s", pathToScript, pathToScript);
     }
 
     private String buildExecScriptCommand(VirtualFile script) {
@@ -188,22 +179,5 @@ public class SubmissionCodeRunner {
 
     private String buildExecTestSuiteCommand(String testFolder) {
         return String.format("python -m unittest discover %s -v", testFolder);
-    }
-
-    private void removeDirectory(Path path) throws IOException {
-        logger.debug("Removing temp directory @ " + path);
-        Files
-                .walk(path)
-                .sorted(Comparator.reverseOrder())
-                .forEach(this::removeFile);
-
-    }
-
-    private void removeFile(Path path) {
-        try {
-            Files.deleteIfExists(path);
-        } catch (IOException e) {
-            logger.error(String.format("Failed to remove file @ %s", path), e);
-        }
     }
 }

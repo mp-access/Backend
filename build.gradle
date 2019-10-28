@@ -100,13 +100,21 @@ gatling {
     }
 }
 
-task customFatJar(type: Jar) {
+bootJar {
+    archiveFileName = "${archiveBaseName.get()}-${archiveVersion.get()}.${archiveExtension.get()}"
+}
+
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
+task customFatJar(type: BootJar) {
     manifest {
-        attributes 'Main-Class': 'ch.uzh.ifi.access.localtester.LocalTester'
+        attributes 'Main-Class': 'org.springframework.boot.loader.JarLauncher'
+        attributes 'Start-Class': 'ch.uzh.ifi.access.localtester.LocalTester'
+        attributes 'Spring-Boot-Classes': 'BOOT-INF/classes/'
+        attributes 'Spring-Boot-Lib': 'BOOT-INF/lib/'
     }
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-    archivesBaseName = "ACCESSTester"
+
+    archiveFileName = "ACCESSTester.jar"
     enabled = true
+    with bootJar
 }
