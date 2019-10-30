@@ -27,8 +27,8 @@ public class SchedulingConfig {
     @Scheduled(fixedDelay = FIXED_DELAY_IN_MINUTES * 60000)
     public void cleanUpRepo() {
         Instant threshold = Instant.now().minus(5, ChronoUnit.MINUTES);
-        logger.debug("Starting state machine cleanup. Repository size {}, removing machine older than {}", machineRepository.count(), threshold);
+        logger.info("Starting state machine cleanup. Repository size {}, removing machine older than {}", machineRepository.count(), threshold);
         machineRepository.removeMachinesOlderThan(threshold);
-        logger.debug("Completed cleanup. Repository size {}", machineRepository.count());
+        logger.info("Completed cleanup. Repository size {}", machineRepository.count());
     }
 }

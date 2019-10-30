@@ -17,6 +17,7 @@ public class EvalMachineFactory {
     public static final String EXTENDED_VAR_NEXT_STEP = "nextStep";
     public static final String EXTENDED_VAR_NEXT_STEP_DELAY = "nextStepDelay";
     public static final String EXTENDED_VAR_COMPLETION_TIME = "completionTime";
+    public static final String EXTENDED_VAR_STARTED_TIME = "startedTime";
 
     public static StateMachine<EvalMachine.States, EvalMachine.Events> initSMForSubmission(String submissionId) throws Exception {
 
