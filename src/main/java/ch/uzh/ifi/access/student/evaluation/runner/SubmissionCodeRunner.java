@@ -67,7 +67,7 @@ public class SubmissionCodeRunner {
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
-        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
+        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFileId());
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
 
@@ -86,7 +86,7 @@ public class SubmissionCodeRunner {
 
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
-        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFile());
+        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFileId());
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
         String setupScriptCommand = exercise.hasGradingSetupScript() ? buildSetupScriptCommand(exercise.getGradingSetup()) : "";
