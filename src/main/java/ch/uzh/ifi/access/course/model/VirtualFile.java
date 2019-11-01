@@ -43,7 +43,7 @@ public class VirtualFile implements Serializable {
     }
 
     public VirtualFile(String fullPath, String virtualPath) {
-        this.id = new Utils().getID();
+        this.id = new Utils().getID(fullPath);
         this.file = new File(fullPath);
         this.path = virtualPath;
 
