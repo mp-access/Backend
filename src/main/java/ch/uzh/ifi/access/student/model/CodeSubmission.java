@@ -38,7 +38,7 @@ public class CodeSubmission extends StudentSubmission {
     }
 
     public VirtualFile getPublicFile(String id) {
-        if (id.equals("-1")) {
+        if (("-1").equals(id)) {
             return publicFiles.get(0);
         }else{
             return publicFiles.stream().filter(file -> file.getId().equals(id)).findFirst()
