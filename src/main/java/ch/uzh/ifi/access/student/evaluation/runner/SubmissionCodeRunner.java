@@ -86,12 +86,10 @@ public class SubmissionCodeRunner {
 
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
-        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFileId());
-        String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
         String setupScriptCommand = exercise.hasGradingSetupScript() ? buildSetupScriptCommand(exercise.getGradingSetup()) : "";
 
-        List<String> commands = List.of(setupScriptCommand, executeScriptCommand, DELIMITER_CMD, testCommand)
+        List<String> commands = List.of(setupScriptCommand, DELIMITER_CMD, testCommand)
                 .stream()
                 .filter(cmd -> !StringUtils.isEmpty(cmd))
                 .collect(Collectors.toList());
