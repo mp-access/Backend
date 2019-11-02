@@ -6,7 +6,10 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import com.spotify.docker.client.messages.*;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
+import com.spotify.docker.client.messages.ContainerState;
+import com.spotify.docker.client.messages.Info;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,7 +18,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
@@ -34,11 +36,16 @@ public class CodeRunner {
 
     public CodeRunner() throws DockerCertificateException {
         docker = DefaultDockerClient.fromEnv().build();
-        logDebugInfo();
-        pullImageIfNotPresent();
+        logDockerInfo();
+        pullImage();
     }
 
-    private void logDebugInfo() {
+    public void check() {
+        logDockerInfo();
+        pullImage();
+    }
+
+    public void logDockerInfo() {
         try {
             Info info = docker.info();
             logger.debug("Connected to docker daemon @ " + docker.getHost());
@@ -48,13 +55,9 @@ public class CodeRunner {
         }
     }
 
-    private void pullImageIfNotPresent() {
+    private void pullImage() {
         try {
-            List<Image> images = docker.listImages(DockerClient.ListImagesParam.byName(PythonImageConfig.PYTHON_DOCKER_IMAGE));
-            if (images.isEmpty()) {
-                logger.debug(String.format("No suitable python image found (searched for %s), pulling new image from registry", PythonImageConfig.PYTHON_DOCKER_IMAGE));
-                docker.pull(PythonImageConfig.PYTHON_DOCKER_IMAGE);
-            }
+            docker.pull(PythonImageConfig.PYTHON_DOCKER_IMAGE);
         } catch (DockerException | InterruptedException e) {
             logger.warn("Failed to pull python docker image", e);
         }

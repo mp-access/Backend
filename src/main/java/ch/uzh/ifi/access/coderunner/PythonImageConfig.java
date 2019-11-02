@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PythonImageConfig {
 
-    public static final String PYTHON_DOCKER_IMAGE = "python:3.7-alpine";
+    public static final String PYTHON_DOCKER_IMAGE = "hoal/access-python:3.7";
 
     public static final String STUDENT_CODE_FOLDER = "/usr/src/";
 
