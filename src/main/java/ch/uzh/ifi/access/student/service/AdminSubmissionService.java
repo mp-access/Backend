@@ -92,6 +92,10 @@ public class AdminSubmissionService {
             logger.debug(String.format("Fire re-evaluation for processId %s with new submission %s)", reSubmitted.getId(), processId));
             evaluationService.fireEvalProcessExecutionAsync(processId);
         }
+    }
 
+    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
+    public UserService.UserQueryResult getCourseStudents(Course course) {
+        return userService.getCourseStudents(course);
     }
 }

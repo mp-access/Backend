@@ -6,6 +6,7 @@ import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.reporting.AssignmentReport;
 import ch.uzh.ifi.access.student.service.AdminSubmissionService;
+import ch.uzh.ifi.access.student.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,8 +49,18 @@ public class AssistantController {
         Assignment assignment = course.getAssignmentById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
 
-       adminSubmissionService.reevaluateAssignmentsInvalidSubmissions(course, assignment);
-       return ResponseEntity.ok("ok");
+        adminSubmissionService.reevaluateAssignmentsInvalidSubmissions(course, assignment);
+        return ResponseEntity.ok("ok");
     }
 
+    @GetMapping("/courses/{courseId}/participants")
+    public ResponseEntity<?> getCourseParticipants(@PathVariable String courseId) {
+        Course course = courseService
+                .getCourseById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        UserService.UserQueryResult courseStudents = adminSubmissionService.getCourseStudents(course);
+
+        return ResponseEntity.ok(courseStudents);
+    }
 }

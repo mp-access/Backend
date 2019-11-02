@@ -62,6 +62,25 @@ public class SubmissionController {
         return ResponseEntity.ok(submission);
     }
 
+    // TODO how to get submissionId if I only have userId?
+    @GetMapping("/{submissionId}")
+    public ResponseEntity<StudentSubmission> getSubmissionByIdByUser(@PathVariable String submissionId, @ApiIgnore CourseAuthentication authentication) {
+        StudentSubmission submission = studentSubmissionService.findById(submissionId).orElse(null);
+        if (submission == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Check for permissions to access submissions
+        Exercise exercise = courseService.getExerciseById(submission.getExerciseId()).orElseThrow(() -> new IllegalArgumentException("Did not find exercise for submission " + submissionId));
+        String courseId = exercise.getCourseId();
+
+        if (!authentication.hasAdminAccess(courseId)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(submission);
+    }
+
     @GetMapping("/exercises/{exerciseId}")
     public ResponseEntity<StudentSubmission> getSubmissionByExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
         Assert.notNull(authentication, "No authentication object found for user");
