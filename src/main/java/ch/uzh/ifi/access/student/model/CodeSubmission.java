@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.student.model;
 
 import ch.uzh.ifi.access.course.model.VirtualFile;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,17 +31,15 @@ public class CodeSubmission extends StudentSubmission {
         this.console = console;
     }
 
-    public VirtualFile getPublicFile(int index) {
-        if (index < publicFiles.size()) {
-            return publicFiles.get(index);
-        }
-        throw new IllegalArgumentException(String.format("Cannot access index %d of public files (size %d)", index, publicFiles.size()));
+    @JsonIgnore
+    public VirtualFile getSelectedFile() {
+        return getPublicFile(selectedFileId);
     }
 
-    public VirtualFile getPublicFile(String id) {
+    private VirtualFile getPublicFile(String id) {
         if (("-1").equals(id)) {
             return publicFiles.get(0);
-        }else{
+        } else {
             return publicFiles.stream().filter(file -> file.getId().equals(id)).findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find file with id %s in public folder", id)));
         }

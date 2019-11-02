@@ -67,7 +67,7 @@ public class SubmissionCodeRunner {
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
-        VirtualFile selectedFileForRun = submission.getPublicFile(submission.getSelectedFileId());
+        VirtualFile selectedFileForRun = submission.getSelectedFile();
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
 
