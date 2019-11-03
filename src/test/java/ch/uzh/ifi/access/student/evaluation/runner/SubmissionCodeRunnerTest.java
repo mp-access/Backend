@@ -51,7 +51,7 @@ public class SubmissionCodeRunnerTest {
                 .id("s1")
                 .exerciseId(ex.getId())
                 .publicFiles(Arrays.asList(init, src))
-                .selectedFile(1)
+                .selectedFileId(src.getId())
                 .isGraded(true)
                 .build();
 
@@ -73,7 +73,7 @@ public class SubmissionCodeRunnerTest {
                 .id("s1")
                 .exerciseId(ex.getId())
                 .publicFiles(Arrays.asList(init, src))
-                .selectedFile(1)
+                .selectedFileId(src.getId())
                 .isGraded(false)
                 .build();
 
