@@ -13,7 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.core.io.FileSystemResource;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -63,8 +63,8 @@ public class CourseServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("");
         course.addAssignment(assignment);
         assignment.addExercise(exercise);
-        assignment.setPublishDate(LocalDateTime.now().minusYears(1));
-        assignment.setDueDate(LocalDateTime.now().plusYears(1));
+        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
+        assignment.setDueDate(ZonedDateTime.now().plusYears(1));
 
         VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
         VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
@@ -99,8 +99,8 @@ public class CourseServiceTest {
         Exercise exercise = TestObjectFactory.createCodeExercise("");
         course.addAssignment(assignment);
         assignment.addExercise(exercise);
-        assignment.setPublishDate(LocalDateTime.now().minusYears(1));
-        assignment.setDueDate(LocalDateTime.now().minusDays(1));
+        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
+        assignment.setDueDate(ZonedDateTime.now().minusDays(1));
 
         VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
         VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
@@ -118,12 +118,12 @@ public class CourseServiceTest {
         Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), student);
         Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), student);
         Optional<FileSystemResource> shouldGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), student);
-        Optional<FileSystemResource> shouldNotGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), student);
+        Optional<FileSystemResource> shouldGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), student);
 
         assertThat(shouldGetVFile1.isPresent()).isTrue();
         assertThat(shouldGetVFile2.isPresent()).isTrue();
         assertThat(shouldGetSolutionFile.isPresent()).isTrue();
-        assertThat(shouldNotGetPrivateFile.isPresent()).isFalse();
+        assertThat(shouldGetPrivateFile.isPresent()).isTrue();
         assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
         assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());
         assertThat(shouldGetSolutionFile.get().getFilename()).isEqualTo(solutionFile.getNameWithExtension());
@@ -134,8 +134,8 @@ public class CourseServiceTest {
         Course course = TestObjectFactory.createCourseWithOneAssignmentAndOneExercise("Course", "Assignment", "exercise question");
         Assignment assignment = course.getAssignments().get(0);
         Exercise exercise = assignment.getExercises().get(0);
-        assignment.setPublishDate(LocalDateTime.now().minusYears(1));
-        assignment.setDueDate(LocalDateTime.now().plusYears(1));
+        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
+        assignment.setDueDate(ZonedDateTime.now().plusYears(1));
 
         VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
         VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
@@ -157,7 +157,7 @@ public class CourseServiceTest {
 
         assertThat(shouldGetVFile1.isPresent()).isTrue();
         assertThat(shouldGetVFile2.isPresent()).isTrue();
-        assertThat(shouldGetPrivateFile.isPresent()).isFalse();
+        assertThat(shouldGetPrivateFile.isPresent()).isTrue();
         assertThat(shouldGetSolutionFile.isPresent()).isTrue();
         assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
         assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());

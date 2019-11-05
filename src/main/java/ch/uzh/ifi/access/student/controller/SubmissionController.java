@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.student.controller;
 
+import ch.uzh.ifi.access.config.GracefulShutdown;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
@@ -20,8 +21,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
-import java.time.LocalDateTime;
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/submissions")
@@ -37,11 +41,14 @@ public class SubmissionController {
 
     private final CoursePermissionEvaluator permissionEvaluator;
 
-    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService, EvalProcessService processService, CoursePermissionEvaluator permissionEvaluator) {
+    private final GracefulShutdown gracefulShutdown;
+
+    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService, EvalProcessService processService, CoursePermissionEvaluator permissionEvaluator, GracefulShutdown gracefulShutdown) {
         this.studentSubmissionService = studentSubmissionService;
         this.courseService = courseService;
         this.processService = processService;
         this.permissionEvaluator = permissionEvaluator;
+        this.gracefulShutdown = gracefulShutdown;
     }
 
     @GetMapping("/{submissionId}")
@@ -79,9 +86,13 @@ public class SubmissionController {
 
         logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
 
+        if (gracefulShutdown.isShutdown()) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).header("Retry-After", "60").build();
+        }
+
         if (studentSubmissionService.isUserRateLimited(authentication.getUserId())) {
             return new ResponseEntity<>(
-                    "Submition rejected: User has an other running submisison.", HttpStatus.TOO_MANY_REQUESTS);
+                    "Submission rejected: User has an other running submission.", HttpStatus.TOO_MANY_REQUESTS);
         }
 
         Exercise exercise = courseService.getExerciseById(exerciseId).orElseThrow(() -> new ResourceNotFoundException("Referenced exercise does not exist"));
@@ -127,7 +138,7 @@ public class SubmissionController {
         SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
         Optional<Exercise> exercise = courseService.getExerciseById(exerciseId);
         boolean isPastDueDate = exercise.map(Exercise::isPastDueDate).orElse(false);
-        LocalDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
+        ZonedDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
 
         return new SubmissionHistoryDTO(submissions, runs, submissionCount, dueDate, isPastDueDate);
     }

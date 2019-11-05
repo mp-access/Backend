@@ -78,7 +78,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
                 .where("userId").is(userId)
                 .and("console").exists(false)
                 .and("result").exists(false)
-                .and("timestamp").gt(Instant.now().minus(10, ChronoUnit.MINUTES)));
+                .and("timestamp").gt(Instant.now().minus(1, ChronoUnit.MINUTES)));
         return mongoTemplate.exists(query, StudentSubmission.class);
     }
 }

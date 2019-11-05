@@ -9,8 +9,11 @@
 
     <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
-            <pattern>%black(%d{ISO8601}) %highlight(%-5level) [${springAppName},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] ${PID:-} -- [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable</pattern>
+            <pattern>%black(%d{ISO8601}) %highlight(%-5level) [%X{X-B3-TraceId:-}] ${PID:-} -- [%blue(%t)] %yellow(%C{40}): %msg%n%throwable</pattern>
         </layout>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
     </appender>
 
     <appender name="RollingFile"
@@ -18,16 +21,36 @@
         <file>${LOGS}/spring-boot-logger.log</file>
 
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%d{ISO8601} %-5level [${springAppName},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] ${PID:-} -- [%t] %C{1.}: %msg%n%throwable</pattern>
+            <pattern>%d{ISO8601} %-5level [%X{X-B3-TraceId:-}] ${PID:-} -- [%t] %C{40}: %msg%n%throwable</pattern>
         </encoder>
 
-        <rollingPolicy
-                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- rollover daily and when the file reaches 10 MegaBytes -->
-            <fileNamePattern>${LOGS}/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log
+            <fileNamePattern>
+                ${LOGS}/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log
             </fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy
-                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="CodeExecRollingFile"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS}/code-exec.log</file>
+
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{ISO8601} %-5level [%X{X-B3-TraceId:-}] ${PID:-} -- [%t] %C{40}: %msg%n%throwable</pattern>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- rollover daily and when the file reaches 10 MegaBytes -->
+            <fileNamePattern>
+                ${LOGS}/archived/code-exec-%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
@@ -37,7 +60,7 @@
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOGS}/perf.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <Pattern>%d{ISO8601} %-5level [${springAppName},%X{X-B3-TraceId:-},%X{X-B3-SpanId:-},%X{X-Span-Export:-}] %m%n</Pattern>
+            <Pattern>%d{ISO8601} %-5level [%X{X-B3-TraceId:-}] %m%n</Pattern>
         </encoder>
 
         <rollingPolicy
@@ -52,22 +75,32 @@
         </rollingPolicy>
     </appender>
 
-    <!-- LOG everything at INFO level -->
-    <root level="info">
-        <appender-ref ref="RollingFile" />
-        <appender-ref ref="Console" />
-    </root>
-
     <!-- Performance Log -->
-    <logger name="org.springframework.aop.interceptor.PerformanceMonitorInterceptor" level="trace" additivity="false">
+    <logger name="org.springframework.aop.interceptor.PerformanceMonitorInterceptor" level="TRACE" additivity="false">
         <appender-ref ref="PerfFile" />
     </logger>
 
     <!-- Request logger -->
-    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter">
+    <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" additivity="false">
         <level value="DEBUG" />
         <appender-ref ref="Console" />
         <appender-ref ref="RollingFile" />
     </logger>
+
+
+    <logger name="ch.uzh.ifi.access.course.config" level="DEBUG" />
+
+    <!-- Code execution Log -->
+    <logger name="ch.uzh.ifi.access.coderunner" level="TRACE" additivity="false">
+        <appender-ref ref="CodeExecRollingFile" />
+        <!-- Does not actually log TRACE events because of filter defined inside Console logger -->
+        <appender-ref ref="Console" />
+    </logger>
+
+    <!-- LOG everything at INFO level -->
+    <root level="INFO">
+        <appender-ref ref="RollingFile" />
+        <appender-ref ref="Console" />
+    </root>
 
 </configuration>

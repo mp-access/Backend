@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.student.model;
 
 import ch.uzh.ifi.access.course.model.VirtualFile;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -18,23 +19,30 @@ public class CodeSubmission extends StudentSubmission {
 
     private List<VirtualFile> publicFiles;
 
-    private int selectedFile;
+    private String selectedFileId;
 
     private ExecResult console;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, List<VirtualFile> publicFiles, int selectedFile, ExecResult console) {
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, List<VirtualFile> publicFiles, String selectedFileId, ExecResult console) {
         super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
         this.publicFiles = publicFiles;
-        this.selectedFile = selectedFile;
+        this.selectedFileId = selectedFileId;
         this.console = console;
     }
 
-    public VirtualFile getPublicFile(int index) {
-        if (index < publicFiles.size()) {
-            return publicFiles.get(index);
+    @JsonIgnore
+    public VirtualFile getSelectedFile() {
+        return getPublicFile(selectedFileId);
+    }
+
+    private VirtualFile getPublicFile(String id) {
+        if (("-1").equals(id)) {
+            return publicFiles.get(0);
+        } else {
+            return publicFiles.stream().filter(file -> file.getId().equals(id)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Cannot find file with id %s in public folder", id)));
         }
-        throw new IllegalArgumentException(String.format("Cannot access index %d of public files (size %d)", index, publicFiles.size()));
     }
 
     @Override
@@ -45,7 +53,7 @@ public class CodeSubmission extends StudentSubmission {
         stripped.setExerciseId(this.getExerciseId());
         stripped.setGraded(this.isGraded());
         stripped.setPublicFiles(this.publicFiles);
-        stripped.setSelectedFile(this.getSelectedFile());
+        stripped.setSelectedFileId(this.getSelectedFileId());
         return stripped;
     }
 

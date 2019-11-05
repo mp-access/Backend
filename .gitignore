@@ -1,3 +1,10 @@
+# Eclipse-specific files
+.classpath
+.project
+.settings/**/*
+bin/**/*
+
+
 # Compiled class file
 *.class
 
@@ -161,7 +168,9 @@ gradle-app.setting
 
 
 course_repositories/
-runner/
+/runner/
+/tmp/
 courses_db
 
 #load_testing/
+

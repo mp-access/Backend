@@ -5,16 +5,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.apache.commons.lang.StringUtils;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Data
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
+public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs, HasSetupScript {
 
     private final String id;
     private int index;
@@ -51,8 +51,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits) {
-        super(type, language, isGraded, maxScore, maxSubmits, options, solutions, hints, executionLimits);
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, String gradingSetup, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle) {
+        super(title, longTitle, type, language, isGraded, maxScore, maxSubmits, gradingSetup, options, solutions, hints, executionLimits);
         this.id = id;
         this.index = index;
         this.gitHash = gitHash;
@@ -64,18 +64,31 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         this.public_files = public_files;
     }
 
+    /**
+     * Copy all values from ExerciseConfig ino this Exercise object
+     *
+     * @param other The other ExerciseConfig
+     */
     public void set(ExerciseConfig other) {
+        this.title = other.getTitle();
+        this.longTitle = other.getLongTitle() == null ? other.getTitle() : other.getLongTitle();
         this.type = other.getType();
         this.language = other.getLanguage();
         this.isGraded = other.getIsGraded();
         this.maxScore = other.getMaxScore();
         this.maxSubmits = other.getMaxSubmits();
+        this.gradingSetup = other.getGradingSetup();
         this.options = other.getOptions();
         this.solutions = other.getSolutions();
         this.hints = other.getHints();
         this.executionLimits = other.getExecutionLimits();
     }
 
+    /**
+     * Update this instance of Exercise with all attributes of the other Exercise object
+     *
+     * @param other The other Exercise
+     */
     public void update(Exercise other) {
         set(other);
         this.gitHash = other.gitHash;
@@ -91,9 +104,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
      *
      * @param id file id
      */
-    // TODO: should private files ever be visible to a student? (for example after the due date)?
     public Optional<VirtualFile> getAnyFileById(String id) {
-        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), solution_files.stream());
+        Stream<VirtualFile> files = Stream.concat(Stream.concat(public_files.stream(), resource_files.stream()), Stream.concat(solution_files.stream(), private_files.stream()));
         return files.filter(file -> file.getId().equals(id)).findFirst();
     }
 
@@ -124,7 +136,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
         return assignment.isPastDueDate();
     }
 
-    public LocalDateTime getDueDate() {
+    public ZonedDateTime getDueDate() {
         return assignment.getDueDate();
     }
 
@@ -168,8 +180,8 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
 
     public boolean isBreakingChange(Exercise other) {
         return (!Objects.equals(this.gitHash, other.gitHash) && (
-                        // From config
-                        !Objects.equals(this.type, other.type) ||
+                // From config
+                !Objects.equals(this.type, other.type) ||
                         !Objects.equals(this.language, other.language) ||
                         !Objects.equals(this.options, other.options) ||
                         !Objects.equals(this.solutions, other.solutions) ||
@@ -180,7 +192,20 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise> {
                         !Objects.equals(this.private_files, other.private_files) ||
                         !Objects.equals(this.resource_files, other.resource_files) ||
                         !Objects.equals(this.public_files, other.public_files)
-            )
+        )
         );
+    }
+
+    @Override
+    public List<BreadCrumb> getBreadCrumbs() {
+        List<BreadCrumb> bc = new ArrayList<>();
+        BreadCrumb c = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getId());
+        BreadCrumb a = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getId() + "/assignments/" + this.getAssignment().getId());
+        BreadCrumb e = new BreadCrumb(this.getTitle(), "exercises/" + this.id);
+        bc.add(c);
+        bc.add(a);
+        bc.add(e);
+
+        return bc;
     }
 }

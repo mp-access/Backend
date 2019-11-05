@@ -1,8 +1,11 @@
 package ch.uzh.ifi.access.student.evaluation.process;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class EvalMachineRepoService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EvalMachineRepoService.class);
 
     private Map<String, StateMachine> machines;
 
@@ -27,4 +32,28 @@ public class EvalMachineRepoService {
         machines.put(key, machine);
     }
 
+    public long count() {
+        return machines.size();
+    }
+
+    public void removeMachinesOlderThan(Instant threshold) {
+        machines.entrySet().removeIf(entry -> {
+            StateMachine machine = entry.getValue();
+
+            Map<Object, Object> machineVariables = machine.getExtendedState().getVariables();
+
+            Instant startedTime = (Instant) machineVariables.get(EvalMachineFactory.EXTENDED_VAR_STARTED_TIME);
+            Instant completionTime = (Instant) machineVariables.get(EvalMachineFactory.EXTENDED_VAR_COMPLETION_TIME);
+            // A machine which has never completed and has been running for too long, should be removed
+            boolean isZombieMachine = startedTime != null && startedTime.isBefore(threshold) && completionTime == null;
+            if (isZombieMachine) {
+                logger.info("Found a zombie machine {}. Started {}: {}", entry.getKey(), startedTime, machine.toString());
+            }
+
+            // A machine which has completed normally and has finished for longer than threshold, can be safely removed
+            boolean isSafeToRemove = completionTime != null && completionTime.isBefore(threshold);
+
+            return isZombieMachine || isSafeToRemove;
+        });
+    }
 }

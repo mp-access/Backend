@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CodeExecutionLimits {
+public class CodeExecutionLimits implements Serializable {
 
     private static final long MB_TO_Bytes = 1000000L;
     /**

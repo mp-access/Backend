@@ -469,4 +469,56 @@ public class StudentSubmissionServiceTest {
         boolean userRateLimited = service.isUserRateLimited(userId);
         Assertions.assertThat(userRateLimited).isFalse();
     }
+
+    @Test
+    public void userRateLimitedWithOldSubmissionMinutes() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now().minus(1, ChronoUnit.MINUTES))
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
+    }
+
+    @Test
+    public void userRateLimitedWithOldSubmissionSeconds() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now().minus(59, ChronoUnit.SECONDS))
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isTrue();
+    }
+
+    @Test
+    public void userRateLimitedWithOldSubmission1Minute() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now().minus(60, ChronoUnit.SECONDS))
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
+    }
+
+    @Test
+    public void userRateLimitedWithOldSubmission1Minute1Second() {
+        String userId = "123";
+        submissionProperties.setUserRateLimit(true);
+        CodeSubmission submission = CodeSubmission.builder()
+                .userId(userId)
+                .timestamp(Instant.now().minus(61, ChronoUnit.SECONDS))
+                .build();
+        repository.save(submission);
+        boolean userRateLimited = service.isUserRateLimited(userId);
+        Assertions.assertThat(userRateLimited).isFalse();
+    }
 }

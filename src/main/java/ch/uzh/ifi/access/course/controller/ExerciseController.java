@@ -15,7 +15,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Map;
 import java.util.Optional;
 
@@ -64,7 +63,7 @@ public class ExerciseController {
                 File fileHandle = file.get().getFile();
                 FileSystemResource r = new FileSystemResource(fileHandle);
                 return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .body(r);
             }
         }
@@ -94,7 +93,7 @@ public class ExerciseController {
                 File fileHandle = file.get().getFile();
                 FileSystemResource r = new FileSystemResource(fileHandle);
                 return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(Files.probeContentType(fileHandle.toPath())))
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
                         .body(r);
             }
         }

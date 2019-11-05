@@ -11,6 +11,7 @@ import org.springframework.data.annotation.Transient;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -20,7 +21,7 @@ import java.util.Objects;
 @ToString
 @Getter
 @Setter
-public class VirtualFile {
+public class VirtualFile implements Serializable {
     private static final List<String> MEDIA_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "mp3", "mp4");
 
     private String id;
@@ -42,7 +43,7 @@ public class VirtualFile {
     }
 
     public VirtualFile(String fullPath, String virtualPath) {
-        this.id = new Utils().getID();
+        this.id = new Utils().getID(fullPath);
         this.file = new File(fullPath);
         this.path = virtualPath;
 

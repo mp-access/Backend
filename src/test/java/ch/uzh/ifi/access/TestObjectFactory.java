@@ -9,7 +9,7 @@ import ch.uzh.ifi.access.student.model.TextSubmission;
 import org.springframework.security.oauth2.provider.OAuth2Request;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,8 +36,8 @@ public class TestObjectFactory {
         Assignment assignment = new Assignment(UUID.randomUUID().toString());
         assignment.setTitle(title);
         assignment.setDescription("Some description");
-        assignment.setDueDate(LocalDateTime.now().plusDays(7));
-        assignment.setPublishDate(LocalDateTime.now());
+        assignment.setDueDate(ZonedDateTime.now().plusDays(7));
+        assignment.setPublishDate(ZonedDateTime.now());
         return assignment;
     }
 
