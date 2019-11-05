@@ -35,8 +35,8 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
     }
 
     @Builder
-    public Course(String title, String description, String owner, ZonedDateTime startDate, ZonedDateTime endDate, List<String> assistants, List<String> students, String id, String gitHash, String gitURL, String directory, List<Assignment> assignments) {
-        super(title, description, owner, startDate, endDate, assistants, students);
+    public Course(String title, String description, String owner, ZonedDateTime startDate, ZonedDateTime endDate, List<String> admins, List<String> assistants, List<String> students, String id, String gitHash, String gitURL, String directory, List<Assignment> assignments) {
+        super(title, description, owner, startDate, endDate, admins, assistants, students);
         this.id = id;
         this.gitHash = gitHash;
         this.gitURL = gitURL;
@@ -51,6 +51,7 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
         this.owner = other.getOwner();
         this.startDate = other.getStartDate();
         this.endDate = other.getEndDate();
+        this.admins = other.getAdmins();
         this.assistants = other.getAssistants();
         this.students = other.getStudents();
     }

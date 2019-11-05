@@ -130,7 +130,7 @@ public class CourseServiceTest {
     }
 
     @Test
-    public void getFileCheckingPrivilegesAdminAccess() {
+    public void getFileCheckingPrivilegesAssistantAccess() {
         Course course = TestObjectFactory.createCourseWithOneAssignmentAndOneExercise("Course", "Assignment", "exercise question");
         Assignment assignment = course.getAssignments().get(0);
         Exercise exercise = assignment.getExercises().get(0);
@@ -146,14 +146,14 @@ public class CourseServiceTest {
         exercise.setPrivate_files(List.of(privateFile));
         exercise.setSolution_files(List.of(solutionFile));
 
-        CourseAuthentication admin = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAdminAccess(course.getId())));
+        CourseAuthentication assistant = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAssistantAccess(course.getId())));
 
         CourseService courseService = new CourseService(dao, null);
 
-        Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), admin);
-        Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), admin);
-        Optional<FileSystemResource> shouldGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), admin);
-        Optional<FileSystemResource> shouldGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), admin);
+        Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), assistant);
+        Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), assistant);
+        Optional<FileSystemResource> shouldGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), assistant);
+        Optional<FileSystemResource> shouldGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), assistant);
 
         assertThat(shouldGetVFile1.isPresent()).isTrue();
         assertThat(shouldGetVFile2.isPresent()).isTrue();

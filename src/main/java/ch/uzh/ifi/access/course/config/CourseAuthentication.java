@@ -34,6 +34,10 @@ public class CourseAuthentication extends OAuth2Authentication {
         return courseAccesses.stream().anyMatch(access -> access.evaluateAccess(courseId));
     }
 
+    public boolean hasPrivilegedAccess(String courseId) {
+        return courseAccesses.stream().anyMatch(access -> access.evaluateAssistantAccess(courseId));
+    }
+
     public boolean hasAdminAccess(String courseId) {
         return courseAccesses.stream().anyMatch(access -> access.evaluateAdminAccess(courseId));
     }

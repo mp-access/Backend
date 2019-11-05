@@ -10,12 +10,14 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class CourseConfig implements Serializable {
+
     protected String title;
     protected String description;
     protected String owner;
     protected ZonedDateTime startDate;
     protected ZonedDateTime endDate;
 
+    protected List<String> admins = List.of();
     protected List<String> assistants = List.of();
     protected List<String> students = List.of();
 
@@ -23,4 +25,5 @@ public class CourseConfig implements Serializable {
         this.description = "";
         this.owner = "";
     }
+
 }
