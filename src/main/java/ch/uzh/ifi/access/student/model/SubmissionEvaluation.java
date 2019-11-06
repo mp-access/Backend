@@ -1,5 +1,6 @@
 package ch.uzh.ifi.access.student.model;
 
+import ch.uzh.ifi.access.course.model.Rounding;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.util.List;
 public class SubmissionEvaluation {
 
 	public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN,
-			Collections.emptyList());
+			Collections.emptyList(), Rounding.DEFAULT);
 
 	private Points points;
 
@@ -23,6 +24,8 @@ public class SubmissionEvaluation {
 	private Instant timestamp;
 
 	private List<String> hints;
+
+	private Rounding rounding;
 
 	@JsonProperty
 	public boolean hasSubmitted() {

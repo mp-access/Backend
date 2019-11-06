@@ -30,6 +30,7 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
         var hints = points < exercise.getMaxScore() ? exercise.getHints() : null;
 
         return SubmissionEvaluation.builder()
+                .rounding(exercise.getRounding())
                 .points(new SubmissionEvaluation.Points(points, solution.size()))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
