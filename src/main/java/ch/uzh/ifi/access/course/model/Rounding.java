@@ -30,7 +30,7 @@ public class Rounding implements Serializable {
     public enum Strategy {
         UP(Strategy::up),
         DOWN(Strategy::down),
-        HALP_UP(Strategy::halfUp),
+        HALF_UP(Strategy::halfUp),
         HALF_DOWN(Strategy::halfDown),
         QUARTER_UP(Strategy::quarterUp),
         QUARTER_DOWN(Strategy::quarterDown);

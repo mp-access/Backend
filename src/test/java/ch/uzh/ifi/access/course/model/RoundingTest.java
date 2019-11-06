@@ -17,10 +17,10 @@ public class RoundingTest {
     @Test
     public void halfUp() {
         double val = 1.375412;
-        Assertions.assertThat(new Rounding(Rounding.Strategy.HALP_UP, 2).round(val)).isEqualTo(1.5);
+        Assertions.assertThat(new Rounding(Rounding.Strategy.HALF_UP, 2).round(val)).isEqualTo(1.5);
 
         val = 1.245412;
-        Assertions.assertThat(new Rounding(Rounding.Strategy.HALP_UP, 2).round(val)).isEqualTo(1.);
+        Assertions.assertThat(new Rounding(Rounding.Strategy.HALF_UP, 2).round(val)).isEqualTo(1.);
     }
 
     @Test
