@@ -69,8 +69,8 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
         return exercises.stream().filter(e -> e.getId().equals(id)).findFirst();
     }
 
-    public int getMaxScore() {
-        return exercises.stream().mapToInt(e -> e.getMaxScore()).sum();
+    public double getMaxScore() {
+        return exercises.stream().mapToDouble(ExerciseConfig::getMaxScore).sum();
     }
 
 

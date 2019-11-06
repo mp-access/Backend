@@ -1,17 +1,11 @@
 package ch.uzh.ifi.access.student.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
+
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Value;
 
 @SuppressWarnings("unused")
 @Value
@@ -24,7 +18,7 @@ public class SubmissionEvaluation {
 
 	private Points points;
 
-	private int maxScore;
+	private double maxScore;
 
 	private Instant timestamp;
 
@@ -43,7 +37,7 @@ public class SubmissionEvaluation {
 	}
 
 	public List<String> getHints() {
-		return hints != null && hints.size() > 1 ? Arrays.asList(hints.get(0)) : hints;
+		return hints != null && hints.size() > 1 ? List.of(hints.get(0)) : hints;
 	}
 
 	@Data

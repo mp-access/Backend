@@ -15,7 +15,7 @@ public class ExerciseConfig implements Serializable {
     protected ExerciseType type;
     protected String language;
     protected Boolean isGraded;
-    protected int maxScore;
+    protected double maxScore;
     protected int maxSubmits;
     protected String gradingSetup;
 
