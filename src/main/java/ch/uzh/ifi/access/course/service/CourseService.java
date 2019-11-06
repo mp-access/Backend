@@ -70,6 +70,10 @@ public class CourseService {
         return courseDao.selectExerciseById(exerciseId).map(Exercise::getMaxSubmits);
     }
 
+    public Optional<Course> getCourseByExerciseId(String exerciseId) {
+        return getExerciseById(exerciseId).flatMap(ex -> getCourseById(ex.getCourseId()));
+    }
+
     private boolean hasAccessToExerciseSolutions(Exercise exercise, CourseAuthentication authentication) {
         return exercise.isPastDueDate() || authentication.hasPrivilegedAccess(exercise.getCourseId());
     }
