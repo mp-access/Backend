@@ -10,64 +10,68 @@ import java.util.function.BiFunction;
 @Data
 public class Rounding implements Serializable {
 
-    public static final Rounding DEFAULT = new Rounding(Strategy.QUARTER_UP, 0);
+    public static final Rounding DEFAULT = new Rounding(Strategy.ROUND, 4);
 
     private Strategy strategy;
+    private int steps;
     private int precision;
 
     public Rounding() {
     }
 
-    public Rounding(Strategy strategy, int precision) {
+    public Rounding(Strategy strategy, int steps) {
         this.strategy = strategy;
-        this.precision = precision;
+        this.steps = steps;
+        this.precision = calcPrecision(steps);
     }
 
     public double round(double value) {
-        return strategy.round(value, precision);
+        return strategy.round(value, steps, precision);
+    }
+
+    public int calcPrecision(Integer steps) {
+        if(steps == 1 ) {
+            return 0;
+        }
+
+        String strinRep = Double.toString( 1/steps);
+        return strinRep.length() - strinRep.indexOf('.') - 1;
     }
 
     public enum Strategy {
-        UP(Strategy::up),
-        DOWN(Strategy::down),
-        HALF_UP(Strategy::halfUp),
-        HALF_DOWN(Strategy::halfDown),
-        QUARTER_UP(Strategy::quarterUp),
-        QUARTER_DOWN(Strategy::quarterDown);
+        CEILING(Strategy::ceil),
+        FLOOR(Strategy::floor),
+        ROUND(Strategy::roundUp);
 
-        private BiFunction<Double, Integer, Double> algorithm;
+        private TriFunction<Double, Integer, Integer, Double> algorithm;
 
-        Strategy(BiFunction<Double, Integer, Double> algorithm) {
+        Strategy(TriFunction<Double, Integer, Integer, Double> algorithm) {
             this.algorithm = algorithm;
         }
 
-        double round(double unroundedValue, int precision) {
-            return algorithm.apply(unroundedValue, precision);
+        double round(double unroundedValue, int steps, int precision) {
+            return algorithm.apply(unroundedValue, steps, precision);
         }
 
-        static double up(Double unroundedValue, Integer precision) {
-            return new BigDecimal(unroundedValue).setScale(precision, RoundingMode.HALF_UP).doubleValue();
+        static double ceil(Double unroundedValue, Integer steps, Integer precision) {
+          //  return new BigDecimal(unroundedValue*steps).setScale(precision, RoundingMode.CEILING).doubleValue()/steps;
+            return Math.ceil( unroundedValue*steps)/steps;
+
         }
 
-        static double down(Double unroundedValue, Integer precision) {
-            return new BigDecimal(unroundedValue).setScale(precision, RoundingMode.HALF_DOWN).doubleValue();
+        static double floor(Double unroundedValue, Integer steps, Integer precision) {
+            return Math.floor(unroundedValue * steps)/steps;
         }
 
-        static double halfUp(double unroundedValue, Integer precision) {
-            return (double) Math.round(unroundedValue * 2) / 2;
+        static double roundUp(double unroundedValue, Integer steps, Integer precision) {
+            return (double) Math.round(unroundedValue * steps) / steps;
         }
 
-        static double halfDown(double unroundedValue, Integer precision) {
-            return Math.floor(unroundedValue * 2) / 2;
-        }
+    }
 
-        static double quarterUp(double unroundedValue, Integer precision) {
-            return (double) Math.round(unroundedValue * 4) / 4;
-        }
-
-        static double quarterDown(double unroundedValue, Integer precision) {
-            return Math.floor(unroundedValue * 4) / 4;
-        }
+    @FunctionalInterface
+    public interface TriFunction<F, S, T, R> {
+        R apply(F f, S s, T t);
     }
 
 }
