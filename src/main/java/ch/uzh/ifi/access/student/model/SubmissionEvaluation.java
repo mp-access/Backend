@@ -14,44 +14,46 @@ import java.util.List;
 @Builder
 public class SubmissionEvaluation {
 
-	public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN,
-			Collections.emptyList(), Rounding.DEFAULT);
+    public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN,
+            Collections.emptyList(), Rounding.DEFAULT);
 
-	private Points points;
+    private Points points;
 
-	private double maxScore;
+    private double maxScore;
 
-	private Instant timestamp;
+    private Instant timestamp;
 
-	private List<String> hints;
+    private List<String> hints;
 
-	private Rounding rounding;
+    private Rounding rounding;
 
-	@JsonProperty
-	public boolean hasSubmitted() {
-		return !NO_SUBMISSION.equals(this);
-	}
+    @JsonProperty
+    public boolean hasSubmitted() {
+        return !NO_SUBMISSION.equals(this);
+    }
 
-	public double getScore() {
-		if (points.getMax() == 0) {
-			return 0.0;
-		}
-		return rounding.round((points.getCorrect() / (double) points.getMax() * maxScore));
-	}
+    public double getScore() {
+        if (points.getMax() == 0) {
+            return 0.0;
+        } else if (rounding == null) {
+            return Rounding.DEFAULT.round((points.getCorrect() / (double) points.getMax() * maxScore));
+        }
+        return rounding.round((points.getCorrect() / (double) points.getMax() * maxScore));
+    }
 
-	public List<String> getHints() {
-		return hints != null && hints.size() > 1 ? List.of(hints.get(0)) : hints;
-	}
+    public List<String> getHints() {
+        return hints != null && hints.size() > 1 ? List.of(hints.get(0)) : hints;
+    }
 
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class Points {
-		private int correct;
-		private int max;
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Points {
+        private int correct;
+        private int max;
 
-		public boolean isEverythingCorrect() {
-			return correct == max;
-		}
-	}
+        public boolean isEverythingCorrect() {
+            return correct == max;
+        }
+    }
 }
