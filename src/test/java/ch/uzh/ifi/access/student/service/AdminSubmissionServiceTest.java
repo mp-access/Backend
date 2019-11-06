@@ -148,7 +148,7 @@ public class AdminSubmissionServiceTest {
         submissions.forEach(submission -> submission.setUserId(userId));
     }
 
-    private void setResultForSubmission(StudentSubmission submission, SubmissionEvaluation.Points points, int maxScore ) {
+    private void setResultForSubmission(StudentSubmission submission, SubmissionEvaluation.Points points, double maxScore ) {
         submission.setResult( SubmissionEvaluation.builder().points(points).maxScore( maxScore).timestamp(Instant.now()).build());
     }
 }

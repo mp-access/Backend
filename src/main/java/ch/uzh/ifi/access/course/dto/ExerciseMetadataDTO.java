@@ -14,7 +14,7 @@ public class ExerciseMetadataDTO {
     private ExerciseType type;
     private String language;
     private Boolean isGraded;
-    private int maxScore;
+    private double maxScore;
 
     public ExerciseMetadataDTO(Exercise exercise) {
         this.id = exercise.getId();
