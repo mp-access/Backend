@@ -18,6 +18,7 @@ public class ExerciseConfig implements Serializable {
     protected double maxScore;
     protected int maxSubmits;
     protected String gradingSetup;
+    protected Rounding rounding;
 
     protected List<String> options;
     protected List<String> solutions;
@@ -25,11 +26,12 @@ public class ExerciseConfig implements Serializable {
 
     protected CodeExecutionLimits executionLimits;
 
-
     public ExerciseConfig() {
         this.isGraded = true;
         this.maxSubmits = 1;
         this.maxScore = 1;
         this.executionLimits = CodeExecutionLimits.DEFAULTS;
+        this.rounding = Rounding.DEFAULT;
     }
+
 }
