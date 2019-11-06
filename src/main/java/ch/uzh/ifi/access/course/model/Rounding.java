@@ -3,8 +3,6 @@ package ch.uzh.ifi.access.course.model;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.function.BiFunction;
 
 @Data
@@ -14,7 +12,6 @@ public class Rounding implements Serializable {
 
     private Strategy strategy;
     private int steps;
-    private int precision;
 
     public Rounding() {
     }
@@ -22,56 +19,40 @@ public class Rounding implements Serializable {
     public Rounding(Strategy strategy, int steps) {
         this.strategy = strategy;
         this.steps = steps;
-        this.precision = calcPrecision(steps);
     }
 
     public double round(double value) {
-        return strategy.round(value, steps, precision);
-    }
-
-    public int calcPrecision(Integer steps) {
-        if(steps == 1 ) {
-            return 0;
-        }
-
-        String strinRep = Double.toString( 1/steps);
-        return strinRep.length() - strinRep.indexOf('.') - 1;
+        return strategy.round(value, steps);
     }
 
     public enum Strategy {
+
         CEILING(Strategy::ceil),
         FLOOR(Strategy::floor),
         ROUND(Strategy::roundUp);
 
-        private TriFunction<Double, Integer, Integer, Double> algorithm;
+        private BiFunction<Double, Integer, Double> algorithm;
 
-        Strategy(TriFunction<Double, Integer, Integer, Double> algorithm) {
+        Strategy(BiFunction<Double, Integer, Double> algorithm) {
             this.algorithm = algorithm;
         }
 
-        double round(double unroundedValue, int steps, int precision) {
-            return algorithm.apply(unroundedValue, steps, precision);
+        double round(double unroundedValue, int steps) {
+            return algorithm.apply(unroundedValue, steps);
         }
 
-        static double ceil(Double unroundedValue, Integer steps, Integer precision) {
-          //  return new BigDecimal(unroundedValue*steps).setScale(precision, RoundingMode.CEILING).doubleValue()/steps;
+        static double ceil(Double unroundedValue, Integer steps) {
             return Math.ceil( unroundedValue*steps)/steps;
-
         }
 
-        static double floor(Double unroundedValue, Integer steps, Integer precision) {
+        static double floor(Double unroundedValue, Integer steps) {
             return Math.floor(unroundedValue * steps)/steps;
         }
 
-        static double roundUp(double unroundedValue, Integer steps, Integer precision) {
+        static double roundUp(double unroundedValue, Integer steps) {
             return (double) Math.round(unroundedValue * steps) / steps;
         }
 
-    }
-
-    @FunctionalInterface
-    public interface TriFunction<F, S, T, R> {
-        R apply(F f, S s, T t);
     }
 
 }
