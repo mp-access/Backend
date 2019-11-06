@@ -36,7 +36,7 @@ public class SubmissionEvaluation {
 		if (points.getMax() == 0) {
 			return 0.0;
 		}
-		return Math.round((points.getCorrect() / (double) points.getMax() * maxScore) * 4) / 4d;
+		return rounding.round((points.getCorrect() / (double) points.getMax() * maxScore));
 	}
 
 	public List<String> getHints() {

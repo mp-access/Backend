@@ -1,5 +1,8 @@
 package ch.uzh.ifi.access.course.model;
 
+import lombok.Data;
+
+@Data
 public class Rounding {
 
     public static final Rounding DEFAULT = new Rounding(Rounding.Strategy.QUARTER_UP, 2);
@@ -14,7 +17,17 @@ public class Rounding {
         this.precision = precision;
     }
 
-    public enum Strategy {UP, DOWN, HALP_UP, HALF_DOWN, QUARTER_UP, QUARTER_DOWN}
+    public double round(double value){
+        return strategy.round(value, precision);
+    }
 
+    public enum Strategy {
+        UP, DOWN, HALP_UP, HALF_DOWN, QUARTER_UP, QUARTER_DOWN;
+
+         double round(double unroundedValue, int precision) {
+            return 2.0d;
+        }
+
+    }
 
 }
