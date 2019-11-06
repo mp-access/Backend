@@ -32,6 +32,8 @@ public class SubmissionCodeRunner {
 
     private static final String PUBLIC_FOLDER = "public";
 
+    private static final String RESOURCE_FOLDER = "resource";
+
     private static final String PRIVATE_FOLDER = "private";
 
     private static final String INIT_FILE = "__init__.py";
@@ -56,15 +58,16 @@ public class SubmissionCodeRunner {
         logger.debug(path.toAbsolutePath().normalize().toString());
 
         CodeExecutionLimits executionLimits = exercise.getExecutionLimits();
-        ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise, executionLimits) : executeSmokeTest(path, submission, executionLimits);
+        ExecResult res = submission.isGraded() ? executeSubmission(path, submission, exercise, executionLimits) : executeSmokeTest(path, submission, exercise, executionLimits);
 
         hierarchySerializer.removeDirectory(path);
 
         return res;
     }
 
-    private ExecResult executeSmokeTest(Path workPath, CodeSubmission submission, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
+    private ExecResult executeSmokeTest(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), RESOURCE_FOLDER), exercise.getResource_files());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         VirtualFile selectedFileForRun = submission.getSelectedFile();
@@ -82,6 +85,7 @@ public class SubmissionCodeRunner {
 
     private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), RESOURCE_FOLDER), exercise.getResource_files());
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
 
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
