@@ -14,6 +14,7 @@ public class CourseConfig implements Serializable {
     protected String title;
     protected String description;
     protected String owner;
+    protected String semester;
     protected ZonedDateTime startDate;
     protected ZonedDateTime endDate;
 
@@ -24,6 +25,7 @@ public class CourseConfig implements Serializable {
     public CourseConfig() {
         this.description = "";
         this.owner = "";
+        this.semester = "";
     }
 
 }
