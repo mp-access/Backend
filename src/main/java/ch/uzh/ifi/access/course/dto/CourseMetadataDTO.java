@@ -17,6 +17,7 @@ public class CourseMetadataDTO {
     private String title;
     private String description;
     private String owner;
+    private String semester;
     private String gitHash;
     private ZonedDateTime startDate;
     private ZonedDateTime endDate;
@@ -29,6 +30,7 @@ public class CourseMetadataDTO {
         this.title = course.getTitle();
         this.description = course.getDescription();
         this.owner = course.getOwner();
+        this.semester = course.getSemester();
         this.gitHash = course.getGitHash();
         this.startDate = course.getStartDate();
         this.endDate = course.getEndDate();
