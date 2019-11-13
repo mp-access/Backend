@@ -17,7 +17,7 @@ public class SchedulingConfig {
 
     private static Logger logger = LoggerFactory.getLogger(SchedulingConfig.class);
 
-    private static final long FIXED_DELAY_IN_MINUTES = 1;
+    private static final long FIXED_DELAY_IN_MINUTES = 5;
 
     private static final long DOCKER_WATCHDOG_DELAY_IN_MINUTES = 5;
 
