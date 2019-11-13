@@ -4,6 +4,7 @@ import ch.uzh.ifi.access.config.GracefulShutdown;
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
 import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
+import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
@@ -51,6 +52,22 @@ public class SubmissionController {
         this.gracefulShutdown = gracefulShutdown;
     }
 
+    @GetMapping("/{submissionId}/users/{userId}")
+    public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String submissionId, @PathVariable String userId, @ApiIgnore CourseAuthentication authentication) {
+        Optional<StudentSubmission> subOpt = studentSubmissionService.findById(submissionId);
+
+       return subOpt
+                .flatMap(submission -> courseService.getCourseByExerciseId(submission.getExerciseId()))
+                .flatMap(course -> {
+                    if (authentication.hasAdminAccess(course.getId())) {
+                        return subOpt;
+                    }
+                    return Optional.empty();
+                })
+               .map(ResponseEntity::ok)
+               .orElse(ResponseEntity.badRequest().build());
+    }
+
     @GetMapping("/{submissionId}")
     public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String submissionId, @ApiIgnore CourseAuthentication authentication) {
         StudentSubmission submission = studentSubmissionService.findById(submissionId).orElse(null);
@@ -76,6 +93,22 @@ public class SubmissionController {
         return submission
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/exercises/{exerciseId}/users/{userId}")
+    public ResponseEntity<StudentSubmission> getSubmissionByExerciseAsAdmin(@PathVariable String exerciseId, @PathVariable String userId, @ApiIgnore CourseAuthentication authentication) {
+        Assert.notNull(authentication, "No authentication object found for user");
+
+        Course course = courseService.getCourseByExerciseId(exerciseId).orElseThrow(IllegalArgumentException::new);
+
+        CourseAuthentication impersonation = authentication.impersonateUser(userId, course.getId());
+        if (impersonation != null) {
+            return getSubmissionByExercise(exerciseId, impersonation);
+        }
+
+        logger.warn("User {} called a restricted function for which it does not have enough rights!", authentication.getUserId());
+
+        return ResponseEntity.status(403).build();
     }
 
     @PostMapping("/exercises/{exerciseId}")
@@ -125,6 +158,22 @@ public class SubmissionController {
         Assert.notNull(authentication, "No authentication object found for user");
         Assert.notNull(processId, "No processId.");
         return processService.getEvalProcessState(processId);
+    }
+
+    @GetMapping("/exercises/{exerciseId}/users/{userId}/history")
+    public ResponseEntity<SubmissionHistoryDTO> getAllSubmissionsForExercise(@PathVariable String exerciseId, @PathVariable String userId, @ApiIgnore CourseAuthentication authentication) {
+        Assert.notNull(authentication, "No authentication object found for user");
+
+        Course course = courseService.getCourseByExerciseId(exerciseId).orElseThrow(IllegalArgumentException::new);
+
+        CourseAuthentication impersonation = authentication.impersonateUser(userId, course.getId());
+        if (impersonation != null) {
+            return ResponseEntity.ok(getAllSubmissionsForExercise(exerciseId, impersonation));
+        }
+
+        logger.warn("User {} called a restricted function for which it does not have enough rights!", authentication.getUserId());
+
+        return ResponseEntity.status(403).build();
     }
 
     @GetMapping("/exercises/{exerciseId}/history")

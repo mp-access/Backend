@@ -9,9 +9,7 @@ import org.springframework.util.Assert;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.HashSet;
 
 public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
 
@@ -27,11 +25,12 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
         var wrongAnswers = getNrWrongAnswers(answer, solution);
 
         var calc = correctAnswers - wrongAnswers;
-        var points = calc < 0 ?  0 : calc;
+        var points = Math.max(calc, 0);
 
         var hints = points < exercise.getMaxScore() ? exercise.getHints() : null;
 
         return SubmissionEvaluation.builder()
+                .rounding(exercise.getRounding())
                 .points(new SubmissionEvaluation.Points(points, solution.size()))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())
@@ -40,13 +39,13 @@ public class MultipleChoiceEvaluator implements StudentSubmissionEvaluator {
     }
 
     private int getNrCorrectAnswers(final Collection<Integer> answers, final Collection<Integer> solutions) {
-        var ans = answers.stream().collect(Collectors.toSet());
+        var ans = new HashSet<>(answers);
         ans.retainAll(solutions);
         return ans.size();
     }
 
     private int getNrWrongAnswers(final Collection<Integer> answers, final Collection<Integer> solutions) {
-        var ans = answers.stream().collect(Collectors.toSet());
+        var ans = new HashSet<>(answers);
         ans.removeAll(solutions);
         return ans.size();
     }

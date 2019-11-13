@@ -124,6 +124,7 @@ public class RepoCacher {
                 a.addExercise(exercise);
                 next_context = exercise;
             } else if (file.getName().startsWith(PUBLIC_FOLDER_NAME)) {
+                // TODO investigate if it would make more sense to leave the root folder in tha path
                 listFiles(file, ((Exercise) context).getPublic_files(), file.getPath());
             } else if (file.getName().startsWith(PRIVATE_FOLDER_NAME)) {
                 listFiles(file, ((Exercise) context).getPrivate_files(), file.getPath());

@@ -18,8 +18,8 @@ public class CoursePermissionEvaluatorTest {
         String someOtherCourseName = "Info2";
         Course course = new Course("");
         course.setTitle(courseName);
-        GrantedCourseAccess info1 = new GrantedCourseAccess(course.getId(), true, false);
-        GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false);
+        GrantedCourseAccess info1 = new GrantedCourseAccess(course.getId(), true, false, false);
+        GrantedCourseAccess info2 = new GrantedCourseAccess(someOtherCourseName, true, false, false);
 
         CourseAuthentication courseAuthentication = TestObjectFactory.createCourseAuthentication(Set.of(info1, info2));
 
@@ -30,7 +30,7 @@ public class CoursePermissionEvaluatorTest {
     public void hasNoAccessToCourse() {
         String courseName = "Info1";
         String someOtherCourseName = "Info2";
-        GrantedCourseAccess info1 = new GrantedCourseAccess(someOtherCourseName, true, false);
+        GrantedCourseAccess info1 = new GrantedCourseAccess(someOtherCourseName, true, false, false);
         Course course = new Course("");
         course.setTitle(courseName);
 

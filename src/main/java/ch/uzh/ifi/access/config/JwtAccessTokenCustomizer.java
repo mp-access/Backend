@@ -160,8 +160,9 @@ public class JwtAccessTokenCustomizer extends DefaultAccessTokenConverter
         }
         String courseKey = group.get(0);
         boolean isStudent = group.get(1).toLowerCase().contains("students");
-        boolean isAuthor = group.get(1).toLowerCase().contains("authors");
+        boolean isAssistant = group.get(1).toLowerCase().contains("assistants");
+        boolean isAdmin = group.get(1).toLowerCase().contains("admins");
 
-        return new GrantedCourseAccess(courseKey, isStudent, isAuthor);
+        return new GrantedCourseAccess(courseKey, isStudent, isAssistant, isAdmin);
     }
 }

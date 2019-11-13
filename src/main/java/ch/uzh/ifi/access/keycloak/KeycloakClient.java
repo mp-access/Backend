@@ -70,6 +70,7 @@ public class KeycloakClient {
     public Group enrollUsersInCourse(Course course) {
         Users students = getUsersIfExistOrCreateUsers(course.getStudents());
         Users assistants = getUsersIfExistOrCreateUsers(course.getAssistants());
+        Users admins = getUsersIfExistOrCreateUsers(course.getAdmins());
 
         if (course.getTitle() != null && !course.getTitle().isEmpty()) {
             // A group can only be initialized with a title
@@ -77,7 +78,8 @@ public class KeycloakClient {
 
             UsersResource usersResource = realmResource.users();
             students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);
-            assistants.enrollUsersInGroup(courseGroup.getAuthorsGroupId(), usersResource);
+            assistants.enrollUsersInGroup(courseGroup.getAssistantsGroupId(), usersResource);
+            admins.enrollUsersInGroup(courseGroup.getAdminsGroupId(), usersResource);
 
             return courseGroup;
         } else {

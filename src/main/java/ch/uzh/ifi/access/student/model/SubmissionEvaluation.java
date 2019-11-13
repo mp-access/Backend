@@ -1,17 +1,12 @@
 package ch.uzh.ifi.access.student.model;
 
+import ch.uzh.ifi.access.course.model.Rounding;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
+
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Value;
 
 @SuppressWarnings("unused")
 @Value
@@ -19,42 +14,46 @@ import lombok.Value;
 @Builder
 public class SubmissionEvaluation {
 
-	public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN,
-			Collections.emptyList());
+    public static SubmissionEvaluation NO_SUBMISSION = new SubmissionEvaluation(new Points(0, 0), 0, Instant.MIN,
+            Collections.emptyList(), Rounding.DEFAULT);
 
-	private Points points;
+    private Points points;
 
-	private int maxScore;
+    private double maxScore;
 
-	private Instant timestamp;
+    private Instant timestamp;
 
-	private List<String> hints;
+    private List<String> hints;
 
-	@JsonProperty
-	public boolean hasSubmitted() {
-		return !NO_SUBMISSION.equals(this);
-	}
+    private Rounding rounding;
 
-	public double getScore() {
-		if (points.getMax() == 0) {
-			return 0.0;
-		}
-		return Math.round((points.getCorrect() / (double) points.getMax() * maxScore) * 4) / 4d;
-	}
+    @JsonProperty
+    public boolean hasSubmitted() {
+        return !NO_SUBMISSION.equals(this);
+    }
 
-	public List<String> getHints() {
-		return hints != null && hints.size() > 1 ? Arrays.asList(hints.get(0)) : hints;
-	}
+    public double getScore() {
+        if (points.getMax() == 0) {
+            return 0.0;
+        } else if (rounding == null) {
+            return Rounding.DEFAULT.round((points.getCorrect() / (double) points.getMax() * maxScore));
+        }
+        return rounding.round((points.getCorrect() / (double) points.getMax() * maxScore));
+    }
 
-	@Data
-	@AllArgsConstructor
-	@NoArgsConstructor
-	public static class Points {
-		private int correct;
-		private int max;
+    public List<String> getHints() {
+        return hints != null && hints.size() > 1 ? List.of(hints.get(0)) : hints;
+    }
 
-		public boolean isEverythingCorrect() {
-			return correct == max;
-		}
-	}
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Points {
+        private int correct;
+        private int max;
+
+        public boolean isEverythingCorrect() {
+            return correct == max;
+        }
+    }
 }

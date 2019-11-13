@@ -1,7 +1,6 @@
 package ch.uzh.ifi.access.config;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -33,7 +32,7 @@ public class SecurityProperties {
 
     private String keycloakApiPassword = "admin";
 
-    private String realm = "dev";
+    private String realm = "access";
 
     private String frontendClientId= "access-frontend";
 

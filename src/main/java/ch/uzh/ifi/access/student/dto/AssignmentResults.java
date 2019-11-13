@@ -16,7 +16,7 @@ public class AssignmentResults {
 
     private String userId;
     private String assignmentId;
-    private int maxScore;
+    private double maxScore;
     private List<StudentSubmission> gradedSubmissions;
 
     public double getStudentScore() {

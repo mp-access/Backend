@@ -146,10 +146,14 @@ public class TestObjectFactory {
     }
 
     public static GrantedCourseAccess createAdminAccess(final String courseId) {
-        return new GrantedCourseAccess(courseId, false, true);
+        return new GrantedCourseAccess(courseId, false, false, true);
+    }
+
+    public static GrantedCourseAccess createAssistantAccess(final String courseId) {
+        return new GrantedCourseAccess(courseId, false, true, false);
     }
 
     public static GrantedCourseAccess createStudentAccess(final String courseId) {
-        return new GrantedCourseAccess(courseId, true, false);
+        return new GrantedCourseAccess(courseId, true, false, false);
     }
 }

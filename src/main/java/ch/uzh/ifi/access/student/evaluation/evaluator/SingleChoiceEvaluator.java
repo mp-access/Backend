@@ -24,6 +24,7 @@ public class SingleChoiceEvaluator implements StudentSubmissionEvaluator {
         var hints = point != 1 ? exercise.getHints() : null;
 
         return SubmissionEvaluation.builder()
+                .rounding(exercise.getRounding())
                 .points(new SubmissionEvaluation.Points(point, 1))
                 .maxScore(exercise.getMaxScore())
                 .timestamp(Instant.now())

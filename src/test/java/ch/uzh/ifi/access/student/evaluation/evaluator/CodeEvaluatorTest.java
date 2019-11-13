@@ -1,19 +1,18 @@
 package ch.uzh.ifi.access.student.evaluation.evaluator;
 
-import static ch.uzh.ifi.access.student.evaluation.evaluator.CodeEvaluator.TEST_FAILED_WITHOUT_HINTS;
-import static com.spotify.docker.client.shaded.com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.List;
+
+import static ch.uzh.ifi.access.student.evaluation.evaluator.CodeEvaluator.TEST_FAILED_WITHOUT_HINTS;
+import static com.spotify.docker.client.shaded.com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
 
 public class CodeEvaluatorTest {
 
@@ -138,7 +137,7 @@ public class CodeEvaluatorTest {
 		SubmissionEvaluation grade = evaluate("");
 
 		assertEquals(0, grade.getPoints().getCorrect());
-		assertEquals(exercise.getMaxScore(), grade.getMaxScore());
+		assertEquals(exercise.getMaxScore(), grade.getMaxScore(), 0.1);
 	}
 
 	@Test
