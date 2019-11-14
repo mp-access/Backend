@@ -33,12 +33,15 @@ public class SubmissionEvaluation {
     }
 
     public double getScore() {
+        double score;
         if (points.getMax() == 0) {
-            return 0.0;
+            score = 0.0;
         } else if (rounding == null) {
-            return Rounding.DEFAULT.round((points.getCorrect() / (double) points.getMax() * maxScore));
+            score = Rounding.DEFAULT.round((points.getCorrect() / (double) points.getMax() * maxScore));
+        } else {
+            score = rounding.round((points.getCorrect() / (double) points.getMax() * maxScore));
         }
-        return rounding.round((points.getCorrect() / (double) points.getMax() * maxScore));
+        return Math.min(score, maxScore);
     }
 
     public List<String> getHints() {
