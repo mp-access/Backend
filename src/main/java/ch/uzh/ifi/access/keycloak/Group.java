@@ -95,7 +95,7 @@ public class Group {
             RoleRepresentation analyticsRole = createRoleIfNotExists("analytics", realmResource);
             resource.group(adminsGroupId).roles().realmLevel().add(List.of(analyticsRole));
         } catch (Exception e) {
-            log.warn("Failed to create analytics role and to assign it to the admin group", e);
+            log.warn("Failed to create analytics role and to assign it to the admin group {}", admins.getName(), e);
         }
 
         return new Group(course.toRepresentation(),
