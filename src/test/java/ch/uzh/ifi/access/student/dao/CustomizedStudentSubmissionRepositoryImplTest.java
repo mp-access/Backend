@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.student.dao;
 
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.student.dto.UserMigrationResult;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
@@ -17,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collection;
@@ -25,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @DataMongoTest
+@ActiveProfiles("testing")
 @RunWith(SpringRunner.class)
 public class CustomizedStudentSubmissionRepositoryImplTest {
 
@@ -123,5 +126,64 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         List<StudentSubmission> otherSubmissions = mongoTemplate.find(Query.query(Criteria.where("isInvalid").is(false)), StudentSubmission.class);
         Assertions.assertThat(invalidatedSubmissions).allMatch(StudentSubmission::isInvalid);
         Assertions.assertThat(otherSubmissions).noneMatch(StudentSubmission::isInvalid);
+    }
+
+    @Test
+    public void migrateUserSubmissions() {
+        submissionRepository.deleteAll();
+
+        // Submit multiple versions of exercise 1
+        final String exerciseId = "exercise1";
+        final String otherExerciseId = "exercise2";
+        final String idBefore = "idBefore";
+        final String idAfter = "idAfter";
+        final String otherId = "other";
+        // First submission came with the first user
+        StudentSubmission codeSubmission1 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(exerciseId, idBefore, 0));
+        StudentSubmission codeSubmission2 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(exerciseId, idBefore, 1));
+        StudentSubmission codeSubmission3 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(exerciseId, idBefore, 2));
+
+        // Then the user used the new account to submit more for the same exercise
+        StudentSubmission newCodeSubmission1 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(exerciseId, idAfter, 0));
+        StudentSubmission newCodeSubmission2 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(exerciseId, idAfter, 1));
+        StudentSubmission newCodeSubmission3 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(exerciseId, idAfter, 2));
+
+
+        StudentSubmission otherSubmission0 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, idBefore, 0));
+        StudentSubmission otherSubmission1 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, idAfter, 0));
+        StudentSubmission otherSubmission2 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, idAfter, 1));
+        StudentSubmission otherSubmission3 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, idAfter, 2));
+
+        // Other user's submissions are unaffected
+        StudentSubmission otherUserSubmission1 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, otherId, 0));
+        StudentSubmission otherUserSubmission2 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, otherId, 1));
+        StudentSubmission otherUserSubmission3 = submissionRepository.save(TestObjectFactory.createCodeAnswerWithExerciseAndUserAndVersion(otherExerciseId, otherId, 2));
+
+        UserMigrationResult submissionsChanged = repository.migrateUserSubmissions(idBefore, idAfter);
+
+        codeSubmission1 = submissionRepository.findById(codeSubmission1.getId()).orElse(null);
+        codeSubmission2 = submissionRepository.findById(codeSubmission2.getId()).orElse(null);
+        codeSubmission3 = submissionRepository.findById(codeSubmission3.getId()).orElse(null);
+        otherSubmission0 = submissionRepository.findById(otherSubmission0.getId()).orElse(null);
+
+        Assertions.assertThat(submissionsChanged.isSuccess()).isTrue();
+        Assertions.assertThat(submissionsChanged.getNumberOfSubmissionsToMigrate()).isEqualTo(4);
+        Assertions.assertThat(submissionsChanged.getNumberOfSubmissionsMigrated()).isEqualTo(4);
+        Assertions.assertThat(codeSubmission1).isNotNull();
+        Assertions.assertThat(codeSubmission1.getUserId()).isEqualTo(idAfter);
+        Assertions.assertThat(codeSubmission1.getVersion()).isEqualTo(-3);
+        Assertions.assertThat(codeSubmission2).isNotNull();
+        Assertions.assertThat(codeSubmission2.getUserId()).isEqualTo(idAfter);
+        Assertions.assertThat(codeSubmission2.getVersion()).isEqualTo(-2);
+        Assertions.assertThat(codeSubmission3).isNotNull();
+        Assertions.assertThat(codeSubmission3.getUserId()).isEqualTo(idAfter);
+        Assertions.assertThat(codeSubmission3.getVersion()).isEqualTo(-1);
+        Assertions.assertThat(otherSubmission0).isNotNull();
+        Assertions.assertThat(otherSubmission0.getUserId()).isEqualTo(idAfter);
+        Assertions.assertThat(otherSubmission0.getVersion()).isEqualTo(-1);
+
+        // Other user's submissions are unaffected
+        List<StudentSubmission> otherUsersSubmissions = submissionRepository.findAllByUserId(otherId);
+        Assertions.assertThat(otherUsersSubmissions).size().isEqualTo(3);
     }
 }
