@@ -1,11 +1,16 @@
 package ch.uzh.ifi.access.keycloak;
 
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.admin.client.resource.GroupResource;
 import org.keycloak.admin.client.resource.GroupsResource;
+import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 
+import javax.ws.rs.NotFoundException;
 import java.util.List;
 
+@Slf4j
 public class Group {
 
     private static final String STUDENTS_GROUP_NAME = "students";
@@ -38,9 +43,13 @@ public class Group {
         return students.getId();
     }
 
-    public String getAssistantsGroupId() { return assistants.getId(); }
+    public String getAssistantsGroupId() {
+        return assistants.getId();
+    }
 
-    public String getAdminsGroupId() { return admins.getId(); }
+    public String getAdminsGroupId() {
+        return admins.getId();
+    }
 
     public Users getStudents() {
         return new Users(resource.group(students.getId()).members(), List.of());
@@ -54,7 +63,8 @@ public class Group {
         return new Users(resource.group(admins.getId()).members(), List.of());
     }
 
-    static Group create(final String courseId, String title, GroupsResource resource) {
+    static Group create(final String courseId, String title, RealmResource realmResource) {
+        GroupsResource resource = realmResource.groups();
         GroupRepresentation courseRepresentation = new GroupRepresentation();
         courseRepresentation.setName(courseId);
         courseRepresentation.singleAttribute("Title", title);
@@ -81,11 +91,36 @@ public class Group {
         GroupRepresentation assistantsGroup = resource.group(assistantsGroupId).toRepresentation();
         GroupRepresentation adminsGroup = resource.group(adminsGroupId).toRepresentation();
 
+        try {
+            RoleRepresentation analyticsRole = createRoleIfNotExists("analytics", realmResource);
+            resource.group(adminsGroupId).roles().realmLevel().add(List.of(analyticsRole));
+        } catch (Exception e) {
+            log.warn("Failed to create analytics role and to assign it to the admin group {}", admins.getName(), e);
+        }
+
         return new Group(course.toRepresentation(),
                 studentsGroup,
                 assistantsGroup,
                 adminsGroup,
                 resource);
+    }
+
+    private static RoleRepresentation createRoleIfNotExists(String roleName, RealmResource realmResource) {
+        RoleRepresentation analyticsRole;
+        try {
+            analyticsRole = realmResource.roles().get(roleName).toRepresentation();
+        } catch (NotFoundException e) {
+            analyticsRole = createRole(roleName, realmResource);
+        }
+        return analyticsRole;
+    }
+
+
+    private static RoleRepresentation createRole(String name, RealmResource realmResource) {
+        RoleRepresentation analyticsRole = new RoleRepresentation();
+        analyticsRole.setName(name);
+        realmResource.roles().create(analyticsRole);
+        return realmResource.roles().get(name).toRepresentation();
     }
 
 }
