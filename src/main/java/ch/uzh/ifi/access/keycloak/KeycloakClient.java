@@ -97,7 +97,7 @@ public class KeycloakClient {
             logger.debug("Did not find any groups. Creating new group...", e);
         }
 
-        Group group = Group.create(courseId, title, realmResource.groups());
+        Group group = Group.create(courseId, title, realmResource);
         logger.info("Created group for course '{}': {}", title, group.getName());
         return group;
     }
