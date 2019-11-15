@@ -6,12 +6,16 @@ import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.UserMigration;
 import ch.uzh.ifi.access.student.dto.UserMigrationResult;
+import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.reporting.AssignmentReport;
 import ch.uzh.ifi.access.student.service.AdminSubmissionService;
 import ch.uzh.ifi.access.student.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -66,9 +70,27 @@ public class AssistantController {
     }
 
     @PostMapping("/courses/{courseId}/participants/migrations")
-//    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #courseId)")
+    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #courseId)")
     public ResponseEntity<UserMigrationResult> migrateUser(@RequestBody UserMigration migration, @PathVariable String courseId) {
         log.info("User account migration request: from '{}', to '{}'", migration.getFrom(), migration.getTo());
+        Course course = courseService
+                .getCourseById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+
+        UserService.UserQueryResult queryResult = adminSubmissionService.getCourseStudentByUserIds(List.of(migration.getFrom(), migration.getTo()), course);
+        if (!queryResult.getAccountsNotFound().isEmpty()) {
+            log.warn("Failed to find accounts to migrate for request {}. Missing accounts {}", migration, queryResult.getAccountsNotFound());
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<User> users = queryResult.getUsersFound();
+        boolean areAllUsersEnrolledInCourse = users.stream().allMatch(user -> course.hasParticipant(user.getEmailAddress()));
+
+        if (!areAllUsersEnrolledInCourse) {
+            log.warn("Cannot migrate account. Student is not enrolled in course {}. ", course.getTitle());
+            return ResponseEntity.badRequest().build();
+        }
+
         UserMigrationResult migrationResult = adminSubmissionService.migrateUser(migration);
         return ResponseEntity.ok(migrationResult);
     }

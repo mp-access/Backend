@@ -99,4 +99,8 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
 
         return bc;
     }
+
+    public boolean hasParticipant(String emailAddress) {
+        return students.contains(emailAddress) || assistants.contains(emailAddress) || admins.contains(emailAddress);
+    }
 }

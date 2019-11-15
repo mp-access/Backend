@@ -101,6 +101,10 @@ public class AdminSubmissionService {
         return userService.getCourseStudents(course);
     }
 
+    public UserService.UserQueryResult getCourseStudentByUserIds(List<String> userIds, Course course) {
+        return userService.getUsersByIds(userIds);
+    }
+
     public UserMigrationResult migrateUser(UserMigration userMigration) {
         return submissionService.migrateUserSubmissions(userMigration.getFrom(), userMigration.getTo());
     }
