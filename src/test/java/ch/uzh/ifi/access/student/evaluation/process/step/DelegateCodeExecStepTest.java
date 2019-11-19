@@ -67,7 +67,7 @@ public class DelegateCodeExecStepTest {
         studentSubmission.setId(submissionId);
         studentSubmission = repository.save(studentSubmission);
 
-        ExecResult result = new ExecResult("Hello, stdout", "Hello, stderr", "Hello, private test log");
+        ExecResult result = new ExecResult("Hello, stdout", "Hello, stderr", "Hello, private test log", null, null);
         when(codeRunner.execSubmissionForExercise(any(CodeSubmission.class), any(Exercise.class))).thenReturn(result);
         when(courseService.getExerciseById(anyString())).thenReturn(Optional.of(TestObjectFactory.createCodeExercise("")));
 

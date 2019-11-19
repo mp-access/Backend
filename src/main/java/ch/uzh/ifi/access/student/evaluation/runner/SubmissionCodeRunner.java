@@ -80,7 +80,7 @@ public class SubmissionCodeRunner {
                 .collect(Collectors.toList());
 
         final String fullCommand = String.join(" ; ", commands);
-        return mapSmokeToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits));
+        return mapSmokeToExecResult(runner.attachVolumeAndRunBash(workPath.toString(), fullCommand, executionLimits), executeScriptCommand, testCommand);
     }
 
     private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
@@ -104,16 +104,34 @@ public class SubmissionCodeRunner {
 
     protected ExecResult mapSubmissionToExecResult(RunResult runResult) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            return new ExecResult("", "", extractEvalLog(runResult));
+            return ExecResult.builder()
+                    .stdout("").testLog("")
+                    .evalLog(extractEvalLog(runResult))
+                    .build();
         }
-        return new ExecResult(runResult.getConsole(), "", "");
+
+        return ExecResult.builder()
+                .stdout(runResult.getConsole())
+                .testLog("").evalLog("")
+                .build();
     }
 
-    protected ExecResult mapSmokeToExecResult(RunResult runResult) {
+    protected ExecResult mapSmokeToExecResult(RunResult runResult, String exeCommand, String testCommand) {
         if (!runResult.isTimeout() && !runResult.isOomKilled()) {
-            return new ExecResult(extractConsole(runResult), extractTestOutput(runResult), "");
+            return ExecResult.builder()
+                    .stdout(extractConsole(runResult))
+                    .testLog(extractTestOutput(runResult))
+                    .evalLog("")
+                    .usedConsoleCommand(exeCommand).usedTestCommand(testCommand)
+                    .build();
         }
-        return new ExecResult(runResult.getConsole(), runResult.getStdErr(), "");
+
+        return ExecResult.builder()
+                .stdout(runResult.getConsole())
+                .testLog(runResult.getStdErr())
+                .evalLog("")
+                .usedConsoleCommand(exeCommand).usedTestCommand(testCommand)
+                .build();
     }
 
     private String extractConsole(RunResult res) {
