@@ -81,6 +81,28 @@ public class CodeEvaluatorTest {
 	}
 
 	@Test
+	public void execWithFailuresAndErrors() {
+		SubmissionEvaluation grade = evaluate("test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n"
+				+ "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n"
+				+ "test_upper (test.TestStringMethods1.TestStringMethods1) ... FAIL\n"
+				+ "test_isupper (test.TestStringMethods2.TestStringMethods2) ... ok\n"
+				+ "test_split (test.TestStringMethods2.TestStringMethods2) ... ok\n"
+				+ "test_upper (test.TestStringMethods2.TestStringMethods2) ... ERROR\n" + "\n"
+				+ "======================================================================\n"
+				+ "FAIL: test_upper (test.TestStringMethods1.TestStringMethods1)\n"
+				+ "----------------------------------------------------------------------\n"
+				+ "Traceback (most recent call last):\n"
+				+ "  File \"/home/mangoman/Workspace/MasterProject/CourseService/runner/test/TestStringMethods1.py\", line 6, in test_upper\n"
+				+ "    self.assertEqual('FOO'.upper(), 'Foo')\n" + "AssertionError: 'FOO' != 'Foo'\n" + "- FOO\n"
+				+ "+ Foo\n" + "\n" + "\n" + "----------------------------------------------------------------------\n"
+				+ "Ran 6 tests in 0.001s\n" + "\n" + "FAILED (failures=1, errors=1)");
+
+		assertEquals(4, grade.getPoints().getCorrect());
+		assertEquals(6.75, grade.getScore(), 0.25);
+		assertEquals(hints(TEST_FAILED_WITHOUT_HINTS), grade.getHints());
+	}
+
+	@Test
 	public void execOK() {
 		SubmissionEvaluation grade = evaluate("test_isupper (test.TestStringMethods1.TestStringMethods1) ... ok\n"
 				+ "test_split (test.TestStringMethods1.TestStringMethods1) ... ok\n"

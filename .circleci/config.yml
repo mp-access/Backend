@@ -3,7 +3,7 @@ jobs:
   build:
     docker:
       - image: circleci/openjdk:11-jdk
-      - image: jboss/keycloak
+      - image: jboss/keycloak:7.0.0
         environment:
           KEYCLOAK_USER: admin
           KEYCLOAK_PASSWORD: admin
