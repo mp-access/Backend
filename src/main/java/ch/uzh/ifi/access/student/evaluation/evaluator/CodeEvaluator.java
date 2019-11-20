@@ -25,7 +25,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     private static final String LAST_CRASH_PATTERN = "^(.*?Error):.*?";
     private static final String PYTHON_ASSERTION_ERROR = "AssertionError";
     private final String runNTestPattern = "^Ran (\\d++) test.*";
-    private final String nokNTestPattern = "^FAILED \\p{Punct}(failures|errors)=(\\d++)\\p{Punct}.*";
+    private final String nokNTestPattern = "^FAILED \\((errors|failures)=(\\d*)(, (errors|failures)=(\\d*))?\\)";
 
     private Pattern hintPattern;
     private Pattern crashPattern;
@@ -150,17 +150,21 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     }
 
     private int extractNrOfNOKTests(String line) {
-        int nrTests = 0;
+        int nrTests1 = 0;
+        int nrTests2 = 0;
+        int total = 0;
         Matcher m = failedTestPattern.matcher(line);
         if (m.find()) {
-            // group0 = line
-            // group1 = failures / errors
-            // group2 = nr of tests
-            String nrOfTests = m.group(2);
-            nrTests = Integer.parseInt(nrOfTests);
+            if(m.group(2) != null && m.group(5) != null){   // matches FAILED (failures=3, errors=72) or FAILED (errors=3, failures=72)
+                nrTests1 = Integer.parseInt(m.group(2));
+                nrTests2 = Integer.parseInt(m.group(5));
+            }else if(m.group(2) != null){  // matches FAILED (errors=72) or FAILED (failures=3)
+                nrTests1 = Integer.parseInt(m.group(2));
+            }
         }
-        logger.debug(String.format("Exracted nr of NOK tests (%s) from line: %s", nrTests, line));
-        return nrTests;
+        total = nrTests1 + nrTests2;
+        logger.debug(String.format("Exracted nr of NOK tests (%s) from line: %s", total, line));
+        return total;
     }
 
     private void validate(StudentSubmission submission, Exercise exercise) throws IllegalArgumentException {

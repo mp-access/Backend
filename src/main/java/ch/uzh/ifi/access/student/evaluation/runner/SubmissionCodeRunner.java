@@ -93,7 +93,7 @@ public class SubmissionCodeRunner {
         String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
         String setupScriptCommand = exercise.hasGradingSetupScript() ? buildSetupScriptCommand(exercise.getGradingSetup()) : "";
 
-        List<String> commands = List.of(setupScriptCommand, DELIMITER_CMD, testCommand)
+        List<String> commands = List.of(DELIMITER_CMD, setupScriptCommand, testCommand)
                 .stream()
                 .filter(cmd -> !StringUtils.isEmpty(cmd))
                 .collect(Collectors.toList());
