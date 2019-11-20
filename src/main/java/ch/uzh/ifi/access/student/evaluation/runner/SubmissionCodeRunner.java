@@ -74,7 +74,7 @@ public class SubmissionCodeRunner {
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
 
-        List<String> commands = List.of(executeScriptCommand, DELIMITER_CMD, testCommand)
+        List<String> commands = List.of(DELIMITER_CMD, executeScriptCommand, testCommand)
                 .stream()
                 .filter(cmd -> !StringUtils.isEmpty(cmd))
                 .collect(Collectors.toList());
