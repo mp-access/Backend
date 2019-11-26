@@ -468,4 +468,188 @@ public class CodeEvaluatorTest {
 		expecteds = hints();
 		assertEquals(expecteds, actuals);
 	}
+
+	@Test
+	public void maxiTest() {
+		String in = "FFFFFFFFFFFFFFFFFFF\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertAlmostEqual (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 62, in test_assertAlmostEqual\n" +
+				"    self.assertAlmostEqual(0.123, 0.124, delta=0.0001, msg=m(\"assertAlmostEqual\"))\n" +
+				"AssertionError: 0.123 != 0.124 within 0.0001 delta : @@assertAlmostEqual@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertDictEqual (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 27, in test_assertDictEqual\n" +
+				"    self.assertDictEqual({\"a\":1}, {\"b\":1}, m(\"assertDictEqual\"))\n" +
+				"AssertionError: {'a': 1} != {'b': 1}\n" +
+				"- {'a': 1}\n" +
+				"?   ^\n" +
+				"+ {'b': 1}\n" +
+				"?   ^\n" +
+				" : @@assertDictEqual@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertFalse (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 37, in test_assertFalse\n" +
+				"    self.assertFalse(True, m(\"assertFalse\"))\n" +
+				"AssertionError: True is not false : @@assertFalse@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertIs (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 43, in test_assertIs\n" +
+				"    self.assertIs(\"a\", \"b\", m(\"assertIs\"))\n" +
+				"AssertionError: 'a' is not 'b' : @@assertIs@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertIsInstance (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 56, in test_assertIsInstance\n" +
+				"    self.assertIsInstance(1, str, m(\"assertIsInstance\"))\n" +
+				"AssertionError: 1 is not an instance of <class 'str'> : @@assertIsInstance@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertIsNone (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 50, in test_assertIsNone\n" +
+				"    self.assertIsNone(\"\", m(\"assertIsNone\"))\n" +
+				"AssertionError: '' is not None : @@assertIsNone@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertIsNot (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 47, in test_assertIsNot\n" +
+				"    self.assertIsNot(a, a, m(\"assertIsNot\"))\n" +
+				"AssertionError: unexpectedly identical: 'a' : @@assertIsNot@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertIsNotNone (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 53, in test_assertIsNotNone\n" +
+				"    self.assertIsNotNone(None, m(\"assertIsNotNone\"))\n" +
+				"AssertionError: unexpectedly None : @@assertIsNotNone@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertListEqual (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 24, in test_assertListEqual\n" +
+				"    self.assertListEqual([0], [1], m(\"assertListEqual\"))\n" +
+				"AssertionError: Lists differ: [0] != [1]\n" +
+				"First differing element 0:\n" +
+				"0\n" +
+				"1\n" +
+				"- [0]\n" +
+				"+ [1] : @@assertListEqual@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertNotAlmostEqual (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 65, in test_assertNotAlmostEqual\n" +
+				"    self.assertNotAlmostEqual(0.123, 0.123, delta=0.0001, msg=m(\"assertNotAlmostEqual\"))\n" +
+				"AssertionError: 0.123 == 0.123 within 0.0001 delta : @@assertNotAlmostEqual@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertNotIsInstance (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 59, in test_assertNotIsInstance\n" +
+				"    self.assertNotIsInstance(\"\", str, m(\"assertNotIsInstance\"))\n" +
+				"AssertionError: '' is an instance of <class 'str'> : @@assertNotIsInstance@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertRaises (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 34, in test_assertRaises\n" +
+				"    nonCrashingStatement = 1234\n" +
+				"AssertionError: Warning not raised : @@assertRaises@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertTrue (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 40, in test_assertTrue\n" +
+				"    self.assertTrue(False, m(\"assertTrue\"))\n" +
+				"AssertionError: False is not true : @@assertTrue@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assertTupleEqual (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 21, in test_assertTupleEqual\n" +
+				"    self.assertTupleEqual((0,), (1,), m(\"assertTupleEqual\"))\n" +
+				"AssertionError: Tuples differ: (0,) != (1,)\n" +
+				"First differing element 0:\n" +
+				"0\n" +
+				"1\n" +
+				"- (0,)\n" +
+				"?  ^\n" +
+				"+ (1,)\n" +
+				"?  ^\n" +
+				" : @@assertTupleEqual@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assert_equal_dict (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 18, in test_assert_equal_dict\n" +
+				"    self.assertEqual([{\"a\":1}], [{\"b\":1}], m(\"assertEqual (dict)\"))\n" +
+				"AssertionError: Lists differ: [{'a': 1}] != [{'b': 1}]\n" +
+				"First differing element 0:\n" +
+				"{'a': 1}\n" +
+				"{'b': 1}\n" +
+				"- [{'a': 1}]\n" +
+				"?    ^\n" +
+				"+ [{'b': 1}]\n" +
+				"?    ^\n" +
+				" : @@assertEqual (dict)@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assert_equal_int (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 9, in test_assert_equal_int\n" +
+				"    self.assertEqual(0, 1, m(\"assertEqual (int)\"))\n" +
+				"AssertionError: 0 != 1 : @@assertEqual (int)@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assert_equal_list (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 15, in test_assert_equal_list\n" +
+				"    self.assertEqual([0], [1], m(\"assertEqual (list)\"))\n" +
+				"AssertionError: Lists differ: [0] != [1]\n" +
+				"First differing element 0:\n" +
+				"0\n" +
+				"1\n" +
+				"- [0]\n" +
+				"+ [1] : @@assertEqual (list)@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_assert_equal_tuple (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 12, in test_assert_equal_tuple\n" +
+				"    self.assertEqual((0,), (1,), m(\"assertEqual (tuple)\"))\n" +
+				"AssertionError: Tuples differ: (0,) != (1,)\n" +
+				"First differing element 0:\n" +
+				"0\n" +
+				"1\n" +
+				"- (0,)\n" +
+				"?  ^\n" +
+				"+ (1,)\n" +
+				"?  ^\n" +
+				" : @@assertEqual (tuple)@@\n" +
+				"======================================================================\n" +
+				"FAIL: test_fail (test_example.ExampleTest)\n" +
+				"----------------------------------------------------------------------\n" +
+				"Traceback (most recent call last):\n" +
+				"  File \"/Users/seb/Desktop/test_example.py\", line 30, in test_fail\n" +
+				"    self.fail(m(\"fail\"))\n" +
+				"AssertionError: @@fail@@\n" +
+				"----------------------------------------------------------------------\n" +
+				"Ran 19 tests in 0.003s\n" +
+				"FAILED (failures=19)\n";
+		List<String> actuals = extractAllHints(in);
+		List<String> expecteds = hints("assertAlmostEqual", "assertDictEqual", "assertFalse", "assertIs", "assertIsInstance", "assertIsNone", "assertIsNot", "assertIsNotNone", "assertListEqual", "assertNotAlmostEqual", "assertNotIsInstance", "assertRaises", "assertTrue", "assertTupleEqual", "assertEqual (dict)", "assertEqual (int)", "assertEqual (list)", "assertEqual (tuple)", "fail");
+
+		assertEquals(expecteds, actuals);
+	}
 }

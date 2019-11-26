@@ -173,10 +173,26 @@ public class CodeRunner {
             logger.error("Failed to start and wait for container", e);
         } catch (TimeoutException e) {
             logger.debug("Execution of student code took longer than configured timeout. Stopping container {}", containerId);
-            docker.killContainer(containerId, DockerClient.Signal.SIGKILL);
+            killContainer(containerId);
             didTimeout = true;
         }
         return didTimeout;
+    }
+
+    private void killContainer(final String containerId) {
+        try {
+            docker.killContainer(containerId, DockerClient.Signal.SIGKILL);
+        } catch (Exception nestedException) {
+            logger.error("Something unexpected happened while trying to kill the container {}. " +
+                    "It might be that the container stopped right after the timeout limit, " +
+                    "but before it could be killed programmatically. Trying to pull info on container...", containerId, nestedException);
+            try {
+                ContainerState containerInfo = docker.inspectContainer(containerId).state();
+                logger.warn("Container is still running: " + containerInfo.health().log());
+            } catch (Exception healthException) {
+                logger.error("Failed to pull health logs on container ${}. Will not attempt to dig any further.", containerId, healthException);
+            }
+        }
     }
 
     private void copyDirectoryToContainer(String containerId, Path folder) throws InterruptedException, DockerException, IOException {
