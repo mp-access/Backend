@@ -51,7 +51,7 @@ public class EvalMachineRepoService {
                 try {
                     machine.sendEvent(EvalMachine.Events.FINISH);
                 } catch (Exception e) {
-                    logger.error("Failed to forcibly set the state of the zombie machine to FINISH", e);
+                    logger.error("Failed to forcibly set the state of the zombie machine to {}", EvalMachine.Events.FINISH, e);
                 }
             }
 
