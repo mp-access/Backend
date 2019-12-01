@@ -52,7 +52,7 @@ public class DelegateCodeExecStep implements ProcessStep {
                         submissionService.saveSubmission(submission);
 
                     } catch (InterruptedException | DockerException | IOException e) {
-                        logger.error(e.getMessage());
+                        logger.error("Something unexpected happened while attempting to run student code", e);
                     }
                 } else {
                     logger.warn("Submission without registered exercise found (submissionId:" + submissionId + ").");
