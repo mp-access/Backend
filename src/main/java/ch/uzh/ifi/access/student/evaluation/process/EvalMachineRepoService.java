@@ -47,7 +47,12 @@ public class EvalMachineRepoService {
             // A machine which has never completed and has been running for too long, should be removed
             boolean isZombieMachine = startedTime != null && startedTime.isBefore(threshold) && completionTime == null;
             if (isZombieMachine) {
-                logger.info("Found a zombie machine {}. Started {}: {}", entry.getKey(), startedTime, machine.toString());
+                logger.info("Found a zombie machine {}, will forcibly set state to {}. Started {}: {}", entry.getKey(), EvalMachine.Events.FINISH, startedTime, machine.toString());
+                try {
+                    machine.sendEvent(EvalMachine.Events.FINISH);
+                } catch (Exception e) {
+                    logger.error("Failed to forcibly set the state of the zombie machine to {}", EvalMachine.Events.FINISH, e);
+                }
             }
 
             // A machine which has completed normally and has finished for longer than threshold, can be safely removed
