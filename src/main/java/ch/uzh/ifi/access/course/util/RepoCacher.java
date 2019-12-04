@@ -106,20 +106,20 @@ public class RepoCacher {
                 Course c = ((Course) context);
 
                 String cleanName = cleanFolderName(file.getName());
-                int index = Integer.parseInt(cleanName.replace(ASSIGNMENT_FOLDER_PREFIX, ""));
+                int order = Integer.parseInt(cleanName.replace(ASSIGNMENT_FOLDER_PREFIX, ""));
 
                 Assignment assignment = new Assignment(c.getGitURL() + cleanName);
-                assignment.setIndex(index);
+                assignment.setOrder(order);
                 c.addAssignment(assignment);
                 next_context = assignment;
             } else if (file.getName().startsWith(EXERCISE_FOLDER_PREFIX)) {
                 Assignment a = ((Assignment) context);
 
                 String cleanName = cleanFolderName(file.getName());
-                int index = Integer.parseInt(cleanName.replace(EXERCISE_FOLDER_PREFIX, ""));
+                int order = Integer.parseInt(cleanName.replace(EXERCISE_FOLDER_PREFIX, ""));
 
                 Exercise exercise = new Exercise(a.getId() + cleanName);
-                exercise.setIndex(index);
+                exercise.setOrder(order);
                 exercise.setGitHash(((Assignment) context).getCourse().getGitHash());
                 a.addExercise(exercise);
                 next_context = exercise;

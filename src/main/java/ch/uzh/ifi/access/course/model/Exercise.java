@@ -14,10 +14,11 @@ import java.util.stream.Stream;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBreadCrumbs, HasSetupScript {
+public class Exercise extends ExerciseConfig implements Ordered<Exercise>, HasBreadCrumbs, HasSetupScript {
 
     private final String id;
     private int index;
+    private int order;
     @ToString.Exclude
     private String gitHash;
 
@@ -52,10 +53,10 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
     }
 
     @Builder
-    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, String gradingSetup, List<String> options, List<String> solutions, List<String> hints, String id, int index, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle, Rounding rounding) {
+    private Exercise(ExerciseType type, String language, Boolean isGraded, int maxScore, int maxSubmits, String gradingSetup, List<String> options, List<String> solutions, List<String> hints, String id, int order, String gitHash, Assignment assignment, String question, List<VirtualFile> private_files, List<VirtualFile> solution_files, List<VirtualFile> resource_files, List<VirtualFile> public_files, CodeExecutionLimits executionLimits, String title, String longTitle, Rounding rounding) {
         super(title, longTitle, type, language, isGraded, maxScore, maxSubmits, gradingSetup, rounding, options, solutions, hints, executionLimits);
         this.id = id;
-        this.index = index;
+        this.order = order;
         this.gitHash = gitHash;
         this.assignment = assignment;
         this.question = question;
@@ -189,7 +190,7 @@ public class Exercise extends ExerciseConfig implements Indexed<Exercise>, HasBr
                         !Objects.equals(this.solutions, other.solutions) ||
                         !Objects.equals(this.executionLimits, other.executionLimits) ||
 
-                        !Objects.equals(this.index, other.index) ||
+                        !Objects.equals(this.order, other.order) ||
                         !Objects.equals(this.question, other.question) ||
                         !Objects.equals(this.private_files, other.private_files) ||
                         !Objects.equals(this.resource_files, other.resource_files) ||

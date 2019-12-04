@@ -96,13 +96,13 @@ public class CourseDAOTest {
         Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
         Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
-        exerciseBefore1.setIndex(1);
-        exerciseAfter1.setIndex(2);
+        exerciseBefore1.setOrder(1);
+        exerciseAfter1.setOrder(2);
 
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
-        exerciseBefore2.setIndex(3);
-        exerciseAfter2.setIndex(exerciseBefore2.getIndex());
+        exerciseBefore2.setOrder(3);
+        exerciseAfter2.setOrder(exerciseBefore2.getOrder());
 
         before.addAssignment(assignmentBefore);
         assignmentBefore.addExercise(exerciseBefore1);
@@ -126,13 +126,13 @@ public class CourseDAOTest {
         Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
         Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
-        exerciseBefore1.setIndex(1);
-        exerciseAfter1.setIndex(2);
+        exerciseBefore1.setOrder(1);
+        exerciseAfter1.setOrder(2);
 
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
-        exerciseBefore2.setIndex(3);
-        exerciseAfter2.setIndex(4);
+        exerciseBefore2.setOrder(3);
+        exerciseAfter2.setOrder(4);
 
         before.addAssignment(assignmentBefore);
         assignmentBefore.addExercise(exerciseBefore1);
@@ -157,11 +157,11 @@ public class CourseDAOTest {
         Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
         Exercise exerciseBefore1 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
-        exerciseBefore1.setIndex(1);
-        exerciseAfter1.setIndex(2);
+        exerciseBefore1.setOrder(1);
+        exerciseAfter1.setOrder(2);
 
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
-        exerciseBefore2.setIndex(3);
+        exerciseBefore2.setOrder(3);
 
         before.addAssignment(assignmentBefore);
         assignmentBefore.addExercise(exerciseBefore1);
@@ -196,10 +196,10 @@ public class CourseDAOTest {
         a1Ex1AfterUpdate.setGitHash("123");
         a1Ex2.setGitHash("234");
         a1Ex2AfterUpdate.setGitHash("234");
-        a1Ex1.setIndex(1);
-        a1Ex1AfterUpdate.setIndex(1);
-        a1Ex2.setIndex(2);
-        a1Ex2AfterUpdate.setIndex(2);
+        a1Ex1.setOrder(1);
+        a1Ex1AfterUpdate.setOrder(1);
+        a1Ex2.setOrder(2);
+        a1Ex2AfterUpdate.setOrder(2);
 
         // The second assignment has exercises with different types and question than those in assignment 1
         Exercise a2Ex1 = TestObjectFactory.createCodeExercise("Question xyz");
@@ -211,10 +211,10 @@ public class CourseDAOTest {
         a2Ex2.setGitHash("345");
         a2Ex2AfterUpdate.setGitHash("456");
 
-        a2Ex1.setIndex(1);
-        a2Ex1AfterUpdate.setIndex(1);
-        a2Ex2.setIndex(2);
-        a2Ex2AfterUpdate.setIndex(2);
+        a2Ex1.setOrder(1);
+        a2Ex1AfterUpdate.setOrder(1);
+        a2Ex2.setOrder(2);
+        a2Ex2AfterUpdate.setOrder(2);
 
         assignment1.addExercise(a1Ex1);
         assignment1.addExercise(a1Ex2);
@@ -244,14 +244,14 @@ public class CourseDAOTest {
         Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
         Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createTextExercise("");
-        exerciseBefore1.setIndex(1);
-        exerciseAfter1.setIndex(2);
+        exerciseBefore1.setOrder(1);
+        exerciseAfter1.setOrder(2);
         exerciseBefore1.setPublic_files(List.of(TestObjectFactory.createVirtualFile("name", "py", false)));
 
         Exercise exerciseBefore2 = TestObjectFactory.createTextExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createTextExercise("");
-        exerciseBefore2.setIndex(3);
-        exerciseAfter2.setIndex(exerciseBefore2.getIndex());
+        exerciseBefore2.setOrder(3);
+        exerciseAfter2.setOrder(exerciseBefore2.getOrder());
 
         before.addAssignment(assignmentBefore);
         assignmentBefore.addExercise(exerciseBefore1);
@@ -273,7 +273,7 @@ public class CourseDAOTest {
         Course after = Mockito.spy(TestObjectFactory.createCourse(newTitle));
 
         when(repoCacher.retrieveCourseData(any(String[].class))).thenReturn(List.of(after));
-        when(after.getIndexedItems()).thenThrow(new UnsupportedOperationException());
+        when(after.getOrderedItems()).thenThrow(new UnsupportedOperationException());
 
         Course updated = courseDAO.updateCourse(before);
         // Should have rolled back -> title should still be oldTitle

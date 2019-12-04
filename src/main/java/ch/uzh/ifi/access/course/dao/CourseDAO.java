@@ -177,7 +177,7 @@ public class CourseDAO {
                 List<Exercise> breakingChangesForAssignment = beforeExercises
                         .stream()
                         .filter(beforeExercise -> {
-                            Optional<Exercise> optAfterExercise = afterAssignment.getExercises().stream().filter(afterExercise -> afterExercise.hasSameIndex(beforeExercise)).findFirst();
+                            Optional<Exercise> optAfterExercise = afterAssignment.getExercises().stream().filter(afterExercise -> afterExercise.hasSameOrder(beforeExercise)).findFirst();
                             // if an exercise is found, check if it is a breaking change, else exercise was removed and is considered a breaking change
                             return optAfterExercise.map(beforeExercise::isBreakingChange).orElse(true);
                         })

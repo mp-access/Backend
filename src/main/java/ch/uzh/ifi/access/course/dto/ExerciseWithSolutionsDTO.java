@@ -5,10 +5,12 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseConfig;
 import ch.uzh.ifi.access.course.model.VirtualFile;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class ExerciseWithSolutionsDTO extends ExerciseConfig {
 
     private final String id;

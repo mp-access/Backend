@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Course extends CourseConfig implements IndexedCollection<Assignment>, HasBreadCrumbs {
+public class Course extends CourseConfig implements OrderedCollection<Assignment>, HasBreadCrumbs {
     private final String id;
 
     @ToString.Exclude
@@ -61,13 +61,13 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
         set(other);
         this.gitHash = other.gitHash;
 
-        this.update(other.getIndexedItems());
+        this.update(other.getOrderedItems());
     }
 
     public void addAssignment(Assignment a) {
         a.setCourse(this);
         assignments.add(a);
-        assignments.sort(Comparator.comparing(Assignment::getIndex));
+        assignments.sort(Comparator.comparing(Assignment::getOrder));
     }
 
     public void addAssignments(Assignment... assignments) {
@@ -82,7 +82,7 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
 
     @JsonIgnore
     @Override
-    public List<Assignment> getIndexedItems() {
+    public List<Assignment> getOrderedItems() {
         return assignments;
     }
 
