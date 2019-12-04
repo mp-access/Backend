@@ -70,5 +70,14 @@ public class AssignmentReport {
 
             totalsByStudent.put(user.getEmailAddress(), totalScore);
         }
+
+        replaceExerciseIdWithHumanReadableIndex(assignment);
+    }
+
+    private void replaceExerciseIdWithHumanReadableIndex(Assignment assignment) {
+        for (var exercise : assignment.getExercises()) {
+            Map<String, SubmissionEvaluation> exerciseEvaluation = this.byExercises.remove(exercise.getId());
+            this.byExercises.put(exercise.getAssignmentExerciseIndexing(), exerciseEvaluation);
+        }
     }
 }

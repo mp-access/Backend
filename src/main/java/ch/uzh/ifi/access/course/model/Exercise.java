@@ -211,4 +211,8 @@ public class Exercise extends ExerciseConfig implements Ordered<Exercise>, HasBr
 
         return bc;
     }
+
+    public String getAssignmentExerciseIndexing() {
+        return String.format("ex%t%s", this.assignment.getIndex(), this.index);
+    }
 }
