@@ -74,10 +74,14 @@ public class AdminSubmissionServiceTest {
 
         // 1. & 2. Create assignment and 2 exercises
         Assignment assignment = TestObjectFactory.createAssignment("Assignment title");
+        assignment.setIndex(1);
         Exercise exercise1 = TestObjectFactory.createCodeExercise("Exercise 1");
         Exercise exercise2 = TestObjectFactory.createTextExercise("Exercise 2");
         assignment.addExercise(exercise1);
         assignment.addExercise(exercise2);
+        exercise1.setIndex(0);
+        exercise2.setIndex(1);
+        List<Exercise> exercises = List.of(exercise1, exercise2);
 
         // 3. Submit multiple versions
         // Submit multiple versions of exercise 1
@@ -96,9 +100,9 @@ public class AdminSubmissionServiceTest {
         setUserForSubmission(List.of(ex1Submission1User2, ex1Submission2User2, ex2Submission1User2, ex2Submission2User2), user2Id);
 
         final double ex1User1Score = 5.0;
-        final SubmissionEvaluation.Points ex1User1Points = new SubmissionEvaluation.Points(5,10);
+        final SubmissionEvaluation.Points ex1User1Points = new SubmissionEvaluation.Points(5, 10);
         final double ex1User2Score = 10.0;
-        final SubmissionEvaluation.Points ex1User2Points = new SubmissionEvaluation.Points(10,10);
+        final SubmissionEvaluation.Points ex1User2Points = new SubmissionEvaluation.Points(10, 10);
         setResultForSubmission(ex1Submission2User1, ex1User1Points, exercise1.getMaxScore());
         setResultForSubmission(ex1Submission2User2, ex1User2Points, exercise1.getMaxScore());
 
@@ -131,24 +135,26 @@ public class AdminSubmissionServiceTest {
         Map<String, Map<String, SubmissionEvaluation>> submissionByExerciseIdAndUserId = report.getByExercises();
 
         // assert that there is an entry for each exercise of an assignment
-        assignment.getExercises().forEach(exercise -> Assertions.assertThat(submissionByExerciseIdAndUserId).containsKey(exercise.getId()));
+        assignment.getExercises().forEach(exercise -> Assertions.assertThat(submissionByExerciseIdAndUserId).containsKey(exercise.getAssignmentExerciseIndexing()));
 
         // assert that for each exercise there is an entry for each student, regardless if the submitted or not
-        for (String exerciseId : submissionByExerciseIdAndUserId.keySet()) {
-            Map<String, SubmissionEvaluation> studentSubmissions = report.getByExercises().get(exerciseId);
-
+        for (var exercise : exercises) {
+            Map<String, SubmissionEvaluation> studentSubmissions = report.getByExercises().get(exercise.getAssignmentExerciseIndexing());
             students.forEach(student -> Assertions.assertThat(studentSubmissions).containsKey(student.getEmailAddress()));
         }
 
-        Assertions.assertThat(submissionByExerciseIdAndUserId.get(exercise1.getId()).get(user1.getEmailAddress()).getScore()).isEqualTo(ex1User1Score);
-        Assertions.assertThat(submissionByExerciseIdAndUserId.get(exercise1.getId()).get(user2.getEmailAddress()).getScore()).isEqualTo(ex1User2Score);
+        Map<String, SubmissionEvaluation> evaluationMap = submissionByExerciseIdAndUserId.get(exercise1.getAssignmentExerciseIndexing());
+        double user1Score = evaluationMap.get(user1.getEmailAddress()).getScore();
+        double user2Score = evaluationMap.get(user2.getEmailAddress()).getScore();
+        Assertions.assertThat(user1Score).isEqualTo(ex1User1Score);
+        Assertions.assertThat(user2Score).isEqualTo(ex1User2Score);
     }
 
     private void setUserForSubmission(List<StudentSubmission> submissions, String userId) {
         submissions.forEach(submission -> submission.setUserId(userId));
     }
 
-    private void setResultForSubmission(StudentSubmission submission, SubmissionEvaluation.Points points, double maxScore ) {
-        submission.setResult( SubmissionEvaluation.builder().points(points).maxScore( maxScore).timestamp(Instant.now()).build());
+    private void setResultForSubmission(StudentSubmission submission, SubmissionEvaluation.Points points, double maxScore) {
+        submission.setResult(SubmissionEvaluation.builder().points(points).maxScore(maxScore).timestamp(Instant.now()).build());
     }
 }
