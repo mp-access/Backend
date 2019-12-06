@@ -50,5 +50,6 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
         this.courseId = exercise.getCourseId();
         this.assignmentId = exercise.getAssignmentId();
         this.breadCrumbs = exercise.getBreadCrumbs();
+        this.index = exercise.getIndex();
     }
 }

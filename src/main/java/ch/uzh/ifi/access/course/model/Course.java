@@ -68,6 +68,7 @@ public class Course extends CourseConfig implements OrderedCollection<Assignment
         a.setCourse(this);
         assignments.add(a);
         assignments.sort(Comparator.comparing(Assignment::getOrder));
+        indexAssignments();
     }
 
     public void addAssignments(Assignment... assignments) {
@@ -93,10 +94,15 @@ public class Course extends CourseConfig implements OrderedCollection<Assignment
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        List<BreadCrumb> bc = new ArrayList<>();
-        BreadCrumb c = new BreadCrumb(this.title, "courses/" + this.id);
-        bc.add(c);
+        BreadCrumb course = new BreadCrumb(this.title, "courses/" + this.id);
 
-        return bc;
+        return List.of(course);
+    }
+
+    private void indexAssignments() {
+        for (var i = 0; i < assignments.size(); i++) {
+            var assignment = assignments.get(i);
+            assignment.setIndex(i + 1);
+        }
     }
 }

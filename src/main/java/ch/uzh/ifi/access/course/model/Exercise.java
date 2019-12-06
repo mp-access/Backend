@@ -201,15 +201,11 @@ public class Exercise extends ExerciseConfig implements Ordered<Exercise>, HasBr
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        List<BreadCrumb> bc = new ArrayList<>();
-        BreadCrumb c = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getId());
-        BreadCrumb a = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getId() + "/assignments/" + this.getAssignment().getId());
-        BreadCrumb e = new BreadCrumb(this.getTitle(), "exercises/" + this.id);
-        bc.add(c);
-        bc.add(a);
-        bc.add(e);
+        BreadCrumb course = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getId());
+        BreadCrumb assignment = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getId() + "/assignments/" + this.getAssignment().getId(), getAssignment().getIndex());
+        BreadCrumb exercise = new BreadCrumb(this.getTitle(), "exercises/" + this.id, this.index);
 
-        return bc;
+        return List.of(course, assignment, exercise);
     }
 
     public String getAssignmentExerciseIndexing() {
