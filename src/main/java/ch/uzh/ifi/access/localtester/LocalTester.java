@@ -99,17 +99,17 @@ public class LocalTester {
     private static int testAssignment(Assignment a) {
 
         if (a.getTitle() == null) {
-            System.out.println("ERROR: Assignment 'title' must not be empty! (Assignment " + a.getIndex() + " - " + a.getTitle() + ")");
+            System.out.println("ERROR: Assignment 'title' must not be empty! (Assignment " + a.getOrder() + " - " + a.getTitle() + ")");
             return 1;
         }
 
         if (a.getPublishDate() == null) {
-            System.out.println("ERROR: Assignment 'publishDate' must not be empty! (Assignment " + a.getIndex() + " - " + a.getTitle() + ")");
+            System.out.println("ERROR: Assignment 'publishDate' must not be empty! (Assignment " + a.getOrder() + " - " + a.getTitle() + ")");
             return 1;
         }
 
         if (a.getDueDate() == null) {
-            System.out.println("ERROR: Assignment 'dueDate' must not be empty! (Assignment " + a.getIndex() + " - " + a.getTitle() + ")");
+            System.out.println("ERROR: Assignment 'dueDate' must not be empty! (Assignment " + a.getOrder() + " - " + a.getTitle() + ")");
             return 1;
         }
 
@@ -120,24 +120,24 @@ public class LocalTester {
         Assignment a = e.getAssignment();
 
         if (e.getType() == null) {
-            System.out.println("ERROR: Exercise 'type' must not be empty! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
+            System.out.println("ERROR: Exercise 'type' must not be empty! (Assignment " + a.getOrder() + " / Exercise " + e.getOrder() + ")");
             return 1;
         } else {
             if ((e.getType() == ExerciseType.code || e.getType() == ExerciseType.codeSnippet) &&
                     e.getLanguage() == null) {
-                System.out.println("ERROR: Exercise of type 'code' and 'codeSnippet' needs to provide a 'language'! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
+                System.out.println("ERROR: Exercise of type 'code' and 'codeSnippet' needs to provide a 'language'! (Assignment " + a.getOrder() + " / Exercise " + e.getOrder() + ")");
                 return 1;
             }
 
             if ((e.getType() == ExerciseType.multipleChoice || e.getType() == ExerciseType.singleChoice) &&
                     e.getOptions() == null) {
-                System.out.println("ERROR: Exercise of type 'singleChoice' and 'multipleChoice' must provide ¨options¨! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
+                System.out.println("ERROR: Exercise of type 'singleChoice' and 'multipleChoice' must provide ¨options¨! (Assignment " + a.getOrder() + " / Exercise " + e.getOrder() + ")");
                 return 1;
             }
 
             if ((e.getType() == ExerciseType.multipleChoice || e.getType() == ExerciseType.singleChoice || e.getType() == ExerciseType.text) &&
                     e.getSolutions() == null) {
-                System.out.println("ERROR: Exercise of type 'singleChoice', 'multipleChoice' and 'text' must provide 'solutions'! (Assignment " + a.getIndex() + " / Exercise " + e.getIndex() + ")");
+                System.out.println("ERROR: Exercise of type 'singleChoice', 'multipleChoice' and 'text' must provide 'solutions'! (Assignment " + a.getOrder() + " / Exercise " + e.getOrder() + ")");
                 return 1;
             }
         }

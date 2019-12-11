@@ -19,6 +19,8 @@ public class AssignmentMetadataDTO implements HasPublishingDate, HasDueDate {
     private boolean isPublished;
     private boolean isPastDueDate;
 
+    private int index;
+
     private List<BreadCrumb> breadCrumbs;
     private List<ExerciseMetadataDTO> exercises = new ArrayList<>();
 
@@ -31,6 +33,7 @@ public class AssignmentMetadataDTO implements HasPublishingDate, HasDueDate {
         this.isPublished = assignment.isPublished();
         this.isPastDueDate = assignment.isPastDueDate();
         this.breadCrumbs = assignment.getBreadCrumbs();
+        this.index = assignment.getIndex();
 
         if (assignment.getExercises() != null) {
             for (Exercise e : assignment.getExercises()) {

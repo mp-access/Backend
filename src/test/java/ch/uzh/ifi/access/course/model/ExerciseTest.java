@@ -11,9 +11,9 @@ public class ExerciseTest {
         Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createCodeExercise("");
         exerciseBefore1.setGitHash("ex1");
-        exerciseBefore1.setIndex(0);
+        exerciseBefore1.setOrder(0);
         exerciseAfter1.setGitHash("ex1.1");
-        exerciseAfter1.setIndex(exerciseBefore1.getIndex());
+        exerciseAfter1.setOrder(exerciseBefore1.getOrder());
 
         Assertions.assertThat(exerciseBefore1.isBreakingChange(exerciseAfter1)).isFalse();
     }
@@ -23,9 +23,9 @@ public class ExerciseTest {
         Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createCodeExercise("");
         exerciseBefore1.setGitHash("ex1");
-        exerciseBefore1.setIndex(0);
+        exerciseBefore1.setOrder(0);
         exerciseAfter1.setGitHash(exerciseBefore1.getGitHash());
-        exerciseAfter1.setIndex(exerciseBefore1.getIndex());
+        exerciseAfter1.setOrder(exerciseBefore1.getOrder());
 
         Assertions.assertThat(exerciseBefore1.isBreakingChange(exerciseAfter1)).isFalse();
     }

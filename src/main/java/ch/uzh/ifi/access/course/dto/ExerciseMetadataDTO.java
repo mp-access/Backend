@@ -15,6 +15,7 @@ public class ExerciseMetadataDTO {
     private String language;
     private Boolean isGraded;
     private double maxScore;
+    private int index;
 
     public ExerciseMetadataDTO(Exercise exercise) {
         this.id = exercise.getId();
@@ -25,5 +26,6 @@ public class ExerciseMetadataDTO {
         this.language = exercise.getLanguage();
         this.isGraded = exercise.getIsGraded();
         this.maxScore = exercise.getMaxScore();
+        this.index = exercise.getIndex();
     }
 }
