@@ -4,6 +4,7 @@ import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.student.SubmissionProperties;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
+import ch.uzh.ifi.access.student.dto.UserMigrationResult;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.springframework.stereotype.Service;
@@ -110,4 +111,7 @@ public class StudentSubmissionService {
         return studentSubmissionRepository.existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
     }
 
+    public UserMigrationResult migrateUserSubmissions(String from, String to) {
+        return studentSubmissionRepository.migrateUserSubmissions(from, to);
+    }
 }

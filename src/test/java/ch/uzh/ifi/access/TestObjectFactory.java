@@ -78,6 +78,12 @@ public class TestObjectFactory {
         return virtualFile;
     }
 
+    public static CodeSubmission createCodeAnswerWithExerciseAndUserAndVersion(String exerciseId, String userId, int version) {
+        CodeSubmission answer = createCodeAnswerWithExerciseAndUser(exerciseId, userId);
+        answer.setVersion(version);
+        return answer;
+    }
+
     public static CodeSubmission createCodeAnswerWithExerciseAndUser(String exerciseId, String userId) {
         CodeSubmission answer = createCodeAnswerWithExercise(exerciseId);
         answer.setUserId(userId);

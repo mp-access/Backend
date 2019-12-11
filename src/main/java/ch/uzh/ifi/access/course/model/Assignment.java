@@ -16,9 +16,10 @@ import java.util.Optional;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Assignment extends AssignmentConfig implements IndexedCollection<Exercise>, Indexed<Assignment>, HasBreadCrumbs {
+public class Assignment extends AssignmentConfig implements OrderedCollection<Exercise>, Ordered<Assignment>, HasBreadCrumbs {
     private final String id;
     private int index;
+    private int order;
 
     @JsonIgnore
     @ToString.Exclude
@@ -33,10 +34,10 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
     }
 
     @Builder
-    private Assignment(String title, String description, ZonedDateTime publishDate, ZonedDateTime dueDate, String id, int index, Course course, List<Exercise> exercises) {
+    private Assignment(String title, String description, ZonedDateTime publishDate, ZonedDateTime dueDate, String id, int order, Course course, List<Exercise> exercises) {
         super(title, description, publishDate, dueDate);
         this.id = id;
-        this.index = index;
+        this.order = order;
         this.course = course;
         this.exercises = exercises;
     }
@@ -50,13 +51,14 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
 
     public void update(Assignment other) {
         set(other);
-        this.update(other.getIndexedItems());
+        this.update(other.getOrderedItems());
     }
 
     public void addExercise(Exercise ex) {
         exercises.add(ex);
         ex.setAssignment(this);
-        exercises.sort(Comparator.comparing(Exercise::getIndex));
+        exercises.sort(Comparator.comparing(Exercise::getOrder));
+        indexExercises();
     }
 
     public void addExercises(Exercise... exercises) {
@@ -75,19 +77,23 @@ public class Assignment extends AssignmentConfig implements IndexedCollection<Ex
 
 
     @Override
-    public List<Exercise> getIndexedItems() {
+    public List<Exercise> getOrderedItems() {
         return exercises;
     }
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        List<BreadCrumb> bc = new ArrayList<>();
-        BreadCrumb c = new BreadCrumb(this.getCourse().title, "courses/" + this.getCourse().getId());
-        BreadCrumb a = new BreadCrumb(this.title, "courses/" + this.getCourse().getId() + "/assignments/" + this.id);
-        bc.add(c);
-        bc.add(a);
+        BreadCrumb course = new BreadCrumb(this.getCourse().title, "courses/" + this.getCourse().getId());
+        BreadCrumb assignment = new BreadCrumb(this.title, "courses/" + this.getCourse().getId() + "/assignments/" + this.id, this.index);
 
-        return bc;
+        return List.of(course, assignment);
+    }
+
+    private void indexExercises() {
+        for (var i = 0; i < exercises.size(); i++) {
+            var exercise = exercises.get(i);
+            exercise.setIndex(i + 1);
+        }
     }
 }
 

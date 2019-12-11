@@ -10,9 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.NotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -66,6 +69,21 @@ public class UserService {
 
         }
         return new UserQueryResult(accountsNotFound, users);
+    }
+
+    public UserQueryResult getUsersByIds(List<String> userIds) {
+        List<String> usersNotFound = new ArrayList<>();
+        List<User> users = userIds.stream().map(userId -> {
+            try {
+                return User.of(keycloakClient.getUserById(userId));
+            } catch (NotFoundException e) {
+                logger.warn("Failed to find user {}", userId);
+                usersNotFound.add(userId);
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+
+        return new UserQueryResult(usersNotFound, users);
     }
 
     @Value

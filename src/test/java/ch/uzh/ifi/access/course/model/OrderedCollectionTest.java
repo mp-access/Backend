@@ -6,18 +6,18 @@ import org.junit.Test;
 
 import java.util.List;
 
-public class IndexedCollectionTest {
+public class OrderedCollectionTest {
 
     @Test
     public void updateOnlyExercises() {
         Assignment assignment = new Assignment("Assignment_1");
         Assignment updateAssignment = new Assignment("Assignment_1");
 
-        Exercise ex1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").index(0).build();
-        Exercise updateEx1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
+        Exercise ex1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").order(0).build();
+        Exercise updateEx1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").order(0).build();
 
-        Exercise ex2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").index(1).build();
-        Exercise updateEx2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(1).build();
+        Exercise ex2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").order(1).build();
+        Exercise updateEx2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").order(1).build();
 
         assignment.addExercise(ex1);
         assignment.addExercise(ex2);
@@ -42,12 +42,12 @@ public class IndexedCollectionTest {
         Assignment assignment = new Assignment("Assignment_1");
         Assignment updateAssignment = new Assignment("Assignment_1");
 
-        Exercise ex1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").index(0).build();
-        Exercise updateEx1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
+        Exercise ex1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1").order(0).build();
+        Exercise updateEx1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").order(0).build();
 
-        Exercise ex2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).index(1).build();
+        Exercise ex2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).order(1).build();
 
-        Exercise newExercise3 = new Exercise.ExerciseBuilder().id(new Utils().getID()).index(2).build();
+        Exercise newExercise3 = new Exercise.ExerciseBuilder().id(new Utils().getID()).order(2).build();
 
         assignment.addExercise(ex1);
         assignment.addExercise(ex2);
@@ -75,8 +75,8 @@ public class IndexedCollectionTest {
         Assignment updateAssignment = new Assignment("Assignment_1");
 
 
-        Exercise newExercise1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
-        Exercise newExercise2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).index(1).build();
+        Exercise newExercise1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").order(0).build();
+        Exercise newExercise2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).order(1).build();
 
         updateAssignment.addExercise(newExercise1);
         updateAssignment.addExercise(newExercise2);
@@ -97,8 +97,8 @@ public class IndexedCollectionTest {
         Assignment assignment = new Assignment("Assignment_1");
         Assignment updateAssignment = new Assignment("Assignment_1");
 
-        Exercise exercise1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").index(0).build();
-        Exercise exercise2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).index(1).build();
+        Exercise exercise1 = new Exercise.ExerciseBuilder().id(new Utils().getID()).gitHash("ex1.1").order(0).build();
+        Exercise exercise2 = new Exercise.ExerciseBuilder().id(new Utils().getID()).order(1).build();
 
         assignment.addExercise(exercise1);
         assignment.addExercise(exercise2);

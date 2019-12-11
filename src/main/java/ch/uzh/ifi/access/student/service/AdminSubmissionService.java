@@ -2,6 +2,8 @@ package ch.uzh.ifi.access.student.service;
 
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.student.dto.UserMigration;
+import ch.uzh.ifi.access.student.dto.UserMigrationResult;
 import ch.uzh.ifi.access.student.evaluation.EvalProcessService;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.User;
@@ -97,5 +99,13 @@ public class AdminSubmissionService {
     @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
     public UserService.UserQueryResult getCourseStudents(Course course) {
         return userService.getCourseStudents(course);
+    }
+
+    public UserService.UserQueryResult getCourseStudentByUserIds(List<String> userIds, Course course) {
+        return userService.getUsersByIds(userIds);
+    }
+
+    public UserMigrationResult migrateUser(UserMigration userMigration) {
+        return submissionService.migrateUserSubmissions(userMigration.getFrom(), userMigration.getTo());
     }
 }

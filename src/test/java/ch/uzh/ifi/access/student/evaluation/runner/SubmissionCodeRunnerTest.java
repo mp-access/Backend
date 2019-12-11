@@ -92,7 +92,7 @@ public class SubmissionCodeRunnerTest {
         }
         RunResult rr = new RunResult(sb.toString(), null, null, 1000, false, false);
 
-        ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSmokeToExecResult(rr);
+        ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSmokeToExecResult(rr, null, null);
 
         Assertions.assertThat(execResult.getStdout().length()).isLessThan(100055);
         Assertions.assertThat(execResult.getStdout()).contains("Logs size exceeded limit. Log has been truncated.");

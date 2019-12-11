@@ -23,7 +23,7 @@ public class AssignmentReport {
 
     private final Map<String, Double> totalsByStudent;
 
-    private final List<String> exerciseIds;
+    private final List<String> exerciseLabel;
 
     private final List<String> students;
 
@@ -36,23 +36,25 @@ public class AssignmentReport {
         this.totalsByStudent = new LinkedHashMap<>(students.size());
         this.usersNotFound = usersNotFound;
 
+        Map<String, Exercise> exerciseIdToExercise = assignment.getExercises().stream().collect(Collectors.toMap(Exercise::getId, e -> e));
+
         // Sort lexicographically to ensure students always occur in the same order in the report
         List<User> sortedStudents = students.stream().sorted().collect(Collectors.toList());
         this.students = sortedStudents.stream().map(User::getEmailAddress).collect(Collectors.toList());
-        this.exerciseIds = assignment.getExercises().stream().map(Exercise::getId).collect(Collectors.toList());
+        this.exerciseLabel = assignment.getExercises().stream().map(Exercise::getAssignmentExerciseIndexing).collect(Collectors.toList());
 
         assignment.getExercises().forEach(exercise -> {
             Map<String, SubmissionEvaluation> exerciseSubmissionsByStudentEmail = new LinkedHashMap<>(students.size());
             sortedStudents.forEach(user -> exerciseSubmissionsByStudentEmail.put(user.getEmailAddress(), SubmissionEvaluation.NO_SUBMISSION));
 
-            this.byExercises.put(exercise.getId(), exerciseSubmissionsByStudentEmail);
+            this.byExercises.put(exercise.getAssignmentExerciseIndexing(), exerciseSubmissionsByStudentEmail);
         });
 
         sortedStudents.forEach(student -> {
-            Map<String, SubmissionEvaluation> exerciseSubmissionsByExerciseId = new LinkedHashMap<>(assignment.getExercises().size());
+            Map<String, SubmissionEvaluation> exerciseSubmissionsByExercise = new LinkedHashMap<>(assignment.getExercises().size());
 
-            assignment.getExercises().forEach(exercise -> exerciseSubmissionsByExerciseId.put(exercise.getId(), SubmissionEvaluation.NO_SUBMISSION));
-            this.byStudents.put(student.getEmailAddress(), exerciseSubmissionsByExerciseId);
+            assignment.getExercises().forEach(exercise -> exerciseSubmissionsByExercise.put(exercise.getAssignmentExerciseIndexing(), SubmissionEvaluation.NO_SUBMISSION));
+            this.byStudents.put(student.getEmailAddress(), exerciseSubmissionsByExercise);
         });
 
         for (var entry : assignmentSubmissionsByUser.entrySet()) {
@@ -61,9 +63,12 @@ public class AssignmentReport {
             double totalScore = 0.0;
             for (var submission : submissions) {
                 var exerciseId = submission.getExerciseId();
-                this.byExercises.get(exerciseId).put(user.getEmailAddress(), submission.getResult());
+                Exercise exercise = exerciseIdToExercise.get(exerciseId);
 
-                this.byStudents.get(user.getEmailAddress()).put(exerciseId, submission.getResult());
+                Map<String, SubmissionEvaluation> submissionsForExercise = this.byExercises.get(exercise.getAssignmentExerciseIndexing());
+                submissionsForExercise.put(user.getEmailAddress(), submission.getResult());
+
+                this.byStudents.get(user.getEmailAddress()).put(exercise.getAssignmentExerciseIndexing(), submission.getResult());
 
                 totalScore += submission.getScore();
             }

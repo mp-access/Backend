@@ -51,13 +51,13 @@ public class BreakingChangeIntegrationTest {
         Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
         Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
         Exercise exerciseAfter1 = TestObjectFactory.createCodeExercise("");
-        exerciseBefore1.setIndex(0);
-        exerciseAfter1.setIndex(1);
+        exerciseBefore1.setOrder(0);
+        exerciseAfter1.setOrder(1);
 
         Exercise exerciseBefore2 = TestObjectFactory.createCodeExercise("");
         Exercise exerciseAfter2 = TestObjectFactory.createCodeExercise("");
-        exerciseBefore2.setIndex(2);
-        exerciseAfter2.setIndex(exerciseBefore2.getIndex());
+        exerciseBefore2.setOrder(2);
+        exerciseAfter2.setOrder(exerciseBefore2.getOrder());
 
         before.addAssignment(assignmentBefore);
         assignmentBefore.addExercise(exerciseBefore1);

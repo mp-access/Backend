@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Course extends CourseConfig implements IndexedCollection<Assignment>, HasBreadCrumbs {
+public class Course extends CourseConfig implements OrderedCollection<Assignment>, HasBreadCrumbs {
     private final String id;
 
     @ToString.Exclude
@@ -61,13 +61,14 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
         set(other);
         this.gitHash = other.gitHash;
 
-        this.update(other.getIndexedItems());
+        this.update(other.getOrderedItems());
     }
 
     public void addAssignment(Assignment a) {
         a.setCourse(this);
         assignments.add(a);
-        assignments.sort(Comparator.comparing(Assignment::getIndex));
+        assignments.sort(Comparator.comparing(Assignment::getOrder));
+        indexAssignments();
     }
 
     public void addAssignments(Assignment... assignments) {
@@ -82,7 +83,7 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
 
     @JsonIgnore
     @Override
-    public List<Assignment> getIndexedItems() {
+    public List<Assignment> getOrderedItems() {
         return assignments;
     }
 
@@ -93,10 +94,19 @@ public class Course extends CourseConfig implements IndexedCollection<Assignment
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        List<BreadCrumb> bc = new ArrayList<>();
-        BreadCrumb c = new BreadCrumb(this.title, "courses/" + this.id);
-        bc.add(c);
+        BreadCrumb course = new BreadCrumb(this.title, "courses/" + this.id);
 
-        return bc;
+        return List.of(course);
+    }
+
+    private void indexAssignments() {
+        for (var i = 0; i < assignments.size(); i++) {
+            var assignment = assignments.get(i);
+            assignment.setIndex(i + 1);
+        }
+    }
+
+    public boolean hasParticipant(String emailAddress) {
+        return students.contains(emailAddress) || assistants.contains(emailAddress) || admins.contains(emailAddress);
     }
 }
