@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Optional;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,22 +24,9 @@ public class PythonImageConfig {
     @Value("python")
     private String pythonImage = "hoal/access-python:3.7";
 
-    private HostConfig hostConfig(CodeExecutionLimits executionLimits) {
-        if (executionLimits == null) {
-            executionLimits = CodeExecutionLimits.DEFAULTS;
-        }
-
-        if (executionLimits.isTesting()) {
-            return HostConfig.builder().build();
-        }
-
-        return HostConfig.builder()
-                .memory(executionLimits.getMemoryInMb())
-                .cpuQuota(executionLimits.getCpuQuota())
-                .build();
-    }
-
     public ContainerConfig containerConfig(String[] cmd, CodeExecutionLimits executionLimits) {
+        executionLimits = Optional.ofNullable(executionLimits).orElse(CodeExecutionLimits.DEFAULTS);
+
         return ContainerConfig
                 .builder()
                 .hostConfig(hostConfig(executionLimits))
@@ -47,6 +36,25 @@ public class PythonImageConfig {
                 .attachStdout(true)
                 .attachStderr(true)
                 .cmd(cmd)
+                .build();
+    }
+
+    private HostConfig hostConfig(CodeExecutionLimits executionLimits) {
+        if (executionLimits.isTesting()) {
+            return memoryAndCpuLimitsDisabled();
+        }
+
+        return withMemoryAndCpuLimits(executionLimits);
+    }
+
+    private HostConfig memoryAndCpuLimitsDisabled() {
+        return HostConfig.builder().build();
+    }
+
+    private HostConfig withMemoryAndCpuLimits(CodeExecutionLimits limits) {
+        return HostConfig.builder()
+                .memory(limits.getMemoryInMb())
+                .cpuQuota(limits.getCpuQuota())
                 .build();
     }
 }
