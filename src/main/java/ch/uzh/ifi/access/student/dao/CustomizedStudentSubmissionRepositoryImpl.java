@@ -93,6 +93,8 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
      * @param from the userId of the old account
      * @param to  the userId of the new account
      * @return number of submissions which were changed
+     *
+     * TODO: this method is missing transaction-like support in case the migration fails
      */
     @Override
     public UserMigrationResult migrateUserSubmissions(String from, String to) {

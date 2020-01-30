@@ -166,6 +166,9 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         codeSubmission3 = submissionRepository.findById(codeSubmission3.getId()).orElse(null);
         otherSubmission0 = submissionRepository.findById(otherSubmission0.getId()).orElse(null);
 
+        List<StudentSubmission> allByAfter = submissionRepository.findAllByUserId(idAfter);
+        Assertions.assertThat(allByAfter.size()).isEqualTo(10);
+
         Assertions.assertThat(submissionsChanged.isSuccess()).isTrue();
         Assertions.assertThat(submissionsChanged.getNumberOfSubmissionsToMigrate()).isEqualTo(4);
         Assertions.assertThat(submissionsChanged.getNumberOfSubmissionsMigrated()).isEqualTo(4);
@@ -185,5 +188,11 @@ public class CustomizedStudentSubmissionRepositoryImplTest {
         // Other user's submissions are unaffected
         List<StudentSubmission> otherUsersSubmissions = submissionRepository.findAllByUserId(otherId);
         Assertions.assertThat(otherUsersSubmissions).size().isEqualTo(3);
+
+        int gradedSubmissionCount = submissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(exerciseId, idAfter);
+        Assertions.assertThat(gradedSubmissionCount).isEqualTo(6);
+
+        gradedSubmissionCount = submissionRepository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(otherExerciseId, idAfter);
+        Assertions.assertThat(gradedSubmissionCount).isEqualTo(4);
     }
 }
