@@ -55,7 +55,7 @@ jobs:
             echo $DOCKER_CLIENT_CA_CERT | base64 --decode > ./ca.pem
             echo $DOCKER_CLIENT_CERT | base64 --decode > ./cert.pem
             echo $DOCKER_CLIENT_PRIVATE_KEY | base64 --decode > ./key.pem
-            echo 'export DOCKER_HOST="tcp://167.71.53.88:2376"' >> $BASH_ENV
+            echo 'export DOCKER_HOST="tcp://157.230.114.251:2376"' >> $BASH_ENV
             echo 'export DOCKER_CERT_PATH=$(pwd)' >> $BASH_ENV
             echo $DOCKER_HOST
             echo $DOCKER_CERT_PATH
