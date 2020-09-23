@@ -70,6 +70,7 @@ public class SubmissionControllerTest {
     private CourseAuthentication assistantAuthentication;
 
     private Course course;
+    private Exercise exerciseAlreadyPublished;
     private String exerciseIdAlreadyPublished;
     private String exerciseIdNotYetPublished;
 
@@ -85,6 +86,7 @@ public class SubmissionControllerTest {
         course = TestObjectFactory.createCourseWithOneAssignmentAndOneExercise("course", "assignment", "question");
         Assignment assignment = course.getAssignments().get(0);
         Exercise exercise = assignment.getExercises().get(0);
+        exerciseAlreadyPublished = exercise;
         exerciseIdAlreadyPublished = exercise.getId();
         assignment.setPublishDate(ZonedDateTime.now().minusDays(1));
         assignment.setDueDate(ZonedDateTime.now().plusDays(7));
@@ -207,6 +209,37 @@ public class SubmissionControllerTest {
         Assertions.assertThat(submission.getUserId()).isEqualTo(studentAuthentication.getUserId());
         Assertions.assertThat(submission).isInstanceOf(TextSubmission.class);
         Assertions.assertThat(((TextSubmission) submission).getAnswer()).isEqualTo(answer);
+    }
+
+    @Test
+    public void submitTextMaxAttemptsReached() throws Exception {
+        final String answer = "The answer is 42";
+        final String payload = "{\n" +
+                "    \"type\": \"text\",\n" +
+                "    \"details\": {\n" +
+                String.format("        \"answer\": \"%s\"\n", answer) +
+                "    }\n" +
+                "}";
+
+        for (int i = 0; i < exerciseAlreadyPublished.getMaxSubmits(); i++) {
+            mvc.perform(post("/submissions/exercises/" + exerciseAlreadyPublished.getId())
+                    .with(csrf())
+                    .with(authentication(studentAuthentication))
+                    .contentType("application/json")
+                    .content(payload))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.evalId").exists());
+        }
+
+        mvc.perform(post("/submissions/exercises/" + exerciseAlreadyPublished.getId())
+                .with(csrf())
+                .with(authentication(studentAuthentication))
+                .contentType("application/json")
+                .content(payload))
+                .andExpect(status().isTooManyRequests());
+
+        int count = repository.countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(exerciseAlreadyPublished.getId(), studentAuthentication.getUserId());
+        Assertions.assertThat(count).isEqualTo(exerciseAlreadyPublished.getMaxSubmits());
     }
 
     @Test

@@ -48,6 +48,7 @@ public class TestObjectFactory {
         exercise.setType(ExerciseType.code);
         exercise.setGitHash("0x123456");
         exercise.setMaxScore(10);
+        exercise.setMaxSubmits(10);
         return exercise;
     }
 
