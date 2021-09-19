@@ -26,6 +26,8 @@ jobs:
 
       - checkout
 
+      - setup_remote_docker
+
       - run:
           name: Install dockerize
           command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
@@ -48,17 +50,6 @@ jobs:
           paths:
             - ~/.gradle
           key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      - run:
-          name: Save docker certs to home directory
-          command: |
-            echo $DOCKER_CLIENT_CA_CERT | base64 --decode > ./ca.pem
-            echo $DOCKER_CLIENT_CERT | base64 --decode > ./cert.pem
-            echo $DOCKER_CLIENT_PRIVATE_KEY | base64 --decode > ./key.pem
-            echo 'export DOCKER_HOST="tcp://167.71.53.88:2376"' >> $BASH_ENV
-            echo 'export DOCKER_CERT_PATH=$(pwd)' >> $BASH_ENV
-            echo $DOCKER_HOST
-            echo $DOCKER_CERT_PATH
 
       - run:
           name: Run tests

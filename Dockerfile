@@ -30,4 +30,4 @@ COPY --from=build /workspace/app/src/main/resources/application-prod.properties 
 
 WORKDIR /app
 
-ENTRYPOINT ["java","-cp","access:access/lib/*","ch.uzh.ifi.access.AccessApplication"]
+ENTRYPOINT ["java","-Djdk.tls.client.protocols=TLSv1.2", "-cp","access:access/lib/*","ch.uzh.ifi.access.AccessApplication"]

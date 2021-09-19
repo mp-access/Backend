@@ -137,6 +137,11 @@ public class SubmissionController {
                 return ResponseEntity.badRequest().body("Referenced exercise does not exist");
             }
 
+            int submissionsCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
+            if (submissionsCount >= exercise.getMaxSubmits()) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("You have exhausted your attempts for this exercise");
+            }
+
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash);
 
             if (exercise.isPastDueDate() && submission.isGraded()) {
