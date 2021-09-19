@@ -72,6 +72,10 @@ jobs:
           path: ~/test-results/junit
 
       - run:
+          name: Analyze on SonarCloud
+          command: gradle build sonarqube
+
+      - run:
           name: Send test coverage to Codacy
           command: |
             #curl -Ls -o codacy-coverage-reporter-assembly.jar $(curl -Ls https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({content_type, browser_download_url} | select(.content_type | contains("java-archive"))) | .[0].browser_download_url')
@@ -127,10 +131,9 @@ workflows:
   version: 2
   build-and-deploy-master:
     jobs:
-      - build
-      - push_to_dockerhub:
-          requires:
-          - build
+      - build:
+          context: SonarCloud
+      - push_to_dockerhub
       - deploy:
           requires:
             - push_to_dockerhub
