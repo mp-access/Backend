@@ -14,7 +14,7 @@ public class KeycloakClientTestConfiguration {
     private static final String REALM_NAME = "testing";
 
     public KeycloakClient testClient() {
-        return new KeycloakClient(securityProperties(), REALM_NAME, courseProperties());
+        return new KeycloakClient(securityProperties(), REALM_NAME, courseProperties(), null);
     }
 
     private SecurityProperties securityProperties() {

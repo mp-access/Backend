@@ -3,6 +3,7 @@ package ch.uzh.ifi.access.keycloak;
 import ch.uzh.ifi.access.config.SecurityProperties;
 import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.model.Course;
+import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -12,8 +13,6 @@ import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.GroupRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -25,16 +24,11 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 
+@Slf4j
 @Component
 public class KeycloakClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(KeycloakClient.class);
-
-    private static final List<String> emailActionsAfterCreation = List.of("VERIFY_EMAIL", "UPDATE_PASSWORD", "UPDATE_PROFILE");
-
     private static final String ADMIN_CLIENT_ID = "admin-cli";
-
-    private static final String DEFAULT_REALM = "dev";
 
     private final RealmResource realmResource;
 
@@ -42,24 +36,29 @@ public class KeycloakClient {
 
     private final SecurityProperties securityProperties;
 
+    private final EmailSender emailSender;
+
     @Autowired
-    public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties) {
+    public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties, EmailSender emailSender) {
         this.courseProperties = courseProperties;
         this.securityProperties = securityProperties;
+        this.emailSender = emailSender;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
 
-        logger.info("Keycloak instance info:");
-        logger.info("Auth server: " + securityProperties.getAuthServer());
-        logger.info("Realm: " + securityProperties.getRealm());
+        log.info("Keycloak instance info:");
+        log.info("Auth server: " + securityProperties.getAuthServer());
+        log.info("Realm: " + securityProperties.getRealm());
 
         realmResource = keycloak.realm(securityProperties.getRealm());
     }
 
-    public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties) {
+    public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties, EmailSender emailSender) {
         this.courseProperties = courseProperties;
         this.securityProperties = securityProperties;
+        this.emailSender = emailSender;
         Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
         realmResource = keycloak.realm(realm);
+
     }
 
     public UserRepresentation getUserById(String id) {
@@ -68,8 +67,15 @@ public class KeycloakClient {
     }
 
     public Group enrollUsersInCourse(Course course) {
+        log.info("Enrolling users in course: {}, {}, {}", course.getTitle(), course.getId(), course.getGitURL());
+
+        log.info("Checking accounts for students");
         Users students = getUsersIfExistOrCreateUsers(course.getStudents());
+
+        log.info("Checking accounts for assistants");
         Users assistants = getUsersIfExistOrCreateUsers(course.getAssistants());
+
+        log.info("Checking accounts for admins");
         Users admins = getUsersIfExistOrCreateUsers(course.getAdmins());
 
         if (course.getTitle() != null && !course.getTitle().isEmpty()) {
@@ -81,9 +87,10 @@ public class KeycloakClient {
             assistants.enrollUsersInGroup(courseGroup.getAssistantsGroupId(), usersResource);
             admins.enrollUsersInGroup(courseGroup.getAdminsGroupId(), usersResource);
 
+            log.info("Finished enrolling users in course: {}, {}, {}", course.getTitle(), course.getId(), course.getGitURL());
             return courseGroup;
         } else {
-            logger.warn("Cannot enroll users in course {} yet, as the course does not have a title with which to name the groups", course.getGitURL());
+            log.warn("Cannot enroll users in course {} yet, as the course does not have a title with which to name the groups", course.getGitURL());
         }
         return null;
     }
@@ -91,23 +98,26 @@ public class KeycloakClient {
     private Group removeIfExistsAndCreateGroup(final String courseId, String title) {
         try {
             GroupRepresentation groupRepresentation = realmResource.getGroupByPath(courseId);
-            logger.info("Found existing group for course '{}': {}. Removing it and creating it anew", title, groupRepresentation.getName());
+            log.info("Found existing group for course '{}': {}. Removing it and creating it anew", title, groupRepresentation.getName());
             realmResource.groups().group(groupRepresentation.getId()).remove();
         } catch (NotFoundException e) {
-            logger.debug("Did not find any groups. Creating new group...", e);
+            log.debug("Did not find any groups. Creating new group...", e);
         }
 
         Group group = Group.create(courseId, title, realmResource);
-        logger.info("Created group for course '{}': {}", title, group.getName());
+        log.info("Created group for course '{}': {}", title, group.getName());
         return group;
     }
 
     Users getUsersIfExistOrCreateUsers(List<String> emailAddresses) {
+
+        log.info("Checking if all {} accounts already exist", emailAddresses.size());
         UsersResource usersResource = realmResource.users();
 
         List<UserRepresentation> existingUsers = new ArrayList<>();
         List<UserRepresentation> createdUsers = new ArrayList<>();
         List<String> failedToCreateUsers = new ArrayList<>();
+        List<String> failedToSendEmailTo = new ArrayList<>();
 
         Consumer<UserRepresentation> addToExistingUsers = existingUsers::add;
         for (String emailAddress : emailAddresses) {
@@ -117,15 +127,30 @@ public class KeycloakClient {
                 try {
                     UserRepresentation newUser = createAndVerifyUser(emailAddress);
                     createdUsers.add(newUser);
+                } catch (EmailSender.FailedToSendEmailException e) {
+                    log.error("Failed to send email to user '{}'", emailAddress, e);
+                    failedToSendEmailTo.add(emailAddress);
                 } catch (Exception e) {
                     failedToCreateUsers.add(emailAddress);
-                    logger.error("Failed to create user for email " + emailAddress, e);
+                    log.error("Failed to create user {}", emailAddress, e);
                 }
             });
         }
 
-        logger.info(String.format("Created %d new accounts", createdUsers.size()));
-        logger.info(String.format("Failed to create %d new accounts", failedToCreateUsers.size()));
+        log.info("Created {} new accounts", createdUsers.size());
+        log.info("Found {} accounts which already exist", existingUsers.size());
+
+
+        if (!failedToCreateUsers.isEmpty()) {
+            log.warn("Failed to create {} new accounts", failedToCreateUsers.size());
+            log.warn("Failed to create account for users: {}", String.join(", ", failedToCreateUsers));
+        }
+
+        if (!failedToSendEmailTo.isEmpty()) {
+            log.warn("Failed to send {} emails", failedToSendEmailTo.size());
+            log.warn("Failed to send emails to users: {}", String.join(", ", failedToSendEmailTo));
+        }
+
         return new Users(existingUsers, createdUsers);
     }
 
@@ -141,7 +166,7 @@ public class KeycloakClient {
         }
 
         if (usersByEmail.size() > 1) {
-            logger.warn(String.format("Found %d users for email address :%s", usersByEmail.size(), email));
+            log.warn(String.format("Found %d users for email address :%s", usersByEmail.size(), email));
         }
 
         return Optional.of(usersByEmail.get(0));
@@ -162,13 +187,9 @@ public class KeycloakClient {
 
         Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
         if (!smtpConfig.isEmpty()) {
-            try {
-                userResource.executeActionsEmail(securityProperties.getFrontendClientId(), securityProperties.getRedirectUriAfterActions(), emailActionsAfterCreation);
-            } catch (Exception e) {
-                logger.error("Failed to send email", e);
-            }
+            emailSender.sendEmailToUser(userResource, securityProperties);
         } else {
-            logger.warn("No SMTP server configured. Cannot send out verification emails.");
+            log.warn("No SMTP server configured. Cannot send out verification emails.");
         }
         return userResource.toRepresentation();
     }
