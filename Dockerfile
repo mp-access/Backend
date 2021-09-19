@@ -12,7 +12,7 @@ RUN mkdir -p build/dependency && (cd build/dependency; jar -xf ../libs/*.jar)
 
 FROM openjdk:11.0.3-jre-slim-stretch
 RUN apt-get update
-RUN apt-get -y upgrade
+RUN apt-get -y --allow-unauthenticated upgrade
 RUN apt-get -y install openssh-client
 
 ARG DEPENDENCY=/workspace/app/build/dependency
