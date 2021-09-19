@@ -133,9 +133,7 @@ workflows:
     jobs:
       - build:
           context: SonarCloud
-      - push_to_dockerhub:
-          requires:
-          - build
+      - push_to_dockerhub
       - deploy:
           requires:
             - push_to_dockerhub
