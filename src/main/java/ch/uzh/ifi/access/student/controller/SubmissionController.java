@@ -59,7 +59,7 @@ public class SubmissionController {
        return subOpt
                 .flatMap(submission -> courseService.getCourseByExerciseId(submission.getExerciseId()))
                 .flatMap(course -> {
-                    if (authentication.hasAdminAccess(course.getId())) {
+                    if (authentication.hasPrivilegedAccess(course.getId())) {
                         return subOpt;
                     }
                     return Optional.empty();
@@ -137,15 +137,16 @@ public class SubmissionController {
                 return ResponseEntity.badRequest().body("Referenced exercise does not exist");
             }
 
-            int submissionsCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
-            if (submissionsCount >= exercise.getMaxSubmits()) {
-                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("You have exhausted your attempts for this exercise");
-            }
-
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash);
 
-            if (exercise.isPastDueDate() && submission.isGraded()) {
-                return ResponseEntity.unprocessableEntity().body("Submission is past due date. Cannot accept a graded submission anymore.");
+            if (!authentication.hasPrivilegedAccess(exercise.getCourseId())) {
+                int submissionsCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
+                if (submissionsCount >= exercise.getMaxSubmits()) {
+                    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("You have exhausted your attempts for this exercise");
+                }
+                if (exercise.isPastDueDate() && submission.isGraded()) {
+                    return ResponseEntity.unprocessableEntity().body("Submission is past due date. Cannot accept a graded submission anymore.");
+                }
             }
 
             submission = studentSubmissionService.initSubmission(submission);
@@ -189,8 +190,14 @@ public class SubmissionController {
 
         List<StudentSubmission> runs = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), false);
         List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), true);
-        SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
         Optional<Exercise> exercise = courseService.getExerciseById(exerciseId);
+
+        if (exercise.isPresent() && authentication.hasPrivilegedAccess(exercise.get().getCourseId())) {
+            SubmissionCount submissionCount = new SubmissionCount(999, 0);
+            return new SubmissionHistoryDTO(submissions, runs, submissionCount, null, false);
+        }
+
+        SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
         boolean isPastDueDate = exercise.map(Exercise::isPastDueDate).orElse(false);
         ZonedDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
 
