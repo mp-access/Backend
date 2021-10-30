@@ -139,12 +139,12 @@ public class SubmissionController {
 
             StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash);
 
-            if (!authentication.hasPrivilegedAccess(exercise.getCourseId())) {
+            if (!authentication.hasPrivilegedAccess(exercise.getCourseId()) && submission.isGraded()) {
                 int submissionsCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
                 if (submissionsCount >= exercise.getMaxSubmits()) {
                     return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("You have exhausted your attempts for this exercise");
                 }
-                if (exercise.isPastDueDate() && submission.isGraded()) {
+                if (exercise.isPastDueDate()) {
                     return ResponseEntity.unprocessableEntity().body("Submission is past due date. Cannot accept a graded submission anymore.");
                 }
             }

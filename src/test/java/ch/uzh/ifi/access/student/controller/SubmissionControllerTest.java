@@ -217,6 +217,7 @@ public class SubmissionControllerTest {
         final String payload = "{\n" +
                 "    \"type\": \"text\",\n" +
                 "    \"details\": {\n" +
+                "    \"graded\": true,\n" +
                 String.format("        \"answer\": \"%s\"\n", answer) +
                 "    }\n" +
                 "}";
