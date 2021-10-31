@@ -56,7 +56,7 @@ public class CourseAuthentication extends OAuth2Authentication {
      * @return impersonated authentication object if admin, null otherwise.
      */
     public CourseAuthentication impersonateUser(String userId, String courseId) {
-        if (hasAdminAccess(courseId)) {
+        if (hasPrivilegedAccess(courseId)) {
             CourseAuthentication impersonatedAuth = new CourseAuthentication(getOAuth2Request(), this, courseAccesses, userId);
             SecurityContextHolder.getContext().setAuthentication(impersonatedAuth);
             return impersonatedAuth;

@@ -40,6 +40,30 @@ public class CoursePermissionEvaluator {
      * @return
      * @see CourseAuthentication#getCourseAccesses()
      */
+    public boolean hasPrivilegedAccessToCourse(CourseAuthentication authentication, Course course) {
+        return authentication.hasPrivilegedAccess(course.getId());
+    }
+
+    /**
+     * Evaluates if current logged in user has access to a course
+     *
+     * @param authentication contains the information to which course a user has access to
+     * @param courseId         course to access
+     * @return
+     * @see CourseAuthentication#getCourseAccesses()
+     */
+    public boolean hasPrivilegedAccessToCourse(CourseAuthentication authentication, String courseId) {
+        return authentication.hasPrivilegedAccess(courseId);
+    }
+
+    /**
+     * Evaluates if current logged in user has access to a course
+     *
+     * @param authentication contains the information to which course a user has access to
+     * @param course         course to access
+     * @return
+     * @see CourseAuthentication#getCourseAccesses()
+     */
     public boolean hasAdminAccessToCourse(CourseAuthentication authentication, Course course) {
         return authentication.hasAdminAccess(course.getId());
     }

@@ -35,7 +35,7 @@ public class UserService {
      * @param course course containing student email addresses
      * @return list of user entities
      */
-    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
+    @PreAuthorize("@coursePermissionEvaluator.hasPrivilegedAccessToCourse(authentication, #course)")
     public UserQueryResult getCourseStudents(Course course) {
         List<String> emailAddresses = course.getStudents();
         return getUsersByEmailAddresses(emailAddresses);
