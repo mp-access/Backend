@@ -57,7 +57,8 @@ public class CourseAuthentication extends OAuth2Authentication {
      */
     public CourseAuthentication impersonateUser(String userId, String courseId) {
         if (hasPrivilegedAccess(courseId)) {
-            CourseAuthentication impersonatedAuth = new CourseAuthentication(getOAuth2Request(), this, courseAccesses, userId);
+            GrantedCourseAccess studentAccess = new GrantedCourseAccess(courseId, true, false, false);
+            CourseAuthentication impersonatedAuth = new CourseAuthentication(getOAuth2Request(), this, Set.of(studentAccess), userId);
             SecurityContextHolder.getContext().setAuthentication(impersonatedAuth);
             return impersonatedAuth;
         }
