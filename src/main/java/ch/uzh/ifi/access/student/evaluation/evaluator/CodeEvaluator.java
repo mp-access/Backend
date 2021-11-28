@@ -94,7 +94,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
                 String lastLine = lines[lines.length - 1];
                 int idxColon = lastLine.indexOf(':');
                 if (idxColon != -1) {
-                    String everythingBeforeColon = lastLine.substring(0, idxColon).trim();
+                    String everythingBeforeColon = lastLine.substring(0, Math.min(idxColon, 30)).trim();
                     hints.add("Error during import: " + everythingBeforeColon);
                 }
             }

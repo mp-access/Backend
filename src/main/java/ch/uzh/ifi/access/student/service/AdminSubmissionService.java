@@ -96,7 +96,7 @@ public class AdminSubmissionService {
         }
     }
 
-    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #course)")
+    @PreAuthorize("@coursePermissionEvaluator.hasPrivilegedAccessToCourse(authentication, #course)")
     public UserService.UserQueryResult getCourseStudents(Course course) {
         return userService.getCourseStudents(course);
     }

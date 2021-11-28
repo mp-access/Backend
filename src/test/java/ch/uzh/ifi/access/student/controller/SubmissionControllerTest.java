@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -91,6 +92,7 @@ public class SubmissionControllerTest {
         assignment.setPublishDate(ZonedDateTime.now().minusDays(1));
         assignment.setDueDate(ZonedDateTime.now().plusDays(7));
         when(courseDAO.selectExerciseById(exerciseIdAlreadyPublished)).thenReturn(Optional.of(exercise));
+        when(courseDAO.selectCourseById(any())).thenReturn(Optional.of(course));
 
         assignment = TestObjectFactory.createAssignment("asdf");
         exercise = TestObjectFactory.createCodeExercise("adfsf");
@@ -217,6 +219,7 @@ public class SubmissionControllerTest {
         final String payload = "{\n" +
                 "    \"type\": \"text\",\n" +
                 "    \"details\": {\n" +
+                "    \"graded\": true,\n" +
                 String.format("        \"answer\": \"%s\"\n", answer) +
                 "    }\n" +
                 "}";
@@ -373,6 +376,13 @@ public class SubmissionControllerTest {
                 .andExpect(jsonPath("$.runs").isArray())
                 .andExpect(jsonPath("$.runs", hasSize(1)));
 
+    }
+
+    @Test
+    public void getSubmissionHistoryPrivilegedUser() throws Exception {
+        mvc.perform(get("/submissions/exercises/" + exerciseIdAlreadyPublished  + "/users/" + assistantAuthentication.getUserId() + "/history")
+                        .with(authentication(assistantAuthentication)))
+                .andExpect(status().is(403));
     }
 
     @Test
