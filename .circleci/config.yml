@@ -7,6 +7,9 @@ jobs:
         environment:
           KEYCLOAK_USER: admin
           KEYCLOAK_PASSWORD: admin
+        command:
+          - "-Djboss.bind.address=0.0.0.0"
+          - "-Djboss.http.port=9999"
       - image: circleci/mongo:5.0.5
     working_directory: ~/backend
     steps:
