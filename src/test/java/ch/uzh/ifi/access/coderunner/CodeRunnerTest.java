@@ -3,20 +3,20 @@ package ch.uzh.ifi.access.coderunner;
 import ch.uzh.ifi.access.course.model.CodeExecutionLimits;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import org.assertj.core.api.Assertions;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 public class CodeRunnerTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(System.getProperty("user.dir")));
+    @TempDir
+    Path tempDir;
 
     @Test
     public void runCommand() throws DockerCertificateException, IOException, DockerException, InterruptedException {
@@ -34,17 +34,17 @@ public class CodeRunnerTest {
         String[] cmd1 = new String[]{"python", tempFile1.getName()};
         String[] cmd2 = new String[]{"python", tempFile2.getName()};
 
-        RunResult runResult1 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd1, CodeExecutionLimits.TESTING_UNLIMITED);
-        RunResult runResult2 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd2, CodeExecutionLimits.TESTING_UNLIMITED);
+        RunResult runResult1 = runner.attachVolumeAndRunCommand(tempDir.toAbsolutePath().toString(), cmd1, CodeExecutionLimits.TESTING_UNLIMITED);
+        RunResult runResult2 = runner.attachVolumeAndRunCommand(tempDir.toAbsolutePath().toString(), cmd2, CodeExecutionLimits.TESTING_UNLIMITED);
 
-        Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput1);
-        Assertions.assertThat(runResult2.getConsole()).isEqualTo(expectedOutput2);
+        Assertions.assertEquals(expectedOutput1, runResult1.getConsole());
+        Assertions.assertEquals(expectedOutput2, runResult2.getConsole());
 
 
         String[] cmd3 = new String[]{"ls", "-l"};
-        RunResult runResult3 = runner.attachVolumeAndRunCommand(folder.getRoot().getPath(), cmd3, CodeExecutionLimits.TESTING_UNLIMITED);
-        Assertions.assertThat(runResult3.getConsole()).contains(tempFile1.getName());
-        Assertions.assertThat(runResult3.getConsole()).contains(tempFile2.getName());
+        RunResult runResult3 = runner.attachVolumeAndRunCommand(tempDir.toAbsolutePath().toString(), cmd3, CodeExecutionLimits.TESTING_UNLIMITED);
+        Assertions.assertTrue(runResult3.getConsole().contains(tempFile1.getName()));
+        Assertions.assertTrue(runResult3.getConsole().contains(tempFile2.getName()));
     }
 
     @Test
@@ -56,9 +56,9 @@ public class CodeRunnerTest {
 
         File tempFile = createTempFileWithContent(code, "test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), tempFile.getName(), CodeExecutionLimits.TESTING_UNLIMITED);
+        RunResult runResult = runner.runPythonCode(tempDir.toAbsolutePath().toString(), tempFile.getName(), CodeExecutionLimits.TESTING_UNLIMITED);
 
-        Assertions.assertThat(runResult.getConsole()).isEqualTo(expectedOutput);
+        Assertions.assertEquals(expectedOutput, runResult.getConsole());
     }
 
     @Test
@@ -79,18 +79,18 @@ public class CodeRunnerTest {
 
         String expectedOutput = "This is the value of a: 42\n";
 
-        createTempFileWithContent(dependencyCode, "/a.py");
-        File main = createTempFileWithContent(mainCode, "/test.py");
+        createTempFileWithContent(dependencyCode, "a.py");
+        File main = createTempFileWithContent(mainCode, "test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), CodeExecutionLimits.TESTING_UNLIMITED);
+        RunResult runResult = runner.runPythonCode(tempDir.toAbsolutePath().toString(), main.getName(), CodeExecutionLimits.TESTING_UNLIMITED);
 
-        Assertions.assertThat(runResult.getConsole()).isEqualTo(expectedOutput);
+        Assertions.assertEquals(expectedOutput, runResult.getConsole());
     }
 
     private File createTempFileWithContent(String content, String filename) throws IOException {
-        File tempFile = folder.newFile(filename);
-        Files.writeString(tempFile.toPath(), content);
-        return tempFile;
+        Path tempFile = Files.createFile(tempDir.resolve(filename));
+        Files.writeString(tempFile, content);
+        return tempFile.toFile();
     }
 
     @Test
@@ -106,9 +106,9 @@ public class CodeRunnerTest {
         final String delimiter = "======";
         final String expectedOutput = String.format("Hello 1!\n%s\nHello 2!\n", delimiter);
 
-        RunResult runResult1 = runner.attachVolumeAndRunBash(folder.getRoot().getPath(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()), CodeExecutionLimits.TESTING_UNLIMITED);
+        RunResult runResult1 = runner.attachVolumeAndRunBash(tempDir.toAbsolutePath().toString(), String.format("python %s && echo \"%s\" && python %s", tempFile1.getName(), delimiter, tempFile2.getName()), CodeExecutionLimits.TESTING_UNLIMITED);
 
-        Assertions.assertThat(runResult1.getConsole()).isEqualTo(expectedOutput);
+        Assertions.assertEquals(expectedOutput, runResult1.getConsole());
     }
 
     @Test
@@ -120,12 +120,12 @@ public class CodeRunnerTest {
                 "    some_array.append('Lorem ipsum dolor sit amet, consectetur adipiscing elit.')\n";
 
 
-        File main = createTempFileWithContent(mainCode, "/test.py");
+        File main = createTempFileWithContent(mainCode, "test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), new CodeExecutionLimits(1, 1, 10 * 1000, false, false));
+        RunResult runResult = runner.runPythonCode(tempDir.toAbsolutePath().toString(), main.getName(), new CodeExecutionLimits(1, 1, 10 * 1000, false, false));
 
-        Assertions.assertThat(runResult.isOomKilled()).isTrue();
-        Assertions.assertThat(runResult.getConsole()).startsWith("Out of Memory");
+        Assertions.assertTrue(runResult.isOomKilled());
+        Assertions.assertTrue(runResult.getConsole().startsWith("Out of Memory"));
     }
 
     @Test
@@ -135,12 +135,12 @@ public class CodeRunnerTest {
         String mainCode = "while True:\n" +
                 "    x = 1+1\n";
 
-        File main = createTempFileWithContent(mainCode, "/test.py");
+        File main = createTempFileWithContent(mainCode, "test.py");
 
-        RunResult runResult = runner.runPythonCode(folder.getRoot().getPath(), main.getName(), new CodeExecutionLimits(64, 1, 1000, false, false));
+        RunResult runResult = runner.runPythonCode(tempDir.toAbsolutePath().toString(), main.getName(), new CodeExecutionLimits(64, 1, 1000, false, false));
 
-        Assertions.assertThat(runResult.isTimeout()).isTrue();
-        Assertions.assertThat(runResult.getConsole()).startsWith("Timeout");
+        Assertions.assertTrue(runResult.isTimeout());
+        Assertions.assertTrue(runResult.getConsole().startsWith("Timeout"));
     }
 
 }

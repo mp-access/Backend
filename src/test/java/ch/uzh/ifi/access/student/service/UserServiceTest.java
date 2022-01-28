@@ -1,111 +1,87 @@
 package ch.uzh.ifi.access.student.service;
 
-import ch.uzh.ifi.access.KeycloakClientTestConfiguration;
+import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.keycloak.KeycloakClient;
 import ch.uzh.ifi.access.student.model.User;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
-import org.keycloak.admin.client.resource.RealmResource;
+import ch.uzh.ifi.access.student.service.UserService.UserQueryResult;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
+import javax.ws.rs.NotFoundException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
+
+@SpringBootTest(classes = {UserService.class})
 public class UserServiceTest {
 
-    private RealmResource realmResource;
+    Course course = TestObjectFactory.createCourseWithAssignmentAndExercises("Course 1");
 
+    @MockBean
+    private KeycloakClient keycloakClient;
+
+    @Autowired
     private UserService userService;
 
-    @Before
-    public void setUp() {
-        KeycloakClientTestConfiguration testConfiguration = new KeycloakClientTestConfiguration();
-        testConfiguration.createTestRealm();
-        this.realmResource = testConfiguration.getRealm();
+    @BeforeEach
+    void setUp() {
+        when(keycloakClient.findUserByEmail(anyString())).thenAnswer(invocation -> toUser(invocation.getArgument(0)));
+        when(keycloakClient.getUserById(anyString())).thenAnswer(invocation -> toUserOrThrow(invocation.getArgument(0)));
 
-        this.userService = new UserService(testConfiguration.testClient());
+    }
+
+    private Optional<UserRepresentation> toUser(String email) {
+        if (email.equals("not-found"))
+            return Optional.empty();
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setId(email.split("@")[0]);
+        userRepresentation.setUsername(email);
+        return Optional.of(userRepresentation);
+    }
+
+    private UserRepresentation toUserOrThrow(String id) {
+        if (id.equals("not-found"))
+            throw new NotFoundException();
+        UserRepresentation userRepresentation = new UserRepresentation();
+        userRepresentation.setId(id);
+        userRepresentation.setUsername(id + "@email.com");
+        return userRepresentation;
+
     }
 
     @Test
-    public void getUsersByEmailAddresses() {
-        final String email1 = "test1@email.com";
-        final String email2 = "test2@email.com";
-        final String adminEmail = "admin@email.com";
-        createUserWithEmail(email1);
-        createUserWithEmail(email2);
-        createUserWithEmail(adminEmail);
-
-        Course course = new Course("");
-        course.setStudents(List.of(email1, email2));
-        course.setAssistants(List.of(adminEmail));
-        UserService.UserQueryResult users = userService.getCourseStudents(course);
-        List<User> usersFound = users.getUsersFound();
-        Assertions.assertThat(usersFound).hasSize(2);
-        Assertions.assertThat(usersFound.get(0).getEmailAddress()).isEqualTo(email1);
-        Assertions.assertThat(usersFound.get(1).getEmailAddress()).isEqualTo(email2);
+    public void getCourseStudentsTest() {
+        course.setStudents(List.of("student-1@email.com", "student-2@email.com", "not-found"));
+        UserQueryResult testResult = new UserQueryResult(List.of("not-found"), List.of(
+                new User("student-1", "student-1@email.com"),
+                new User("student-2", "student-2@email.com")));
+        Assertions.assertEquals(testResult, userService.getCourseStudents(course));
     }
 
     @Test
-    public void getAssistantsByEmailAddresses() {
-        final String email1 = "test1@email.com";
-        final String email2 = "test2@email.com";
-        final String adminEmail = "admin@email.com";
-        createUserWithEmail(email1);
-        createUserWithEmail(email2);
-        createUserWithEmail(adminEmail);
-
-        Course course = new Course("");
-        course.setStudents(List.of(email1, email2));
-        course.setAssistants(List.of(adminEmail));
-        UserService.UserQueryResult users = userService.getCourseAdmins(course);
-        List<User> usersFound = users.getUsersFound();
-        Assertions.assertThat(usersFound).hasSize(1);
-        Assertions.assertThat(usersFound.get(0).getEmailAddress()).isEqualTo(adminEmail);
-    }
-
-    private void createUserWithEmail(String email) {
-        UserRepresentation user = new UserRepresentation();
-        user.setUsername(email);
-        user.setEmail(UUID.randomUUID().toString());
-        realmResource.users().create(user);
+    public void getCourseAdminsTest() {
+        course.setAssistants(List.of("admin@email.com", "not-found"));
+        UserQueryResult testResult = new UserQueryResult(List.of("not-found"), List.of(
+                new User("admin", "admin@email.com")));
+        Assertions.assertEquals(testResult, userService.getCourseAdmins(course));
     }
 
     @Test
-    public void noUserFoundByEmail() {
-        // Make sure no users exist
-        realmResource
-                .users()
-                .list()
-                .forEach(user -> realmResource.users().delete(user.getId()));
-
-        final String nonExistingEmail = "test@email.com";
-        Course course = new Course("");
-        course.setStudents(List.of(nonExistingEmail));
-        UserService.UserQueryResult result = userService.getCourseStudents(course);
-        Assertions.assertThat(result.getAccountsNotFound()).containsExactly(nonExistingEmail);
-        Assertions.assertThat(result.getUsersFound()).isEmpty();
-    }
-
-    @Test
-    public void mixedFoundNotFound() {
-        final String email1 = "test1@email.com";
-        final String email2 = "test2@email.com";
-        final String adminEmail = "admin@email.com";
-        final String doesNotExist = "not@email.com";
-        createUserWithEmail(email1);
-        createUserWithEmail(email2);
-        createUserWithEmail(adminEmail);
-
-        Course course = new Course("");
-        course.setStudents(List.of(email1, email2, doesNotExist));
-        course.setAssistants(List.of(adminEmail));
-        UserService.UserQueryResult users = userService.getCourseStudents(course);
-        List<User> usersFound = users.getUsersFound();
-        Assertions.assertThat(usersFound).hasSize(2);
-        Assertions.assertThat(usersFound.get(0).getEmailAddress()).isEqualTo(email1);
-        Assertions.assertThat(usersFound.get(1).getEmailAddress()).isEqualTo(email2);
-
-        Assertions.assertThat(users.getAccountsNotFound()).containsExactly(doesNotExist);
+    public void getUsersByIdsTest() {
+        UserQueryResult testResult = new UserQueryResult(List.of("not-found"), List.of(
+                new User("student-1", "student-1@email.com")));
+        Assertions.assertEquals(testResult, userService.getUsersByIds(List.of("student-1", "not-found")));
     }
 }

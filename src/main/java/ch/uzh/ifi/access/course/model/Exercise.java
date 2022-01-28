@@ -3,9 +3,7 @@ package ch.uzh.ifi.access.course.model;
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
-import org.apache.commons.lang.StringUtils;
 
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -124,7 +122,7 @@ public class Exercise extends ExerciseConfig implements Ordered<Exercise>, HasBr
 
     public Optional<VirtualFile> searchPublicOrResourcesFileByName(String fileName) {
         Stream<VirtualFile> files = Stream.concat(public_files.stream(), resource_files.stream());
-        return files.filter(file -> file.matchesFilenameWithExtension(fileName)).findFirst();
+        return files.filter(file -> file.matchesFilename(fileName)).findFirst();
     }
 
     public String getAssignmentId() {
@@ -132,22 +130,18 @@ public class Exercise extends ExerciseConfig implements Ordered<Exercise>, HasBr
     }
 
     public String getCourseId() {
-        return assignment.getCourse().getId();
+        return assignment.getCourse().getRoleName();
     }
 
-    public boolean isPastDueDate() {
-        return assignment.isPastDueDate();
-    }
+    public boolean isPublished() { return assignment.isPublished(); }
+    public boolean isPastDueDate() { return assignment.isPastDueDate(); }
 
-    public ZonedDateTime getDueDate() {
-        return assignment.getDueDate();
-    }
 
     @JsonIgnore
     public String getTextSolution() {
         if (ExerciseType.text.equals(this.getType()) && this.getSolutions() != null && !this.getSolutions().isEmpty()) {
             String solution = this.getSolutions().get(0);
-            return StringUtils.isEmpty(solution) ? "" : solution.trim();
+            return solution.isEmpty() ? "" : solution.trim();
         }
 
         throw new UnsupportedOperationException("Calling getTextSolution on non-text type exercise");
@@ -201,8 +195,8 @@ public class Exercise extends ExerciseConfig implements Ordered<Exercise>, HasBr
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        BreadCrumb course = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getId());
-        BreadCrumb assignment = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getId() + "/assignments/" + this.getAssignment().getId(), getAssignment().getIndex());
+        BreadCrumb course = new BreadCrumb(this.getAssignment().getCourse().getTitle(), "courses/" + this.getAssignment().getCourse().getRoleName());
+        BreadCrumb assignment = new BreadCrumb(this.getAssignment().getTitle(), "courses/" + this.getAssignment().getCourse().getRoleName() + "/assignments/" + this.getAssignment().getId(), getAssignment().getIndex());
         BreadCrumb exercise = new BreadCrumb(this.getTitle(), "exercises/" + this.id, this.index);
 
         return List.of(course, assignment, exercise);

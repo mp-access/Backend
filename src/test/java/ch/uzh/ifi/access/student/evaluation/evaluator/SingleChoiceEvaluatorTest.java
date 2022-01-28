@@ -4,8 +4,8 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.SingleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
@@ -29,7 +29,7 @@ public class SingleChoiceEvaluatorTest {
         StudentSubmissionEvaluator evaluator = new SingleChoiceEvaluator();
         SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
 
-        Assert.assertEquals(2, grade.getScore(), 0.25);
+        Assertions.assertEquals(2, grade.getScore(), 0.25);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class SingleChoiceEvaluatorTest {
         StudentSubmissionEvaluator evaluator = new SingleChoiceEvaluator();
         SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
 
-        Assert.assertEquals(0.0, grade.getScore(), 0.25);
+        Assertions.assertEquals(0.0, grade.getScore(), 0.25);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class SingleChoiceEvaluatorTest {
                 .options(List.of("Hans", "Peter", "Frieda"))
                 .solutions(List.of("Hans"))
                 .maxScore(2)
-                .hints(Arrays.asList("Hinweis"))
+                .hints(List.of("Hinweis"))
                 .type(ExerciseType.singleChoice).build();
 
         SingleChoiceSubmission sub = SingleChoiceSubmission.builder()
@@ -70,7 +70,7 @@ public class SingleChoiceEvaluatorTest {
         StudentSubmissionEvaluator evaluator = new SingleChoiceEvaluator();
         SubmissionEvaluation grade = evaluator.evaluate(sub, ex);
 
-        Assert.assertNotNull("Has hints", grade.getHints());
-        Assert.assertTrue("Contains certain hint.", grade.getHints().contains("Hinweis"));
+        Assertions.assertNotNull(grade.getHints());
+        Assertions.assertTrue(grade.getHints().contains("Hinweis"));
     }
 }

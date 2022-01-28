@@ -4,9 +4,9 @@ import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachineRepoService;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class EvalProcessServiceTest {
 
@@ -14,7 +14,7 @@ public class EvalProcessServiceTest {
 
     private EvalProcessService processor;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         machineRepoService = new EvalMachineRepoService();
 
@@ -28,7 +28,7 @@ public class EvalProcessServiceTest {
 
         String processId = processor.initEvalProcess(csub);
 
-        Assertions.assertThat(machineRepoService.get(processId)).isNotNull();
+        Assertions.assertNotNull(machineRepoService.get(processId));
     }
 
     private Exercise buildCodeExerciseStub() {

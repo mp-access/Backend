@@ -2,10 +2,8 @@ package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import com.google.common.base.Joiner;
+import lombok.*;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -26,11 +24,23 @@ public class Course extends CourseConfig implements OrderedCollection<Assignment
     private String gitURL;
     private String directory;
 
+
+    /**
+     * A role name is composed by combining the course title and the semester (if available), all in lowercase and
+     * replacing spaces with dashes. The value is initialised and cached only after the getter is first called.
+     */
+    @Getter(lazy = true)
+    private final String roleName = parseRoleName();
+
+    public String parseRoleName() {
+        return Joiner.on("-").skipNulls().join(title, semester).toLowerCase().replace(" ", "-");
+    }
+
     private List<Assignment> assignments;
 
     public Course(String name) {
         this.id = new Utils().getID(name);
-
+        this.title = name;
         this.assignments = new ArrayList<>();
     }
 
@@ -94,7 +104,7 @@ public class Course extends CourseConfig implements OrderedCollection<Assignment
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        BreadCrumb course = new BreadCrumb(this.title, "courses/" + this.id);
+        BreadCrumb course = new BreadCrumb(this.title, "courses/" + this.roleName);
 
         return List.of(course);
     }

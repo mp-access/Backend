@@ -3,10 +3,10 @@ package ch.uzh.ifi.access.student.evaluation.process;
 import ch.uzh.ifi.access.student.evaluation.process.step.DelegateCodeExecStep;
 import ch.uzh.ifi.access.student.evaluation.process.step.GradeSubmissionStep;
 import ch.uzh.ifi.access.student.evaluation.process.step.RouteSubmissionStep;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.statemachine.StateMachine;
 
 public class EvalMachineFactoryTest {
@@ -15,63 +15,63 @@ public class EvalMachineFactoryTest {
 
     private StateMachine<EvalMachine.States, EvalMachine.Events> stateMachine;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         stateMachine = EvalMachineFactory.initSMForSubmission(submissionId);
         stateMachine.start();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         stateMachine = null;
     }
 
     @Test
     public void initTest() {
-        Assertions.assertThat(stateMachine.getState().getId())
-                .isEqualTo(EvalMachine.States.SUBMITTED);
+        Assertions.assertEquals(EvalMachine.States.SUBMITTED,
+                stateMachine.getState().getId());
 
-        Assertions.assertThat(stateMachine).isNotNull();
-        Assertions.assertThat(EvalMachineFactory.extractProcessStep(stateMachine))
-                .isEqualTo(RouteSubmissionStep.class.getName());
+        Assertions.assertNotNull(stateMachine);
+        Assertions.assertEquals(RouteSubmissionStep.class.getName(),
+                EvalMachineFactory.extractProcessStep(stateMachine));
     }
 
     @Test
     public void extendedState() {
         stateMachine.getExtendedState().getVariables().put("id", "test");
 
-        Assertions.assertThat(stateMachine.getExtendedState().getVariables().get("id"))
-                .isEqualTo("test");
+        Assertions.assertEquals("test",
+                stateMachine.getExtendedState().getVariables().get("id"));
     }
 
     @Test
     public void grade() {
         stateMachine.sendEvent(EvalMachine.Events.GRADE);
 
-        Assertions.assertThat(stateMachine.getState().getId()).isEqualTo(EvalMachine.States.GRADING);
-        Assertions.assertThat(EvalMachineFactory.extractProcessStep(stateMachine))
-                .isEqualTo(GradeSubmissionStep.class.getName());
+        Assertions.assertEquals(EvalMachine.States.GRADING, stateMachine.getState().getId());
+        Assertions.assertEquals(GradeSubmissionStep.class.getName(),
+                EvalMachineFactory.extractProcessStep(stateMachine));
     }
 
     @Test
     public void delegate() {
         stateMachine.sendEvent(EvalMachine.Events.DELEGATE);
 
-        Assertions.assertThat(stateMachine.getState().getId()).isEqualTo(EvalMachine.States.DELEGATE);
-        Assertions.assertThat(EvalMachineFactory.extractProcessStep(stateMachine))
-                .isEqualTo(DelegateCodeExecStep.class.getName());
+        Assertions.assertEquals(EvalMachine.States.DELEGATE, stateMachine.getState().getId());
+        Assertions.assertEquals(DelegateCodeExecStep.class.getName(),
+                EvalMachineFactory.extractProcessStep(stateMachine));
     }
 
     @Test
     public void returning() {
         stateMachine.sendEvent(EvalMachine.Events.DELEGATE);
-        Assertions.assertThat(stateMachine.getState().getId()).isEqualTo(EvalMachine.States.DELEGATE);
-        Assertions.assertThat(EvalMachineFactory.extractProcessStep(stateMachine))
-                .isEqualTo(DelegateCodeExecStep.class.getName());
+        Assertions.assertEquals(EvalMachine.States.DELEGATE, stateMachine.getState().getId());
+        Assertions.assertEquals(DelegateCodeExecStep.class.getName(),
+                EvalMachineFactory.extractProcessStep(stateMachine));
 
 
         stateMachine.sendEvent(EvalMachine.Events.RETURN);
-        Assertions.assertThat(stateMachine.getState().getId()).isEqualTo(EvalMachine.States.RETURNING);
+        Assertions.assertEquals(EvalMachine.States.RETURNING, stateMachine.getState().getId());
 //        Assertions.assertThat(EvalMachineFactory.extractProcessStep(stateMachine))
 //                .isEqualTo(DelegateCodeExecStep.class.getName());
     }
@@ -79,12 +79,12 @@ public class EvalMachineFactoryTest {
     @Test
     public void ignoreWrongEvent() {
         stateMachine.sendEvent(EvalMachine.Events.DELEGATE);
-        Assertions.assertThat(stateMachine.getState().getId())
-                .isEqualTo(EvalMachine.States.DELEGATE);
+        Assertions.assertEquals(EvalMachine.States.DELEGATE,
+                stateMachine.getState().getId());
 
         stateMachine.sendEvent(EvalMachine.Events.GRADE);
-        Assertions.assertThat(stateMachine.getState().getId())
-                .isEqualTo(EvalMachine.States.DELEGATE);
+        Assertions.assertEquals(EvalMachine.States.DELEGATE,
+                stateMachine.getState().getId());
     }
 
 }

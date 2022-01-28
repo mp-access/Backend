@@ -1,7 +1,5 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
-import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
 import ch.uzh.ifi.access.course.dto.ExerciseWithSolutionsDTO;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.model.VirtualFile;
@@ -10,13 +8,8 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/exercises")
@@ -24,84 +17,53 @@ public class ExerciseController {
 
     private final CourseService courseService;
 
-    private final CoursePermissionEvaluator permissionEvaluator;
-
-    public ExerciseController(CourseService courseService, CoursePermissionEvaluator permissionEvaluator) {
+    public ExerciseController(CourseService courseService) {
         this.courseService = courseService;
-        this.permissionEvaluator = permissionEvaluator;
     }
 
+    /**
+     * Return a response containing an exercise without solutions if the user who made the request can view the exercise.
+     * @param exerciseId  requested exercise ID
+     * @return            status OK with Exercise body, if accessible and found
+     * @see CourseService#getExerciseWithViewPermission(String)  for permission filtering and exceptions
+     */
     @GetMapping("/{exerciseId}")
-    public ResponseEntity<?> getExerciseByCourseAndAssignment(
-            @PathVariable("exerciseId") String exerciseId, @ApiIgnore CourseAuthentication authentication) {
-        Exercise exercise = courseService.getExerciseById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-
-        if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
-            if (hasAccessToExerciseSolutions(exercise, authentication)) {
-                return ResponseEntity.ok(new ExerciseWithSolutionsDTO(exercise));
-            } else {
-                return ResponseEntity.ok(exercise);
-            }
-        }
-
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<Exercise> getExercise(@PathVariable String exerciseId) {
+        return ResponseEntity.ok(courseService.getExerciseWithViewPermission(exerciseId));
     }
 
+    /**
+     * Return a response containing an exercise with solutions (and other private files) if the user who made the
+     * request can view the exercise and has an assistant role for the exercise's course.
+     * @param exerciseId  requested exercise ID
+     * @return            status OK with ExerciseWithSolutionsDTO body, if accessible and found
+     * @see CourseService#getExerciseWithViewPermission(String)  for permission filtering and exceptions
+     */
+    @GetMapping("/{exerciseId}/solutions")
+    @PreAuthorize("hasRole('assistant')")
+    public ResponseEntity<ExerciseWithSolutionsDTO> getExerciseWithSolutions(@PathVariable String exerciseId) {
+        return ResponseEntity.ok(new ExerciseWithSolutionsDTO(courseService.getExerciseWithViewPermission(exerciseId)));
+    }
+
+    /**
+     * Get a response containing a file associated with a specific exercise if the user who made the request can
+     * view the exercise and the file exists. The function first tries to match the fileId input against the IDs of
+     * all available files, then - if not found - against the names (without extension) of the files.
+     * @param exerciseId  requested exercise ID
+     * @param fileId      requested file ID or name without extension
+     * @return            status OK with Resource body, if the exercise is accessible and the file was found
+     * @throws ResourceNotFoundException  if the exercise exists but the file was not found
+     * @see CourseService#getExerciseWithViewPermission(String)  for permission filtering and exceptions
+     */
     @GetMapping("/{exerciseId}/files/{fileId}")
-    public ResponseEntity<Resource> getFile(
-            @PathVariable("exerciseId") String exerciseId,
-            @PathVariable("fileId") String fileId,
-            @ApiIgnore CourseAuthentication authentication) throws IOException {
-        Exercise exercise = courseService.getExerciseById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
+    public ResponseEntity<Resource> getFile(@PathVariable String exerciseId, @PathVariable String fileId) {
+        Exercise exercise = courseService.getExerciseWithViewPermission(exerciseId);
 
-        if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
-            Optional<FileSystemResource> file = courseService.getFileCheckingPrivileges(exercise, fileId, authentication);
+        VirtualFile virtualFile = exercise.getPublicOrResourcesFile(fileId)
+                .orElseGet(() -> exercise.searchPublicOrResourcesFileByName(fileId)
+                        .orElseThrow(() -> new ResourceNotFoundException("No file found for identifier")));
 
-            if (file.isPresent()) {
-                File fileHandle = file.get().getFile();
-                FileSystemResource r = new FileSystemResource(fileHandle);
-                return ResponseEntity.ok()
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(r);
-            }
-        }
-
-        return ResponseEntity.notFound().build();
-    }
-
-    @PostMapping("/{exerciseId}/files/search")
-    public ResponseEntity<Resource> searchForFile(
-            @PathVariable("exerciseId") String exerciseId,
-            @RequestBody Map<String, String> body,
-            @ApiIgnore CourseAuthentication authentication) throws IOException {
-        Exercise exercise = courseService.getExerciseById(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No exercise found for id"));
-
-        var filename = body.get("filename");
-        if (permissionEvaluator.hasAccessToExercise(authentication, exercise) && filename != null) {
-            if (filename.startsWith("resource/") || filename.startsWith("public/")) {
-
-                filename = filename.split("/")[1];
-            }
-
-            Optional<VirtualFile> virtualFile = exercise.searchPublicOrResourcesFileByName(filename);
-            Optional<FileSystemResource> file = virtualFile.map(vf -> new FileSystemResource(vf.getFile()));
-
-            if (file.isPresent()) {
-                File fileHandle = file.get().getFile();
-                FileSystemResource r = new FileSystemResource(fileHandle);
-                return ResponseEntity.ok()
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(r);
-            }
-        }
-
-        return ResponseEntity.notFound().build();
-    }
-
-    private boolean hasAccessToExerciseSolutions(Exercise exercise, CourseAuthentication authentication) {
-        return exercise.isPastDueDate() || authentication.hasPrivilegedAccess(exercise.getCourseId());
+        FileSystemResource file = new FileSystemResource(virtualFile.getFile());
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(file);
     }
 }

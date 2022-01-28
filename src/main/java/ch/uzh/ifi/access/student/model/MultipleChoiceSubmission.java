@@ -18,8 +18,8 @@ public class MultipleChoiceSubmission extends StudentSubmission {
     private Set<Integer> choices;
 
     @Builder
-    public MultipleChoiceSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, Set<Integer> choices) {
-        super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
+    public MultipleChoiceSubmission(String id, int version, String userId, String commitId, String exerciseId, String courseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, Set<Integer> choices) {
+        super(id, version, userId, commitId, exerciseId, courseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
         this.choices = choices;
     }
 

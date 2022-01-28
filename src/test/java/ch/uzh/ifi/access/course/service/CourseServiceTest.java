@@ -1,166 +1,191 @@
 package ch.uzh.ifi.access.course.service;
 
 import ch.uzh.ifi.access.TestObjectFactory;
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
+import ch.uzh.ifi.access.course.config.CourseServiceSetup;
+import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.dao.CourseDAO;
-import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.course.model.VirtualFile;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.core.io.FileSystemResource;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
+import org.mockito.Answers;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
+@SpringBootTest(classes = {CourseService.class})
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class CourseServiceTest {
 
-    @Mock
-    private CourseDAO dao;
+    Course testCourse = TestObjectFactory.createCourseWithAssignments("Course 1", List.of(
+            TestObjectFactory.createAssignmentWithExercises(true, false),
+            TestObjectFactory.createAssignmentWithExercises(false, false),
+            TestObjectFactory.createAssignmentWithExercises(true, true))
+    );
+    Exercise publishedExercise = testCourse.getAssignments().get(0).getExercises().get(0);
+    Exercise unpublishedExercise = testCourse.getAssignments().get(1).getExercises().get(0);
+    Exercise pastDueExercise = testCourse.getAssignments().get(2).getExercises().get(0);
 
-    @Before
+    @MockBean
+    private CourseServiceSetup courseSetup;
+
+    @MockBean(answer = Answers.CALLS_REAL_METHODS)
+    @Qualifier("gitrepo")
+    private CourseDAO courseDAO;
+
+    @Autowired
+    private CourseService courseService;
+
+    @BeforeEach
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        ReflectionTestUtils.setField(courseDAO, "courseList", List.of(testCourse));
+        ReflectionTestUtils.setField(courseDAO, "exerciseIndex", Map.of(
+                publishedExercise.getId(), publishedExercise,
+                unpublishedExercise.getId(), unpublishedExercise,
+                pastDueExercise.getId(), pastDueExercise)
+        );
     }
 
     @Test
-    public void getExercisesByCourseAndAssignmentId() {
-        var course = new Course("");
-        var a1 = new Assignment("Assignment_1");
-        a1.setCourse(course);
-        a1.setExercises(Arrays.asList(new Exercise("Exercise_1"), new Exercise("Exercise_2"), new Exercise("Exercise_3")));
-
-        var a2 = new Assignment("Assignment_2");
-        a2.setCourse(course);
-        a2.setExercises(Arrays.asList(new Exercise("Exercise_1"), new Exercise("Exercise_2")));
-
-        course.addAssignment(a1);
-        course.addAssignment(a2);
-
-        when(dao.selectCourseById(any())).thenReturn(Optional.of(course));
-
-        CourseService service = new CourseService(dao, null);
-        var optResult = service.getExercisesByCourseAndAssignmentId(course.getId(), a1.getId());
-
-        assertThat(optResult.isPresent()).isTrue();
-        assertThat(optResult.get()).hasSize(3);
+    public void getAllCoursesTest() {
+        Assertions.assertEquals(List.of(testCourse), courseService.getAllCourses());
     }
 
     @Test
-    public void getFileCheckingPrivilegesHasNoAccessToSolutions() {
-        Course course = TestObjectFactory.createCourse("");
-        Assignment assignment = TestObjectFactory.createAssignment("");
-        Exercise exercise = TestObjectFactory.createCodeExercise("");
-        course.addAssignment(assignment);
-        assignment.addExercise(exercise);
-        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
-        assignment.setDueDate(ZonedDateTime.now().plusYears(1));
-
-        VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
-        VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
-        VirtualFile privateFile = TestObjectFactory.createVirtualFile("private", ".py", false);
-        VirtualFile solutionFile = TestObjectFactory.createVirtualFile("solution", ".py", false);
-
-        exercise.setPublic_files(List.of(vFile1, vFile2));
-        exercise.setPrivate_files(List.of(privateFile));
-        exercise.setSolution_files(List.of(solutionFile));
-
-        CourseAuthentication student = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createStudentAccess(course.getId())));
-
-        CourseService courseService = new CourseService(dao, null);
-
-        Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), student);
-        Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), student);
-        Optional<FileSystemResource> shouldNotGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), student);
-        Optional<FileSystemResource> shouldNotGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), student);
-
-        assertThat(shouldGetVFile1.isPresent()).isTrue();
-        assertThat(shouldGetVFile2.isPresent()).isTrue();
-        assertThat(shouldNotGetPrivateFile.isPresent()).isFalse();
-        assertThat(shouldNotGetSolutionFile.isPresent()).isFalse();
-        assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
-        assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());
+    public void getCourseByRoleNameTest() {
+        Assertions.assertEquals("course-1", testCourse.getRoleName());
+        Optional<Course> returnedCourse = courseService.getCourseByRoleName(testCourse.getRoleName());
+        Assertions.assertTrue(returnedCourse.isPresent());
+        Assertions.assertEquals(testCourse, returnedCourse.get());
     }
 
     @Test
-    public void getFileCheckingPrivilegesStudentHasAccessToSolutionsAfterDueDate() {
-        Course course = TestObjectFactory.createCourse("");
-        Assignment assignment = TestObjectFactory.createAssignment("");
-        Exercise exercise = TestObjectFactory.createCodeExercise("");
-        course.addAssignment(assignment);
-        assignment.addExercise(exercise);
-        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
-        assignment.setDueDate(ZonedDateTime.now().minusDays(1));
-
-        VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
-        VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
-        VirtualFile privateFile = TestObjectFactory.createVirtualFile("private", ".py", false);
-        VirtualFile solutionFile = TestObjectFactory.createVirtualFile("solution", ".py", false);
-
-        exercise.setPublic_files(List.of(vFile1, vFile2));
-        exercise.setPrivate_files(List.of(privateFile));
-        exercise.setSolution_files(List.of(solutionFile));
-
-        CourseAuthentication student = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createStudentAccess(course.getId())));
-
-        CourseService courseService = new CourseService(dao, null);
-
-        Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), student);
-        Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), student);
-        Optional<FileSystemResource> shouldGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), student);
-        Optional<FileSystemResource> shouldGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), student);
-
-        assertThat(shouldGetVFile1.isPresent()).isTrue();
-        assertThat(shouldGetVFile2.isPresent()).isTrue();
-        assertThat(shouldGetSolutionFile.isPresent()).isTrue();
-        assertThat(shouldGetPrivateFile.isPresent()).isTrue();
-        assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
-        assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());
-        assertThat(shouldGetSolutionFile.get().getFilename()).isEqualTo(solutionFile.getNameWithExtension());
+    @WithMockUser(roles = {"course-1", "course-2"})
+    public void getCourseWithPermissionAllowedTest() {
+        Course returnedCourse = courseService.getCourseWithPermission(testCourse.getRoleName());
+        Assertions.assertEquals(testCourse, returnedCourse);
     }
 
     @Test
-    public void getFileCheckingPrivilegesAssistantAccess() {
-        Course course = TestObjectFactory.createCourseWithOneAssignmentAndOneExercise("Course", "Assignment", "exercise question");
-        Assignment assignment = course.getAssignments().get(0);
-        Exercise exercise = assignment.getExercises().get(0);
-        assignment.setPublishDate(ZonedDateTime.now().minusYears(1));
-        assignment.setDueDate(ZonedDateTime.now().plusYears(1));
+    @WithMockUser(roles = {"course-2"})
+    public void getCourseWithPermissionDeniedTest() {
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> courseService.getCourseWithPermission(testCourse.getRoleName()));
+    }
 
-        VirtualFile vFile1 = TestObjectFactory.createVirtualFile("name1", "py", false);
-        VirtualFile vFile2 = TestObjectFactory.createVirtualFile("name2", "py", false);
-        VirtualFile privateFile = TestObjectFactory.createVirtualFile("private", ".py", false);
-        VirtualFile solutionFile = TestObjectFactory.createVirtualFile("solution", ".py", false);
+    @Test
+    @WithMockUser(roles = {"course-4"})
+    public void getCourseWithPermissionNotFoundTest() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> courseService.getCourseWithPermission("course-4"));
+    }
 
-        exercise.setPublic_files(List.of(vFile1, vFile2));
-        exercise.setPrivate_files(List.of(privateFile));
-        exercise.setSolution_files(List.of(solutionFile));
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getPublishedExerciseWithViewPermissionAsStudentTest() {
+        Exercise returnedExercise = courseService.getExerciseWithViewPermission(publishedExercise.getId());
+        Assertions.assertEquals(publishedExercise, returnedExercise);
+    }
 
-        CourseAuthentication assistant = TestObjectFactory.createCourseAuthentication(Set.of(TestObjectFactory.createAssistantAccess(course.getId())));
+    @Test
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
+    public void getPublishedExerciseWithViewPermissionAsAssistantTest() {
+        Exercise returnedExercise = courseService.getExerciseWithViewPermission(publishedExercise.getId());
+        Assertions.assertEquals(publishedExercise, returnedExercise);
+    }
 
-        CourseService courseService = new CourseService(dao, null);
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getUnpublishedExerciseWithViewPermissionAsStudentTest() {
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> courseService.getExerciseWithViewPermission(unpublishedExercise.getId()));
+    }
 
-        Optional<FileSystemResource> shouldGetVFile1 = courseService.getFileCheckingPrivileges(exercise, vFile1.getId(), assistant);
-        Optional<FileSystemResource> shouldGetVFile2 = courseService.getFileCheckingPrivileges(exercise, vFile2.getId(), assistant);
-        Optional<FileSystemResource> shouldGetPrivateFile = courseService.getFileCheckingPrivileges(exercise, privateFile.getId(), assistant);
-        Optional<FileSystemResource> shouldGetSolutionFile = courseService.getFileCheckingPrivileges(exercise, solutionFile.getId(), assistant);
+    @Test
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
+    public void getUnpublishedExerciseWithViewPermissionAsAssistantTest() {
+        Exercise returnedExercise = courseService.getExerciseWithViewPermission(unpublishedExercise.getId());
+        Assertions.assertEquals(unpublishedExercise, returnedExercise);
+    }
 
-        assertThat(shouldGetVFile1.isPresent()).isTrue();
-        assertThat(shouldGetVFile2.isPresent()).isTrue();
-        assertThat(shouldGetPrivateFile.isPresent()).isTrue();
-        assertThat(shouldGetSolutionFile.isPresent()).isTrue();
-        assertThat(shouldGetVFile1.get().getFilename()).isEqualTo(vFile1.getNameWithExtension());
-        assertThat(shouldGetVFile2.get().getFilename()).isEqualTo(vFile2.getNameWithExtension());
-        assertThat(shouldGetSolutionFile.get().getFilename()).isEqualTo(solutionFile.getNameWithExtension());
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getPastDueExerciseWithViewPermissionAsStudentTest() {
+        Exercise returnedExercise = courseService.getExerciseWithViewPermission(pastDueExercise.getId());
+        Assertions.assertEquals(pastDueExercise, returnedExercise);
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
+    public void getPastDueExerciseWithViewPermissionAsAssistantTest() {
+        Exercise returnedExercise = courseService.getExerciseWithViewPermission(pastDueExercise.getId());
+        Assertions.assertEquals(pastDueExercise, returnedExercise);
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getExerciseWithViewPermissionNotFoundTest() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> courseService.getExerciseWithViewPermission("123"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getPublishedExerciseWithSubmitPermissionAsStudentTest() {
+        Exercise returnedExercise = courseService.getExerciseWithPermission(publishedExercise.getId(), true);
+        Assertions.assertEquals(publishedExercise, returnedExercise);
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
+    public void getPublishedExerciseWithSubmitPermissionAsAssistantTest() {
+        Exercise returnedExercise = courseService.getExerciseWithPermission(publishedExercise.getId(), true);
+        Assertions.assertEquals(publishedExercise, returnedExercise);
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getUnpublishedExerciseWithSubmitPermissionAsStudentTest() {
+        Assertions.assertFalse(unpublishedExercise.isPublished());
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> courseService.getExerciseWithPermission(unpublishedExercise.getId(), true));
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
+    public void getUnpublishedExerciseWithSubmitPermissionAsAssistantTest() {
+        Exercise returnedExercise = courseService.getExerciseWithPermission(unpublishedExercise.getId(), true);
+        Assertions.assertEquals(unpublishedExercise, returnedExercise);
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getPastDueExerciseWithSubmitPermissionAsStudentTest() {
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> courseService.getExerciseWithPermission(pastDueExercise.getId(), true));
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
+    public void getPastDueExerciseWithSubmitPermissionAsAssistantTest() {
+        Exercise returnedExercise = courseService.getExerciseWithPermission(pastDueExercise.getId(), true);
+        Assertions.assertEquals(pastDueExercise, returnedExercise);
+    }
+
+    @Test
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"})
+    public void getExerciseWithSubmitPermissionNotFoundTest() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> courseService.getExerciseWithPermission("123", true));
     }
 }

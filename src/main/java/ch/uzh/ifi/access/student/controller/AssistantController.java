@@ -32,25 +32,20 @@ public class AssistantController {
     }
 
     @GetMapping("/courses/{courseId}/assignments/{assignmentId}/results")
-    public ResponseEntity<?> exportAssignmentResults(@PathVariable String assignmentId, @PathVariable String courseId) {
-        Course course = courseService
-                .getCourseById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
-
+    @PreAuthorize("hasRole(#courseId + '-course-admin')")
+    public ResponseEntity<?> exportAssignmentResults(@PathVariable String courseId, @PathVariable String assignmentId) {
+        Course course = courseService.getCourseWithPermission(courseId);
         Assignment assignment = course.getAssignmentById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
 
         AssignmentReport report = adminSubmissionService.generateAssignmentReport(course, assignment);
-
         return ResponseEntity.ok(report);
     }
 
     @GetMapping("/courses/{courseId}/assignments/{assignmentId}/reevaluate")
-    public ResponseEntity<?> reevaluateInvalidateSubmissionsForAssignment(@PathVariable String assignmentId, @PathVariable String courseId) {
-        Course course = courseService
-                .getCourseById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
-
+    @PreAuthorize("hasRole(#courseId + '-course-admin')")
+    public ResponseEntity<?> reevaluateInvalidateSubmissionsForAssignment(@PathVariable String courseId, @PathVariable String assignmentId) {
+        Course course = courseService.getCourseWithPermission(courseId);
         Assignment assignment = course.getAssignmentById(assignmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("No assignment found"));
 
@@ -59,25 +54,21 @@ public class AssistantController {
     }
 
     @GetMapping("/courses/{courseId}/participants")
+    @PreAuthorize("hasRole(#courseId + '-assistant')")
     public ResponseEntity<?> getCourseParticipants(@PathVariable String courseId) {
-        Course course = courseService
-                .getCourseById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+        Course course = courseService.getCourseWithPermission(courseId);
 
         UserService.UserQueryResult courseStudents = adminSubmissionService.getCourseStudents(course);
-
         return ResponseEntity.ok(courseStudents);
     }
 
     @PostMapping("/courses/{courseId}/participants/migrations")
-    @PreAuthorize("@coursePermissionEvaluator.hasAdminAccessToCourse(authentication, #courseId)")
+    @PreAuthorize("hasRole(#courseId + '-course-admin')")
     public ResponseEntity<UserMigrationResult> migrateUser(@RequestBody UserMigration migration, @PathVariable String courseId) {
         log.info("User account migration request: from '{}', to '{}'", migration.getFrom(), migration.getTo());
-        Course course = courseService
-                .getCourseById(courseId)
-                .orElseThrow(() -> new ResourceNotFoundException("No course found"));
+        Course course = courseService.getCourseWithPermission(courseId);
 
-        UserService.UserQueryResult queryResult = adminSubmissionService.getCourseStudentByUserIds(List.of(migration.getFrom(), migration.getTo()), course);
+        UserService.UserQueryResult queryResult = adminSubmissionService.getCourseStudentByUserIds(List.of(migration.getFrom(), migration.getTo()));
         if (!queryResult.getAccountsNotFound().isEmpty()) {
             log.warn("Failed to find accounts to migrate for request {}. Missing accounts {}", migration, queryResult.getAccountsNotFound());
             return ResponseEntity.badRequest().build();
@@ -93,5 +84,12 @@ public class AssistantController {
 
         UserMigrationResult migrationResult = adminSubmissionService.migrateUser(migration);
         return ResponseEntity.ok(migrationResult);
+    }
+
+    @GetMapping("/courses/{courseId}/exercises/{exerciseId}/users/{userId}/reset")
+    @PreAuthorize("hasRole(#courseId + '-assistant')")
+    public ResponseEntity<?> resetSubmissionCount(@PathVariable String courseId, @PathVariable String exerciseId, @PathVariable String userId) {
+        adminSubmissionService.invalidateSubmissionsByExerciseAndUser(exerciseId, userId);
+        return ResponseEntity.ok().build();
     }
 }

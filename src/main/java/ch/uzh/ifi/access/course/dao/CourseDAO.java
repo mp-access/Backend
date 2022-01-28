@@ -9,8 +9,9 @@ import ch.uzh.ifi.access.course.util.RepoCacher;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
-import org.apache.commons.lang.SerializationUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -76,7 +77,7 @@ public class CourseDAO {
             FileOutputStream coursesJson = new FileOutputStream(coursesFile);
             FileOutputStream exercisesJson = new FileOutputStream(exerciseFile);
 
-            ObjectMapper mapper = new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
             ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
             writer.writeValue(coursesJson, courseList);
             writer.writeValue(exercisesJson, exerciseIndex);
@@ -106,7 +107,7 @@ public class CourseDAO {
     }
 
     protected Course updateCourse(Course c) {
-        Course clone = (Course) SerializationUtils.clone(c);
+        Course clone = SerializationUtils.clone(c);
         Course newCourse;
 
         // Try to pull new course
@@ -200,6 +201,12 @@ public class CourseDAO {
     public Optional<Course> selectCourseById(String id) {
         return courseList.stream()
                 .filter(course -> course.getId().equals(id))
+                .findFirst();
+    }
+
+    public Optional<Course> selectCourseByRoleName(String roleName) {
+        return courseList.stream()
+                .filter(course -> course.getRoleName().equals(roleName))
                 .findFirst();
     }
 

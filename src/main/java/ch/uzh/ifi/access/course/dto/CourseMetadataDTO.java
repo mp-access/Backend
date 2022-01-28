@@ -1,15 +1,16 @@
 package ch.uzh.ifi.access.course.dto;
 
-import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.BreadCrumb;
 import ch.uzh.ifi.access.course.model.Course;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode
 public class CourseMetadataDTO {
 
     private final String id;
@@ -18,11 +19,15 @@ public class CourseMetadataDTO {
     private String description;
     private String owner;
     private String semester;
+    @EqualsAndHashCode.Exclude
     private String gitHash;
+    private String roleName;
     private ZonedDateTime startDate;
     private ZonedDateTime endDate;
 
+    @EqualsAndHashCode.Exclude
     private List<BreadCrumb> breadCrumbs;
+    @EqualsAndHashCode.Exclude
     private List<AssignmentMetadataDTO> assignments = new ArrayList<>();
 
     public CourseMetadataDTO(Course course) {
@@ -35,9 +40,6 @@ public class CourseMetadataDTO {
         this.startDate = course.getStartDate();
         this.endDate = course.getEndDate();
         this.breadCrumbs = course.getBreadCrumbs();
-
-        for (Assignment a : course.getAssignments()) {
-            this.assignments.add(new AssignmentMetadataDTO(a));
-        }
+        this.roleName = course.getRoleName();
     }
 }

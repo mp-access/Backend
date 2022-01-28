@@ -4,23 +4,17 @@ import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
-import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.List;
+import java.util.Optional;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 public class BreakingChangeIntegrationTest {
 
     @Autowired
@@ -29,84 +23,64 @@ public class BreakingChangeIntegrationTest {
     @Autowired
     private StudentSubmissionService submissionService;
 
-    @Autowired
-    private StudentSubmissionRepository repository;
-
-    @Before
-    public void setUp() throws Exception {
-        repository.deleteAll();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        repository.deleteAll();
-    }
-
     @Test
     public void lookForBreakingChangesSingleExerciseBroken() throws InterruptedException {
         // Set up
-        Course before = TestObjectFactory.createCourse("title");
-        Course after = TestObjectFactory.createCourse(before.getTitle());
-        Assignment assignmentBefore = TestObjectFactory.createAssignment("assignment");
-        Assignment assignmentAfter = TestObjectFactory.createAssignment("assignment");
-        Exercise exerciseBefore1 = TestObjectFactory.createCodeExercise("");
-        Exercise exerciseAfter1 = TestObjectFactory.createCodeExercise("");
-        exerciseBefore1.setOrder(0);
-        exerciseAfter1.setOrder(1);
+        Course courseBefore = new Course("Course");
+        Assignment assignmentBefore = new Assignment("Assignment");
+        Exercise exercise1Before = TestObjectFactory.createCodeExercise("exercise-1");
+        Exercise exercise2Before = TestObjectFactory.createCodeExercise("exercise-2");
+        exercise1Before.setOrder(0);
+        exercise2Before.setOrder(2);
+        courseBefore.addAssignment(assignmentBefore);
+        assignmentBefore.addExercise(exercise1Before);
+        assignmentBefore.addExercise(exercise2Before);
 
-        Exercise exerciseBefore2 = TestObjectFactory.createCodeExercise("");
-        Exercise exerciseAfter2 = TestObjectFactory.createCodeExercise("");
-        exerciseBefore2.setOrder(2);
-        exerciseAfter2.setOrder(exerciseBefore2.getOrder());
+        Course courseAfter = new Course("Course");
+        Assignment assignmentAfter = new Assignment("Assignment");
+        Exercise exercise1After = TestObjectFactory.createCodeExercise("exercise-1");
+        Exercise exercise2After = TestObjectFactory.createCodeExercise("exercise-2");
+        exercise1After.setOrder(1);
+        exercise2After.setOrder(2);
+        courseAfter.addAssignment(assignmentAfter);
+        assignmentAfter.addExercise(exercise1After);
+        assignmentAfter.addExercise(exercise2After);
 
-        before.addAssignment(assignmentBefore);
-        assignmentBefore.addExercise(exerciseBefore1);
-        assignmentBefore.addExercise(exerciseBefore2);
+        final String userId = "test-user";
+        CodeSubmission submissionEx1 = new CodeSubmission();
+        submissionEx1.setUserId(userId);
+        submissionEx1.setExerciseId(exercise1Before.getId());
+        submissionEx1.setCommitId(exercise1Before.getGitHash());
+        submissionEx1.setGraded(true);
 
-        after.addAssignment(assignmentAfter);
-        assignmentAfter.addExercise(exerciseAfter1);
-        assignmentAfter.addExercise(exerciseAfter2);
-
-        final String userId = "user-id1";
-        CodeSubmission submission1 = new CodeSubmission();
-        submission1.setUserId(userId);
-        submission1.setExerciseId(exerciseBefore1.getId());
-        submission1.setCommitId(exerciseBefore1.getGitHash());
-        submission1.setGraded(true);
-
-        CodeSubmission submission2 = new CodeSubmission();
-        submission2.setUserId(userId);
-        submission2.setExerciseId(exerciseBefore2.getId());
-        submission2.setCommitId(exerciseBefore2.getGitHash());
-        submission2.setGraded(true);
+        CodeSubmission submissionEx2 = new CodeSubmission();
+        submissionEx2.setUserId(userId);
+        submissionEx2.setExerciseId(exercise2Before.getId());
+        submissionEx2.setCommitId(exercise2Before.getGitHash());
+        submissionEx2.setGraded(true);
 
         // Begin actual test
         // Submit answers for each exercise
-        submissionService.initSubmission(submission1);
-        submissionService.initSubmission(submission2);
+        submissionService.initSubmission(submissionEx1);
+        submissionService.initSubmission(submissionEx2);
 
         // Make sure they are both valid
-        List<StudentSubmission> all = repository.findAll();
-        Assertions.assertThat(all).allMatch(studentSubmission -> !studentSubmission.isInvalid());
+        submissionService.findAll().forEach(studentSubmission -> Assertions.assertFalse(studentSubmission.isInvalid()));
 
         // Look for breaking changes and invalidate submission for exercise1 which contains breaking change
-        List<Exercise> breakingChanges = courseDAO.lookForBreakingChanges(before, after);
-        courseDAO.updateCourse(before, after);
+        courseDAO.lookForBreakingChanges(courseBefore, courseAfter);
+        courseDAO.updateCourse(courseBefore, courseAfter);
 
         // Wait 2 seconds to wait for asynchronous execution to finish invalidating answers
         Thread.sleep(2000);
 
         // Exercise 1 submission should be invalidated, exercise 2 should still be valid
-        List<StudentSubmission> exercise1Submissions = repository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List.of(exerciseBefore1.getId()), userId);
-        List<StudentSubmission> exercise2Submissions = repository.findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List.of(exerciseBefore2.getId()), userId);
+        Optional<StudentSubmission> returnedSubmissionEx1 = submissionService.findLatestExerciseSubmission(exercise1Before.getId(), userId);
+        Assertions.assertTrue(returnedSubmissionEx1.isPresent());
+        Assertions.assertTrue(returnedSubmissionEx1.get().isInvalid());
 
-        Assertions.assertThat(exercise1Submissions).size().isEqualTo(1);
-        Assertions.assertThat(exercise2Submissions).size().isEqualTo(1);
-
-        StudentSubmission invalidSubmission = exercise1Submissions.get(0);
-        Assertions.assertThat(invalidSubmission.isInvalid()).isTrue();
-
-        StudentSubmission nonUpdatedExercise = exercise2Submissions.get(0);
-        Assertions.assertThat(nonUpdatedExercise.isInvalid()).isFalse();
+        Optional<StudentSubmission> returnedSubmissionEx2 = submissionService.findLatestExerciseSubmission(exercise2Before.getId(), userId);
+        Assertions.assertTrue(returnedSubmissionEx2.isPresent());
+        Assertions.assertFalse(returnedSubmissionEx2.get().isInvalid());
     }
 }

@@ -8,8 +8,8 @@ import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Set;
@@ -46,21 +46,21 @@ public class StudentSubmissionDTOTest {
                 .build();
 
         StudentSubmission studentSubmission = dto.createSubmission();
-        Assert.assertEquals(studentSubmission.getClass(), CodeSubmission.class);
+        Assertions.assertEquals(studentSubmission.getClass(), CodeSubmission.class);
 
         CodeSubmission codeSubmission = (CodeSubmission) studentSubmission;
-        Assert.assertEquals(codeSubmission.getPublicFiles().size(), 2);
+        Assertions.assertEquals(codeSubmission.getPublicFiles().size(), 2);
 
         VirtualFile vf1 = codeSubmission.getPublicFiles().get(0);
         VirtualFile vf2 = codeSubmission.getPublicFiles().get(1);
-        Assert.assertEquals(vf1.getId(), "6");
-        Assert.assertEquals(vf2.getId(), "7");
+        Assertions.assertEquals(vf1.getId(), "6");
+        Assertions.assertEquals(vf2.getId(), "7");
 
-        Assert.assertEquals(vf1.getName(), "script");
-        Assert.assertEquals(vf1.getExtension(), "py");
+        Assertions.assertEquals(vf1.getName(), "script");
+        Assertions.assertEquals(vf1.getExtension(), "py");
 
-        Assert.assertEquals(vf2.getName(), "testsuite");
-        Assert.assertEquals(vf2.getExtension(), "py");
+        Assertions.assertEquals(vf2.getName(), "testsuite");
+        Assertions.assertEquals(vf2.getExtension(), "py");
     }
 
     @Test
@@ -93,21 +93,21 @@ public class StudentSubmissionDTOTest {
                 .build();
 
         StudentSubmission studentSubmission = dto.createSubmission();
-        Assert.assertEquals(studentSubmission.getClass(), CodeSubmission.class);
+        Assertions.assertEquals(studentSubmission.getClass(), CodeSubmission.class);
 
         CodeSubmission codeSubmission = (CodeSubmission) studentSubmission;
-        Assert.assertEquals(codeSubmission.getPublicFiles().size(), 2);
+        Assertions.assertEquals(codeSubmission.getPublicFiles().size(), 2);
 
         VirtualFile vf1 = codeSubmission.getPublicFiles().get(0);
         VirtualFile vf2 = codeSubmission.getPublicFiles().get(1);
-        Assert.assertEquals(vf1.getId(), "6");
-        Assert.assertEquals(vf2.getId(), "7");
+        Assertions.assertEquals(vf1.getId(), "6");
+        Assertions.assertEquals(vf2.getId(), "7");
 
-        Assert.assertEquals(vf1.getName(), "script");
-        Assert.assertEquals(vf1.getExtension(), "py");
+        Assertions.assertEquals(vf1.getName(), "script");
+        Assertions.assertEquals(vf1.getExtension(), "py");
 
-        Assert.assertEquals(vf2.getName(), "testsuite");
-        Assert.assertEquals(vf2.getExtension(), "py");
+        Assertions.assertEquals(vf2.getName(), "testsuite");
+        Assertions.assertEquals(vf2.getExtension(), "py");
     }
 
     @Test
@@ -125,10 +125,10 @@ public class StudentSubmissionDTOTest {
                 .build();
 
         StudentSubmission studentSubmission = dto.createSubmission();
-        Assert.assertEquals(studentSubmission.getClass(), TextSubmission.class);
+        Assertions.assertEquals(studentSubmission.getClass(), TextSubmission.class);
 
         TextSubmission textAnswer = (TextSubmission) studentSubmission;
-        Assert.assertEquals(textAnswer.getAnswer(), "11");
+        Assertions.assertEquals(textAnswer.getAnswer(), "11");
     }
 
     @Test
@@ -145,9 +145,9 @@ public class StudentSubmissionDTOTest {
                 .build();
 
         StudentSubmission studentSubmission = dto.createSubmission();
-        Assert.assertEquals(studentSubmission.getClass(), MultipleChoiceSubmission.class);
+        Assertions.assertEquals(studentSubmission.getClass(), MultipleChoiceSubmission.class);
 
         MultipleChoiceSubmission multipleChoiceSubmission = (MultipleChoiceSubmission) studentSubmission;
-        Assert.assertEquals(multipleChoiceSubmission.getChoices(), Set.of(0, 2));
+        Assertions.assertEquals(multipleChoiceSubmission.getChoices(), Set.of(0, 2));
     }
 }

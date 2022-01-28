@@ -9,9 +9,9 @@ import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
 import com.spotify.docker.client.exceptions.DockerException;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ public class SubmissionCodeRunnerTest {
     private VirtualFile test;
     private VirtualFile init;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         Path path = Paths.get("./runner/s1");
         FileSystemUtils.deleteRecursively(path);
@@ -56,9 +56,9 @@ public class SubmissionCodeRunnerTest {
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner(), new FSHierarchySerializer()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStdout()).isEmpty();
-        Assertions.assertThat(result.getTestLog()).isEmpty();
-        Assertions.assertThat(result.getEvalLog()).containsIgnoringCase("Ran 8 tests in");
+        Assertions.assertTrue(result.getStdout().isEmpty());
+        Assertions.assertTrue(result.getTestLog().isEmpty());
+        Assertions.assertTrue(result.getEvalLog().toLowerCase().contains("ran 8 tests in"));
     }
 
 
@@ -78,9 +78,9 @@ public class SubmissionCodeRunnerTest {
                 .build();
 
         ExecResult result = new SubmissionCodeRunner(new CodeRunner(), new FSHierarchySerializer()).execSubmissionForExercise(sub, ex);
-        Assertions.assertThat(result.getStdout()).isNotEmpty();
-        Assertions.assertThat(result.getTestLog()).isNotEmpty();
-        Assertions.assertThat(result.getEvalLog()).isEmpty();
+        Assertions.assertFalse(result.getStdout().isEmpty());
+        Assertions.assertFalse(result.getTestLog().isEmpty());
+        Assertions.assertTrue(result.getEvalLog().isEmpty());
     }
 
 
@@ -94,8 +94,8 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSmokeToExecResult(rr, null, null);
 
-        Assertions.assertThat(execResult.getStdout().length()).isLessThan(100055);
-        Assertions.assertThat(execResult.getStdout()).contains("Logs size exceeded limit. Log has been truncated.");
+        Assertions.assertTrue(execResult.getStdout().length() < 100055);
+        Assertions.assertTrue(execResult.getStdout().contains("Logs size exceeded limit. Log has been truncated."));
     }
 
 
@@ -113,8 +113,8 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSubmissionToExecResult(rr);
 
-        Assertions.assertThat(execResult.getEvalLog().length()).isLessThan(100075);
-        Assertions.assertThat(execResult.getEvalLog()).contains("Logs size exceeded limit. Beginning of log has been truncated ");
+        Assertions.assertTrue(execResult.getEvalLog().length() < 100075);
+        Assertions.assertTrue(execResult.getEvalLog().contains("Logs size exceeded limit. Beginning of log has been truncated "));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSubmissionToExecResult(rr);
 
-        Assertions.assertThat(execResult.getEvalLog()).isEmpty();
+        Assertions.assertTrue(execResult.getEvalLog().isEmpty());
     }
 
     @Test
@@ -137,8 +137,8 @@ public class SubmissionCodeRunnerTest {
 
         ExecResult execResult = new SubmissionCodeRunner(null, new FSHierarchySerializer()).mapSubmissionToExecResult(rr);
 
-        Assertions.assertThat(execResult.getStdout()).isEmpty();
-        Assertions.assertThat(execResult.getEvalLog()).isEmpty();
+        Assertions.assertTrue(execResult.getStdout().isEmpty());
+        Assertions.assertTrue(execResult.getEvalLog().isEmpty());
     }
 
 }

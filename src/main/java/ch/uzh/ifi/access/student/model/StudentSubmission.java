@@ -34,6 +34,8 @@ public abstract class StudentSubmission {
     @Indexed(direction = IndexDirection.DESCENDING)
     private String exerciseId;
 
+    private String courseId;
+
     private boolean isGraded;
 
     private Instant timestamp;

@@ -25,7 +25,6 @@ public class CourseConfig implements Serializable {
     public CourseConfig() {
         this.description = "";
         this.owner = "";
-        this.semester = "";
     }
 
 }
