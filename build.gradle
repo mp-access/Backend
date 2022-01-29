@@ -4,17 +4,12 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'scala'
-    id 'io.gatling.gradle' version '3.7.3.1'
+    id 'io.gatling.gradle' version '3.7.4'
     id 'org.sonarqube' version '3.3'
 }
 
 group = 'ch.uzh.ifi.access'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.6'
@@ -63,9 +58,7 @@ dependencies {
 test {
     useJUnitPlatform()
     //we want display the following test events
-    testLogging {
-        events "PASSED", "STARTED", "FAILED", "SKIPPED"
-    }
+    testLogging.events("PASSED", "STARTED", "FAILED", "SKIPPED")
 
     if (project.hasProperty('excludeTests')) {
         exclude project.property('excludeTests').toString()
@@ -84,36 +77,10 @@ jacocoTestReport {
     }
 }
 
-gatling {
-    simulations = {
-//        include "**/BrowsingSimulation.scala"
-        include "**/CodeExecutionSimulation.scala"
-    }
-}
-
 sonarqube {
     properties {
         property "sonar.projectKey", "mp-access_Backend"
         property "sonar.organization", "access"
         property "sonar.host.url", "https://sonarcloud.io"
     }
-}
-
-bootJar {
-    archiveFileName = "${archiveBaseName.get()}-${archiveVersion.get()}.${archiveExtension.get()}"
-}
-
-import org.springframework.boot.gradle.tasks.bundling.BootJar
-
-task customFatJar(type: BootJar) {
-    manifest {
-        attributes 'Main-Class': 'org.springframework.boot.loader.JarLauncher'
-        attributes 'Start-Class': 'ch.uzh.ifi.access.localtester.LocalTester'
-        attributes 'Spring-Boot-Classes': 'BOOT-INF/classes/'
-        attributes 'Spring-Boot-Lib': 'BOOT-INF/lib/'
-    }
-
-    archiveFileName = "ACCESSTester.jar"
-    enabled = true
-    with bootJar
 }

@@ -16,13 +16,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-
 
 @SpringBootTest(classes = {UserService.class})
 public class UserServiceTest {
@@ -39,7 +35,6 @@ public class UserServiceTest {
     void setUp() {
         when(keycloakClient.findUserByEmail(anyString())).thenAnswer(invocation -> toUser(invocation.getArgument(0)));
         when(keycloakClient.getUserById(anyString())).thenAnswer(invocation -> toUserOrThrow(invocation.getArgument(0)));
-
     }
 
     private Optional<UserRepresentation> toUser(String email) {
@@ -58,7 +53,6 @@ public class UserServiceTest {
         userRepresentation.setId(id);
         userRepresentation.setUsername(id + "@email.com");
         return userRepresentation;
-
     }
 
     @Test
