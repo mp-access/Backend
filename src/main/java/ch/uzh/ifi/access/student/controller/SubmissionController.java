@@ -144,7 +144,6 @@ public class SubmissionController {
     @PreAuthorize("(authentication.name == #userId) or hasRole(#exercise.courseId + '-assistant')")
     public SubmissionCount getValidSubmissionCountWithPermission(Exercise exercise, String userId) {
         int validSubmissionsCount = studentSubmissionService.filterValidSubmissionsByPermission(exercise.getId(), userId).size();
-        System.out.println("HERE " + validSubmissionsCount);
         return new SubmissionCount(exercise.getMaxSubmits(), validSubmissionsCount);
     }
 }

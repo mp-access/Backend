@@ -31,6 +31,6 @@ workflows:
             - SonarCloud  # See the SonarCloud context env variable SONAR_TOKEN for credentials
 
       - docker/publish:   # Build and push the backend image to Docker Hub (circleci/docker job)
-          image: sealuzh/access-frontend
+          image: sealuzh/access-backend
           tag: updates
-          # See the Frontend project env variables DOCKER_LOGIN, DOCKER_PASSWORD for credentials
+          # See the Backend project env variables DOCKER_LOGIN, DOCKER_PASSWORD for credentials
