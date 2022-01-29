@@ -57,24 +57,11 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    //we want display the following test events
-    testLogging.events("PASSED", "STARTED", "FAILED", "SKIPPED")
-
-    if (project.hasProperty('excludeTests')) {
-        exclude project.property('excludeTests').toString()
-    }
-
-    if (project.hasProperty('excludeDockerTests')) {
-        exclude '**/CodeRunnerTest.class'
-        exclude '**/SubmissionCodeRunnerTest.class'
-    }
+    finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
-    reports {
-        xml.required = true
-        csv.required = false
-    }
+    dependsOn test
 }
 
 sonarqube {

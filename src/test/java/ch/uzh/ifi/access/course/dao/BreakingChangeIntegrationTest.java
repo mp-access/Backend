@@ -4,9 +4,11 @@ import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,14 +16,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Optional;
 
-@SpringBootTest
+@SpringBootTest(properties = {"spring.data.mongodb.database=testing"})
 public class BreakingChangeIntegrationTest {
 
     @Autowired
     private CourseDAO courseDAO;
 
     @Autowired
+    private StudentSubmissionRepository submissionRepository;
+
+    @Autowired
     private StudentSubmissionService submissionService;
+
+    @AfterEach
+    void resetDB() {
+        submissionRepository.deleteAll();
+    }
 
     @Test
     public void lookForBreakingChangesSingleExerciseBroken() throws InterruptedException {

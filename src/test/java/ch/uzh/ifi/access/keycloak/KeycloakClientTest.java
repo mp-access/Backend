@@ -16,7 +16,6 @@ import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import javax.ws.rs.NotFoundException;
 import java.util.List;
@@ -24,8 +23,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SpringBootTest(classes = {KeycloakClient.class, SecurityProperties.class, CourseServiceSetup.CourseProperties.class})
-@TestPropertySource("/application-testing.properties")
+@SpringBootTest(
+        properties = {"rest.security.enabled=false", "rest.security.realm=test"},
+        classes = {KeycloakClient.class, SecurityProperties.class, CourseServiceSetup.CourseProperties.class})
 public class KeycloakClientTest {
 
     @Autowired
