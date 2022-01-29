@@ -1,35 +1,36 @@
 version: 2.1
+
+# CircleCI Packages
 orbs:
-  docker: circleci/docker@2.0.1
-  gradle: circleci/gradle@2.2.0
+  docker: circleci/docker@2.0.1   # Pre-configured Docker jobs, see circleci.com/developer/orbs/orb/circleci/docker
+  gradle: circleci/gradle@2.2.0   # Pre-configured gradle jobs, see circleci.com/developer/orbs/orb/circleci/gradle
 
 executors:
-  access-backend-executor:
+  access-backend-executor:    # Infrastructure setup for backend jobs
     docker:
-      - image: cimg/openjdk:11.0
+      - image: cimg/openjdk:11.0      # Primary container for running gradle commands
+      - image: circleci/mongo:5.0.5   # MongoDB image (CircleCI version)
+      - image: jboss/keycloak:16.1.0  # Keycloak image, same as the one used in mp-access/Infrastructure
         environment:
-          DOCKER_HOST: unix:///var/run/docker.sock
-      - image: circleci/mongo:5.0.5
-      - image: jboss/keycloak:16.1.0
-        environment:
-            KEYCLOAK_USER: admin
-            KEYCLOAK_PASSWORD: admin
+            KEYCLOAK_USER: admin      # Initial username for the Keycloak Admin Console
+            KEYCLOAK_PASSWORD: admin  # Initial password for the Keycloak Admin Console
         command:
-          - "-Djboss.bind.address=0.0.0.0"
-          - "-Djboss.http.port=9999"
+          - "-Djboss.bind.address=0.0.0.0"    # Bind Keycloak to a specific address
+          - "-Djboss.http.port=9999"          # Bind Keycloak to a specific port
 
 workflows:
   access-backend-workflow:      
     jobs:
-      - gradle/test:
+      - gradle/test:      # Checkout, build and test the backend (circleci/gradle job)
           executor: access-backend-executor
-      - gradle/run:
-          command: build sonarqube 
+
+      - gradle/run:       # Run a SonarQube analysis (circleci/gradle job)
+          command: sonarqube
           executor: access-backend-executor
           context:
-            - SonarCloud  # Contains the env variable SONAR_TOKEN
-      - docker/publish:
-          image: sealuzh/access-backend
-          executor: access-backend-executor
-          tag: $CIRCLE_BRANCH
-          use-remote-docker: true
+            - SonarCloud  # See the SonarCloud context env variable SONAR_TOKEN for credentials
+
+      - docker/publish:   # Build and push the backend image to Docker Hub (circleci/docker job)
+          image: sealuzh/access-frontend
+          tag: updates
+          # See the Frontend project env variables DOCKER_LOGIN, DOCKER_PASSWORD for credentials

@@ -59,6 +59,10 @@ test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
 
+    if (project.hasProperty('excludeTests')) {
+        exclude project.property('excludeTests')
+    }
+
     if (project.hasProperty('excludeDockerTests')) {
         exclude '**/CodeRunnerTest.class'
         exclude '**/SubmissionCodeRunnerTest.class'

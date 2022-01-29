@@ -20,7 +20,7 @@ ARG DIR=/app/access
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib ${DIR}/lib
 COPY --from=build ${DEPENDENCY}/META-INF ${DIR}/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes ${DIR}
-COPY --from=build /workspace/app/src/main/resources/application-prod.properties ${DIR}/application.properties
+COPY --from=build /workspace/app/src/main/resources/application.properties ${DIR}/application.properties
 
 # creates a system user (-r), with no password, no home directory set, and no shell
 #RUN groupadd -r backend && useradd -r -s /bin/false -g backend backend
