@@ -18,16 +18,6 @@ executors:
           - "-Djboss.bind.address=0.0.0.0"    # Bind Keycloak to a specific address
           - "-Djboss.http.port=9999"          # Bind Keycloak to a specific port
 
-jobs:
-  push-to-dockerhub:
-    docker:
-      - image: cimg/base:stable
-    steps:
-      - docker/push:      #  Push a ready backend image to Docker Hub (circleci/docker job)
-          image: sealuzh/access-backend
-          tag: updates
-          # See the Backend project env variables DOCKER_LOGIN, DOCKER_PASSWORD for credentialsg
-
 workflows:
   access-backend-workflow:      
     jobs:
@@ -42,12 +32,7 @@ workflows:
             - SonarCloud
           # See the SonarCloud context env variable SONAR_TOKEN for credentials
 
-      - gradle/run:         # Build the backend Docker image using gradle (circleci/gradle job)
-          name: build-backend-image
-          command: bootBuildImage --imageName=sealuzh/access-backend:updates
-          executor: access-backend-executor
-          # See docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/htmlsingle/#build-image
-
-      - push-to-dockerhub:  # Push the backend image to Docker Hub after building it
-          requires:
-            - build-backend-image
+      - docker/publish:     # Build and push the backend image to Docker Hub (circleci/docker job)
+          image: sealuzh/access-backend
+          tag: updates
+          # See the Backend project env variables DOCKER_LOGIN, DOCKER_PASSWORD for credentials
