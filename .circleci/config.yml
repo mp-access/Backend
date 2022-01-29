@@ -3,7 +3,6 @@ orbs:
   docker: circleci/docker@2.0.1
   gradle: circleci/gradle@2.2.0
   sonarcloud: sonarsource/sonarcloud@1.0.3
-  coverage-reporter: codacy/coverage-reporter@13.5.5
 
 executors:
   access-backend-executor:
@@ -24,7 +23,6 @@ jobs:
     executor: access-backend-executor
     steps:
       - sonarcloud/scan
-      - coverage-reporter/send_report
 
 workflows:
   access-backend-workflow:      
