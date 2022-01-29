@@ -1,87 +1,43 @@
 version: 2.1
-jobs:
-  build:
+orbs:
+  docker: circleci/docker@2.0.1
+  gradle: circleci/gradle@2.2.0
+  sonarcloud: sonarsource/sonarcloud@1.0.3
+  coverage-reporter: codacy/coverage-reporter@13.5.5
+
+executors:
+  access-backend-executor:
     docker:
+      - image: cimg/base:2022.01
       - image: cimg/openjdk:11.0
+      - image: circleci/mongo:5.0.5
       - image: jboss/keycloak:16.1.0
         environment:
-          KEYCLOAK_USER: admin
-          KEYCLOAK_PASSWORD: admin
+            KEYCLOAK_USER: admin
+            KEYCLOAK_PASSWORD: admin
         command:
           - "-Djboss.bind.address=0.0.0.0"
           - "-Djboss.http.port=9999"
-      - image: circleci/mongo:5.0.5
-    working_directory: ~/backend
-    steps:
-      - checkout
-      - setup_remote_docker
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }} # When this file changes, the key will fail
-            - v1-dependencies- # Fallback key
-      - run: gradle dependencies
-      - save_cache:
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-          paths:
-            - ~/.gradle/caches
-      - run:
-          name: Run tests
-          command: |
-            echo $DOCKER_HOST
-            echo $DOCKER_CERT_PATH
-            gradle test
-      - run: gradle jacocoTestReport
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - store_test_results:
-          path: ~/test-results
-      - store_artifacts:
-          path: ~/test-results/junit
-      - run:
-          name: Analyze on SonarCloud
-          command: gradle build sonarqube
-      - run:
-          name: Send test coverage to Codacy
-          command: |
-            #curl -Ls -o codacy-coverage-reporter-assembly.jar $(curl -Ls https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({content_type, browser_download_url} | select(.content_type | contains("java-archive"))) | .[0].browser_download_url')
-            #java -jar codacy-coverage-reporter-assembly.jar report -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
-            echo "Codacy parsing disabled until it works again"
-      - run:
-          name: Create ACCESS local tester
-          command: gradle customFatJar
-      - store_artifacts:
-          path: ./build/libs
 
-  push_to_dockerhub:
-    docker:
-      - image: cimg/openjdk:11.0
-    working_directory: ~/backend
+jobs:
+  quality-analysis:
+    executor: access-backend-executor
     steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Print Docker image name
-          command: echo "sealuzh/access-backend:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]')"
-      - run:
-          name: Build Docker image
-          command: docker build -t sealuzh/access-backend:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]') .
-      - add_ssh_keys:
-          fingerprints:
-            - "fe:b1:c8:73:4c:fd:f9:6f:b9:84:56:6a:bc:ad:03:c8"
-      - run:
-          name: Push Docker image
-          command: |
-            echo $DOCKER_SEAL_PWD | docker login -u $DOCKER_SEAL_LOGIN --password-stdin
-            docker push sealuzh/access-backend:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]')
+      - sonarcloud/scan
+      - coverage-reporter/send_report
 
 workflows:
-  version: 2
-  build-master:
+  access-backend-workflow:      
     jobs:
-      - build:
-          context: SonarCloud
-      - push_to_dockerhub
+      - gradle/run:
+          executor: access-backend-executor
+      - gradle/test:
+          executor: access-backend-executor
+      - quality-analysis:
+          context:
+            - SonarCloud  # Contains the env variable SONAR_TOKEN
+      - docker/publish:
+          image: sealuzh/access-backend
+          executor: access-backend-executor
+          tag: $CIRCLE_BRANCH
+          use-remote-docker: true
