@@ -6,7 +6,6 @@ orbs:
 executors:
   access-backend-executor:
     docker:
-      - image: cimg/base:2022.01
       - image: cimg/openjdk:11.0
       - image: circleci/mongo:5.0.5
       - image: jboss/keycloak:16.1.0
@@ -20,8 +19,6 @@ executors:
 workflows:
   access-backend-workflow:      
     jobs:
-      - gradle/run:
-          executor: access-backend-executor
       - gradle/test:
           executor: access-backend-executor
       - gradle/run:
