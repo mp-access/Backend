@@ -7,6 +7,8 @@ executors:
   access-backend-executor:
     docker:
       - image: cimg/openjdk:11.0
+        environment:
+          DOCKER_HOST: unix:///var/run/docker.sock
       - image: circleci/mongo:5.0.5
       - image: jboss/keycloak:16.1.0
         environment:

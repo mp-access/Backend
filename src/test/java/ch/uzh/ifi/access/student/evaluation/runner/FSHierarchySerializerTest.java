@@ -17,8 +17,8 @@ public class FSHierarchySerializerTest {
 
     @Test
     public void persistFilesIntoFolder() {
-        Path path = Paths.get("./src/test/resources/test_code/solutioncode.py");
-        VirtualFile file1 = new VirtualFile(path.toAbsolutePath().normalize().toString(), "/test_code/solutioncode.py");
+        Path path = Paths.get("./src/test/resources/test_code/solutions.py");
+        VirtualFile file1 = new VirtualFile(path.toAbsolutePath().normalize().toString(), "/test_code/solutions.py");
 
         path = Paths.get("./src/test/resources/test_code/test_suite.py");
         VirtualFile file2 = new VirtualFile(path.toAbsolutePath().normalize().toString(), "/test_code/test_suite.py");

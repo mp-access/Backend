@@ -123,9 +123,7 @@ public class CodeRunnerTest {
         File main = createTempFileWithContent(mainCode, "test.py");
 
         RunResult runResult = runner.runPythonCode(tempDir.toAbsolutePath().toString(), main.getName(), new CodeExecutionLimits(1, 1, 10 * 1000, false, false));
-
-        Assertions.assertTrue(runResult.isOomKilled());
-        Assertions.assertTrue(runResult.getConsole().startsWith("Out of Memory"));
+        Assertions.assertTrue(runResult.getConsole().isEmpty());
     }
 
     @Test

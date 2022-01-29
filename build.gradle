@@ -58,6 +58,11 @@ dependencies {
 test {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+
+    if (project.hasProperty('excludeDockerTests')) {
+        exclude '**/CodeRunnerTest.class'
+        exclude '**/SubmissionCodeRunnerTest.class'
+    }
 }
 
 jacocoTestReport {
