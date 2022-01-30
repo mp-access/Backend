@@ -24,13 +24,17 @@ import java.util.List;
 public class EmailSender {
 
     private static final List<String> emailActionsAfterCreation = List.of("VERIFY_EMAIL", "UPDATE_PASSWORD", "UPDATE_PROFILE");
+    private SecurityProperties securityProperties;
+
+    public EmailSender(SecurityProperties securityProperties) {
+        this.securityProperties = securityProperties;
+    }
 
     @Retryable(
             maxAttemptsExpression = "${course.users.email.max-attempts}",
             backoff = @Backoff(delayExpression = "${course.users.email.delay}")
     )
-    public void sendEmailToUser(UserResource user, SecurityProperties securityProperties) {
-
+    public void sendEmailToUser(UserResource user) {
         var frontendClientId = securityProperties.getFrontendClientId();
         var redirectUri = securityProperties.getRedirectUriAfterActions();
 

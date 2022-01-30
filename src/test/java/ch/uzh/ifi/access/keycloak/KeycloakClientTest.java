@@ -1,223 +1,142 @@
 package ch.uzh.ifi.access.keycloak;
 
-import ch.uzh.ifi.access.KeycloakClientTestConfiguration;
 import ch.uzh.ifi.access.config.SecurityProperties;
 import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.model.Course;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import com.google.common.collect.Sets;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UsersResource;
+import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.GroupRepresentation;
+import org.keycloak.representations.idm.RealmRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.ws.rs.NotFoundException;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
+@SpringBootTest(
+        properties = {"rest.security.enabled=false", "rest.security.realm=test"},
+        classes = {KeycloakClient.class, SecurityProperties.class, CourseServiceSetup.CourseProperties.class})
 public class KeycloakClientTest {
 
-    private static final String REALM_NAME = "testing";
+    @Autowired
+    private SecurityProperties securityProperties;
 
-    private KeycloakClient client;
+    @Autowired
+    private CourseServiceSetup.CourseProperties courseProperties;
 
-    private RealmResource realmResource;
+    @Autowired
+    private KeycloakClient keycloakClient;
 
-    private KeycloakClientTestConfiguration testConfiguration;
-
-    @Before
-    public void setUp() {
-        this.testConfiguration = new KeycloakClientTestConfiguration();
-        this.testConfiguration.createTestRealm();
-
-        this.client = testConfiguration.testClient();
-        realmResource = this.testConfiguration.getRealm();
+    @BeforeEach
+    void setUpTestRealm() {
+        Keycloak testClient = keycloakClient.keycloak;
+        RealmRepresentation testRealm = new RealmRepresentation();
+        testRealm.setRealm(securityProperties.getRealm());
+        testClient.realms().create(testRealm);
+        RolesResource testRolesResource = keycloakClient.getRealmRoles();
+        testRolesResource.create(new RoleRepresentation(Roles.STUDENT_ROLE, "", false));
+        testRolesResource.create(new RoleRepresentation(Roles.ASSISTANT_ROLE, "", false));
+        testRolesResource.create(new RoleRepresentation(Roles.ADMIN_ROLE, "", false));
     }
 
-    @After
-    public void tearDown() {
-        this.testConfiguration.removeTestRealm();
-    }
-
-    private SecurityProperties properties() {
-        SecurityProperties properties = new SecurityProperties();
-        properties.setAuthServer("http://localhost:9999/auth");
-        return properties;
-    }
-
-    @Test(expected = NotFoundException.class)
-    public void getUserByIdNotFound() {
-        client.getUserById("12");
+    @AfterEach
+    void tearDownTestingRealm() {
+        keycloakClient.keycloak.realm(securityProperties.getRealm()).remove();
     }
 
     @Test
-    public void getUserById() {
-        UserRepresentation userRepresentation = new UserRepresentation();
-        userRepresentation.setUsername("test-user");
-        userRepresentation.setFirstName("test");
-        userRepresentation.setLastName("user");
-        String userId = Utils.getCreatedId(realmResource.users().create(userRepresentation));
-
-        UserRepresentation userById = client.getUserById(userId);
-
-        Assert.assertNotNull(userById);
-        Assert.assertEquals(userRepresentation.getUsername(), userById.getUsername());
-        Assert.assertEquals(userRepresentation.getFirstName(), userById.getFirstName());
-        Assert.assertEquals(userRepresentation.getLastName(), userById.getLastName());
+    public void initKeycloakTest() {
+        Keycloak testClient = keycloakClient.keycloak;
+        List<String> returnedRealms = testClient.realms().findAll().stream()
+                .map(RealmRepresentation::getRealm).collect(Collectors.toList());
+        Assertions.assertTrue(returnedRealms.size() >= 1);
     }
 
     @Test
-    public void createUser() {
-        final String email = "test@example.com";
-        UserRepresentation user = client.createUser(email);
-        Assert.assertEquals(user.getEmail(), email);
-        Assert.assertEquals(user.getUsername(), email);
+    public void getUserByIdTest() {
+        UserRepresentation expectedUser = new UserRepresentation();
+        expectedUser.setUsername("test-user");
+        expectedUser.setFirstName("test");
+        expectedUser.setLastName("user");
+        String expectedUserId = Utils.getCreatedId(keycloakClient.getRealmUsers().create(expectedUser));
 
-        CourseServiceSetup.CourseProperties courseProperties = testConfiguration.courseProperties();
+        UserRepresentation returnedUser = keycloakClient.getUserById(expectedUserId);
+        Assertions.assertNotNull(returnedUser);
+        Assertions.assertEquals(expectedUser.getUsername(), returnedUser.getUsername());
+        Assertions.assertEquals(expectedUser.getFirstName(), returnedUser.getFirstName());
+        Assertions.assertEquals(expectedUser.getLastName(), returnedUser.getLastName());
+    }
+
+    @Test
+    public void getUserByIdNotFoundTest() {
+        Assertions.assertThrows(NotFoundException.class, () -> keycloakClient.getUserById("12"));
+    }
+
+    @Test
+    public void createAndVerifyUserTest() {
+        String email = "test@example.com";
+        String newUserId = keycloakClient.createAndVerifyUser(email);
+        UserRepresentation newUser = keycloakClient.getUserById(newUserId);
+        Assertions.assertNotNull(newUser.getId());
+        Assertions.assertEquals(email, newUser.getEmail());
+        Assertions.assertEquals(email, newUser.getUsername());
+
+        // Fetch the credentials directly to receive updated data (newUser.getCredentials() might be null)
+        List<CredentialRepresentation> newUserCredentials = keycloakClient.getRealmUsers().get(newUserId).credentials();
         if (courseProperties.isUseDefaultPasswordForNewAccounts()) {
-            Assert.assertEquals(user.getCredentials().size(), 1);
-            Assert.assertEquals(user.getCredentials().get(0).getValue(), courseProperties.getDefaultPassword());
-            Assert.assertEquals(user.getCredentials().get(0).getType(), CredentialRepresentation.PASSWORD);
+            Assertions.assertEquals(1, newUserCredentials.size());
+            Assertions.assertEquals(CredentialRepresentation.PASSWORD, newUserCredentials.get(0).getType());
         }
     }
 
     @Test
-    public void createAndVerifyUser() {
-        final String email = "test@example.com";
-        UserRepresentation user = client.createAndVerifyUser(email);
-        Assert.assertNotNull(user.getId());
-        Assert.assertEquals(user.getEmail(), email);
-        Assert.assertEquals(user.getUsername(), email);
-    }
-
-    @Test
-    public void enrollUsersInCourse() {
-        Course course = new Course("");
+    public void enrollUsersInCourseTest() {
+        Course course = new Course("Informatics 1");
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
         course.setAssistants(List.of("ta@uzh.ch", "dr.prof@uzh.ch"));
         course.setAdmins(List.of("admin@uzh.ch"));
+        Roles courseRoles = keycloakClient.enrollUsersInCourse(course);
+        Set<String> studentEmails = keycloakClient.getUsersByRole(courseRoles.getUserRoleNameForCourse(Roles.STUDENT_ROLE));
+        Set<String> assistantsEmails = keycloakClient.getUsersByRole(courseRoles.getUserRoleNameForCourse(Roles.ASSISTANT_ROLE));
+        Set<String> adminEmails = keycloakClient.getUsersByRole(courseRoles.getUserRoleNameForCourse(Roles.ADMIN_ROLE));
 
-        Group group = client.enrollUsersInCourse(course);
-
-        List<String> studentEmails = group.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        List<String> assistantsEmails = group.getAssistants().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        List<String> adminEmails = group.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-
-        Assert.assertEquals(group.getName(), course.getId());
-        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
-        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
-        Assert.assertEquals(Set.copyOf(adminEmails), Set.copyOf(course.getAdmins()));
-
+        Assertions.assertEquals(Set.copyOf(course.getStudents()), studentEmails);
+        Assertions.assertEquals(Sets.union(Set.copyOf(course.getAssistants()), Set.copyOf(course.getAdmins())), assistantsEmails);
+        Assertions.assertEquals(Set.copyOf(course.getAdmins()), adminEmails);
     }
 
     @Test
     public void enrollUsersAlreadyEnrolledInAnotherCourse() {
         final String emailAddressStudentAndTa = "ta-student@uzh.ch";
-        // Enroll users in a first course
-        Course course = new Course(UUID.randomUUID().toString());
-        course.setTitle("Informatics 1");
-        course.setStudents(List.of("alice@example.com", "bob@example.com"));
-        course.setAssistants(List.of(emailAddressStudentAndTa, "dr.prof@uzh.ch"));
-        course.setAdmins(List.of("admin@uzh.ch"));
 
-        Group info1 = client.enrollUsersInCourse(course);
+        Course course1 = new Course("Informatics 1");
+        course1.setTitle("Informatics 1");
+        course1.setAssistants(List.of(emailAddressStudentAndTa));
+        Roles course1Roles = keycloakClient.enrollUsersInCourse(course1);
 
-        List<String> studentEmails = info1.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        List<String> assistantsEmails = info1.getAssistants().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        List<String> adminEmails = info1.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
+        Course course2 = new Course("Informatics 2");
+        course2.setTitle("Informatics 2");
+        course2.setStudents(List.of(emailAddressStudentAndTa));
+        Roles course2Roles = keycloakClient.enrollUsersInCourse(course2);
 
-        Assert.assertEquals(info1.getName(), course.getId());
-        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course.getStudents()));
-        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course.getAssistants()));
-        Assert.assertEquals(Set.copyOf(adminEmails), Set.copyOf(course.getAdmins()));
-
-
-        // Enrolling them in a second course should not remove them from the first one
-        Course course2 = new Course(UUID.randomUUID().toString());
-        course2.setTitle("DBS");
-        course2.setStudents(List.of("alice@example.com", "bob@example.com", emailAddressStudentAndTa));
-        course2.setAssistants(List.of("dr.prof@uzh.ch"));
-        course2.setAdmins(List.of("admin@uzh.ch"));
-        Group dbs = client.enrollUsersInCourse(course2);
-
-        studentEmails = dbs.getStudents().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        assistantsEmails = dbs.getAssistants().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-        adminEmails = dbs.getAdmins().stream().map(UserRepresentation::getEmail).collect(Collectors.toList());
-
-        Assert.assertEquals(course2.getId(), dbs.getName());
-        Assert.assertEquals(Set.copyOf(studentEmails), Set.copyOf(course2.getStudents()));
-        Assert.assertEquals(Set.copyOf(assistantsEmails), Set.copyOf(course2.getAssistants()));
-        Assert.assertEquals(Set.copyOf(adminEmails), Set.copyOf(course2.getAdmins()));
-
-        // Get all students
-        Set<UserRepresentation> info1Users = info1.getStudents().stream().collect(Collectors.toSet());
-        Set<UserRepresentation> info1Authors = info1.getAssistants().stream().collect(Collectors.toSet());
-        Set<UserRepresentation> dbsUsers = dbs.getStudents().stream().collect(Collectors.toSet());
-        Set<UserRepresentation> dbsAuthors = dbs.getAssistants().stream().collect(Collectors.toSet());
-        Set<UserRepresentation> dbsAdmins = dbs.getAdmins().stream().collect(Collectors.toSet());
-
-        Set<UserRepresentation> users = new HashSet<>(info1Users);
-        users.addAll(info1Authors);
-        users.addAll(dbsUsers);
-        users.addAll(dbsAuthors);
-        users.addAll(dbsAdmins);
-
-        // Get up-to-date version of users
-        users = users.stream().map(user -> realmResource.users().get(user.getId()).toRepresentation()).collect(Collectors.toSet());
-
-        for (UserRepresentation user : users) {
-            List<GroupRepresentation> groups = realmResource.users().get(user.getId()).groups();
-            Assert.assertEquals(groups.size(), 2);
-        }
-
-        // ta-student should be both student and assistant depending on the course
-        UserRepresentation taStudent = users.stream().filter(u -> u.getEmail().equals(emailAddressStudentAndTa)).findFirst().orElseThrow();
-        List<GroupRepresentation> groups = realmResource.users().get(taStudent.getId()).groups();
-        for (GroupRepresentation group : groups) {
-            if (group.getPath().contains(course.getId())) {
-                Assertions
-                        .assertThat(group.getName())
-                        .withFailMessage(String.format("ta-student should be an 'assistant' of course '%s'", course.getId()))
-                        .contains("assistants");
-            } else {
-                Assertions
-                        .assertThat(group.getName())
-                        .withFailMessage(String.format("ta-student should be a 'student' of course '%s'", course2.getId()))
-                        .contains("students");
-            }
-        }
-    }
-
-    @Test
-    public void getUsersIfExistOrCreateUsers() {
-        String existingEmail = "bob@example.com";
-        List<String> userEmailAddresses = List.of("alice@example.com", existingEmail, "charlie@example.com");
-
-        // Make sure all users are deleted
-        Keycloak keycloak = KeycloakClient.keycloak(properties());
-        UsersResource usersResource = keycloak.realm(REALM_NAME).users();
-        usersResource.list().forEach(user -> usersResource.delete(user.getId()));
-
-        // Create one just to test if method works
-        UserRepresentation u1 = new UserRepresentation();
-        u1.setEmail(existingEmail);
-        u1.setUsername(existingEmail);
-        usersResource.create(u1);
-
-        Users users = client.getUsersIfExistOrCreateUsers(userEmailAddresses);
-
-        Assert.assertEquals(2, users.getUsersCreated());
-        Assert.assertEquals(users.size(), 3);
-        Assert.assertEquals(Set.copyOf(users.emailAddresses()), Set.copyOf(userEmailAddresses));
-
+        // Enrolling a user in another course should not remove or change their roles in the first course
+        Optional<UserRepresentation> studentAndTaUser = keycloakClient.findUserByEmail(emailAddressStudentAndTa);
+        Assertions.assertTrue(studentAndTaUser.isPresent());
+        List<String> studentAndTaUserRoles = keycloakClient.getRealmUsers().get(studentAndTaUser.get().getId()).roles()
+                .realmLevel().listAll().stream().map(RoleRepresentation::getName).collect(Collectors.toList());
+        Assertions.assertTrue(studentAndTaUserRoles.contains(course1Roles.getUserRoleNameForCourse(Roles.ASSISTANT_ROLE)));
+        Assertions.assertTrue(studentAndTaUserRoles.contains(course2Roles.getUserRoleNameForCourse(Roles.STUDENT_ROLE)));
+        Assertions.assertFalse(studentAndTaUserRoles.contains(course2Roles.getUserRoleNameForCourse(Roles.ASSISTANT_ROLE)));
     }
 }

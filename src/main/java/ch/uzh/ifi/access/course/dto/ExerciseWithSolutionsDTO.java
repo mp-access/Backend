@@ -19,6 +19,7 @@ public class ExerciseWithSolutionsDTO extends ExerciseConfig {
 
     private String question;
 
+    @EqualsAndHashCode.Exclude
     private List<BreadCrumb> breadCrumbs;
 
     private List<VirtualFile> solution_files;

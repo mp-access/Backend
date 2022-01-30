@@ -29,7 +29,7 @@ public class Assignment extends AssignmentConfig implements OrderedCollection<Ex
 
     public Assignment(String name) {
         this.id = new Utils().getID(name);
-
+        this.title = name;
         this.exercises = new ArrayList<>();
     }
 
@@ -83,8 +83,10 @@ public class Assignment extends AssignmentConfig implements OrderedCollection<Ex
 
     @Override
     public List<BreadCrumb> getBreadCrumbs() {
-        BreadCrumb course = new BreadCrumb(this.getCourse().title, "courses/" + this.getCourse().getId());
-        BreadCrumb assignment = new BreadCrumb(this.title, "courses/" + this.getCourse().getId() + "/assignments/" + this.id, this.index);
+        if (getCourse() == null)
+            return List.of();
+        BreadCrumb course = new BreadCrumb(getCourse().getTitle(), "courses/" + getCourse().getRoleName());
+        BreadCrumb assignment = new BreadCrumb(getTitle(), "courses/" + getCourse().getRoleName() + "/assignments/" + getId(), getIndex());
 
         return List.of(course, assignment);
     }
@@ -96,4 +98,3 @@ public class Assignment extends AssignmentConfig implements OrderedCollection<Ex
         }
     }
 }
-

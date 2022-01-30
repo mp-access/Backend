@@ -5,20 +5,20 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static ch.uzh.ifi.access.student.evaluation.evaluator.CodeEvaluator.TEST_FAILED_WITHOUT_HINTS;
 import static com.spotify.docker.client.shaded.com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CodeEvaluatorTest {
 
     private Exercise exercise;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         exercise = Exercise.builder().id("e1").maxScore(10).type(ExerciseType.code).build();
 
@@ -53,7 +53,7 @@ public class CodeEvaluatorTest {
                 + "\n" + "\n" + "----------------------------------------------------------------------\n"
                 + "Ran 1 test in 0.001s\n" + "\n" + "FAILED (errors=1)\n");
 
-        assertEquals(0.0, grade.getScore(), 0.25);
+        assertEquals(0.0, grade.getScore());
     }
 
     @Test

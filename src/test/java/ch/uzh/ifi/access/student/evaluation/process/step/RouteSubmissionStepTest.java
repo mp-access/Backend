@@ -4,9 +4,9 @@ import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -20,30 +20,30 @@ public class RouteSubmissionStepTest {
     @Mock
     private StudentSubmissionService service;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
     public void executeCodeSubmission() {
         RouteSubmissionStep step = new RouteSubmissionStep(service);
 
-        StudentSubmission submission = TestObjectFactory.createCodeAnswer();
+        StudentSubmission submission = TestObjectFactory.createCodeAnswer("", "");
         when(service.findById(anyString())).thenReturn(Optional.of(submission));
 
         EvalMachine.Events event = step.execute("");
-        Assertions.assertThat(event).isEqualTo(EvalMachine.Events.DELEGATE);
+        Assertions.assertEquals(event, EvalMachine.Events.DELEGATE);
     }
 
     @Test
     public void executeOtherSubmission() {
         RouteSubmissionStep step = new RouteSubmissionStep(service);
 
-        StudentSubmission submission = TestObjectFactory.createTextAnswer();
+        StudentSubmission submission = TestObjectFactory.createTextAnswer("", "");
         when(service.findById(anyString())).thenReturn(Optional.of(submission));
 
         EvalMachine.Events event = step.execute("");
-        Assertions.assertThat(event).isEqualTo(EvalMachine.Events.GRADE);
+        Assertions.assertEquals(event, EvalMachine.Events.GRADE);
     }
 }

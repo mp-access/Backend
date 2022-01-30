@@ -2,12 +2,11 @@ package ch.uzh.ifi.access.student.dao;
 
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface StudentSubmissionRepository extends MongoRepository<StudentSubmission, String>, CustomizedStudentSubmissionRepository {
 
     <T extends StudentSubmission> List<T> findAllByUserId(String userId);
@@ -16,7 +15,8 @@ public interface StudentSubmissionRepository extends MongoRepository<StudentSubm
 
     <T extends StudentSubmission> Optional<T> findTopByExerciseIdAndUserIdOrderByVersionDesc(String exerciseId, String userId);
 
-    int countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(String exerciseId, String userId);
+    <T extends StudentSubmission> List<T> findAllByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(String exerciseId, String userId);
 
+    int countByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(String exerciseId, String userId);
 
 }

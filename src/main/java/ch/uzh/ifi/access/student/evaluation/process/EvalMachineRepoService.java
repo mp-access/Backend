@@ -1,9 +1,13 @@
 package ch.uzh.ifi.access.student.evaluation.process;
 
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachine.Events;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachine.States;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.Map;
@@ -18,17 +22,17 @@ public class EvalMachineRepoService {
 
     private static final Logger logger = LoggerFactory.getLogger(EvalMachineRepoService.class);
 
-    private Map<String, StateMachine> machines;
+    private Map<String, StateMachine<States, Events>> machines;
 
     public EvalMachineRepoService() {
         this.machines = new ConcurrentHashMap<>();
     }
 
-    public StateMachine get(String key) {
+    public StateMachine<States, Events> get(String key) {
         return machines.get(key);
     }
 
-    public void store(String key, StateMachine machine) {
+    public void store(String key, StateMachine<States, Events> machine) {
         machines.put(key, machine);
     }
 
@@ -38,7 +42,7 @@ public class EvalMachineRepoService {
 
     public void removeMachinesOlderThan(Instant threshold) {
         machines.entrySet().removeIf(entry -> {
-            StateMachine machine = entry.getValue();
+            StateMachine<States, Events> machine = entry.getValue();
 
             Map<Object, Object> machineVariables = machine.getExtendedState().getVariables();
 
@@ -49,7 +53,7 @@ public class EvalMachineRepoService {
             if (isZombieMachine) {
                 logger.info("Found a zombie machine {}, will forcibly set state to {}. Started {}: {}", entry.getKey(), EvalMachine.Events.FINISH, startedTime, machine.toString());
                 try {
-                    machine.sendEvent(EvalMachine.Events.FINISH);
+                    machine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.FINISH).build())).subscribe();
                 } catch (Exception e) {
                     logger.error("Failed to forcibly set the state of the zombie machine to {}", EvalMachine.Events.FINISH, e);
                 }

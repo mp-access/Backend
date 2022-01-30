@@ -1,8 +1,8 @@
 package ch.uzh.ifi.access.course.model;
 
 import ch.uzh.ifi.access.course.util.Utils;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -29,12 +29,12 @@ public class OrderedCollectionTest {
         List<Exercise> updatedExerciseList = assignment.getExercises();
 
         // ex1 is still ex1 but fields are updated
-        Assertions.assertThat(updatedExerciseList.get(0)).isEqualTo(ex1);
-        Assertions.assertThat(updatedExerciseList.get(0).getGitHash()).isEqualTo(updateEx1.getGitHash());
+        Assertions.assertEquals(ex1, updatedExerciseList.get(0));
+        Assertions.assertEquals(updateEx1.getGitHash(), updatedExerciseList.get(0).getGitHash());
 
         // ex2 is still ex2 but fields are updated
-        Assertions.assertThat(updatedExerciseList.get(1)).isEqualTo(ex2);
-        Assertions.assertThat(updatedExerciseList.get(1).getGitHash()).isEqualTo(updateEx2.getGitHash());
+        Assertions.assertEquals(ex2, updatedExerciseList.get(1));
+        Assertions.assertEquals(updateEx2.getGitHash(), updatedExerciseList.get(1).getGitHash());
     }
 
     @Test
@@ -59,14 +59,14 @@ public class OrderedCollectionTest {
         List<Exercise> updatedExerciseList = assignment.getExercises();
 
         // Ex1 is still ex1 but fields are updated
-        Assertions.assertThat(updatedExerciseList.get(0)).isEqualTo(ex1);
-        Assertions.assertThat(updatedExerciseList.get(0).getGitHash()).isEqualTo(updateEx1.getGitHash());
+        Assertions.assertEquals(ex1, updatedExerciseList.get(0));
+        Assertions.assertEquals(updateEx1.getGitHash(), updatedExerciseList.get(0).getGitHash());
 
         // Ex2 was removed as it was not in the updated exercise list
-        Assertions.assertThat(updatedExerciseList).doesNotContain(ex2);
+        Assertions.assertFalse(updatedExerciseList.contains(ex2));
 
         // Ex3 was added to the list
-        Assertions.assertThat(updatedExerciseList.get(1)).isEqualTo(newExercise3);
+        Assertions.assertEquals(newExercise3, updatedExerciseList.get(1));
     }
 
     @Test
@@ -82,14 +82,14 @@ public class OrderedCollectionTest {
         updateAssignment.addExercise(newExercise2);
 
         // assignment has no exercises
-        Assertions.assertThat(assignment.getExercises()).isEmpty();
+        Assertions.assertTrue(assignment.getExercises().isEmpty());
 
         assignment.update(updateAssignment);
         List<Exercise> updatedExerciseList = assignment.getExercises();
 
         // assignment had no exercises, now has 2 exercises
-        Assertions.assertThat(updatedExerciseList.get(0)).isEqualTo(newExercise1);
-        Assertions.assertThat(updatedExerciseList.get(1)).isEqualTo(newExercise2);
+        Assertions.assertEquals(newExercise1, updatedExerciseList.get(0));
+        Assertions.assertEquals(newExercise2, updatedExerciseList.get(1));
     }
 
     @Test
@@ -104,14 +104,14 @@ public class OrderedCollectionTest {
         assignment.addExercise(exercise2);
 
         // assignment has 2 exercises
-        Assertions.assertThat(assignment.getExercises()).size().isEqualTo(2);
-        Assertions.assertThat(updateAssignment.getExercises()).isEmpty();
+        Assertions.assertEquals(2, assignment.getExercises().size());
+        Assertions.assertTrue(updateAssignment.getExercises().isEmpty());
 
         assignment.update(updateAssignment);
 
         List<Exercise> updatedExerciseList = assignment.getExercises();
 
         // Ex1 has no exercises
-        Assertions.assertThat(updatedExerciseList).isEmpty();
+        Assertions.assertTrue(updatedExerciseList.isEmpty());
     }
 }

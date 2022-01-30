@@ -2,6 +2,7 @@ package ch.uzh.ifi.access.course.dto;
 
 import ch.uzh.ifi.access.course.model.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class AssignmentMetadataDTO implements HasPublishingDate, HasDueDate {
 
     private int index;
 
+    @EqualsAndHashCode.Exclude
     private List<BreadCrumb> breadCrumbs;
     private List<ExerciseMetadataDTO> exercises = new ArrayList<>();
 

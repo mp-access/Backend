@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.course.model;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class OrderedTest {
 
@@ -10,15 +10,15 @@ public class OrderedTest {
         Exercise ex1 = new Exercise.ExerciseBuilder().order(1).build();
         Exercise ex2 = new Exercise.ExerciseBuilder().order(2).build();
 
-        Assertions.assertThat(ex1.hasSameOrder(ex2)).isFalse();
+        Assertions.assertFalse(ex1.hasSameOrder(ex2));
 
         ex2.setOrder(ex1.getOrder());
-        Assertions.assertThat(ex1.hasSameOrder(ex2)).isTrue();
+        Assertions.assertTrue(ex1.hasSameOrder(ex2));
     }
 
     @Test
     public void hasSameIndexNull() {
         Exercise ex1 = new Exercise.ExerciseBuilder().order(1).build();
-        Assertions.assertThat(ex1.hasSameOrder(null)).isFalse();
+        Assertions.assertFalse(ex1.hasSameOrder(null));
     }
 }

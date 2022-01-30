@@ -6,8 +6,8 @@ import ch.uzh.ifi.access.course.dto.AssignmentMetadataDTO;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -27,7 +27,7 @@ public class CoursePermissionEnforcerTest {
         CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(new AssignmentMetadataDTO(assignment), course.getId(), authentication);
 
-        Assertions.assertThat(hasAccess).isEmpty();
+        Assertions.assertTrue(hasAccess.isEmpty());
     }
 
     @Test
@@ -39,8 +39,8 @@ public class CoursePermissionEnforcerTest {
         CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
-        Assertions.assertThat(hasAccess).isNotEmpty();
-        Assertions.assertThat(hasAccess).hasValue(dto);
+        Assertions.assertFalse(hasAccess.isEmpty());
+        Assertions.assertEquals(dto, hasAccess.get());
     }
 
     @Test
@@ -52,7 +52,8 @@ public class CoursePermissionEnforcerTest {
         CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
-        Assertions.assertThat(hasAccess).hasValue(dto);
+        Assertions.assertFalse(hasAccess.isEmpty());
+        Assertions.assertEquals(dto, hasAccess.get());
     }
 
     @Test
@@ -64,8 +65,8 @@ public class CoursePermissionEnforcerTest {
         CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
-        Assertions.assertThat(hasAccess).isNotEmpty();
-        Assertions.assertThat(hasAccess).hasValue(dto);
+        Assertions.assertFalse(hasAccess.isEmpty());
+        Assertions.assertEquals(dto, hasAccess.get());
     }
 
     @Test
@@ -77,7 +78,8 @@ public class CoursePermissionEnforcerTest {
         CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
-        Assertions.assertThat(hasAccess).hasValue(dto);
+        Assertions.assertFalse(hasAccess.isEmpty());
+        Assertions.assertEquals(dto, hasAccess.get());
     }
 
     @Test
@@ -89,22 +91,18 @@ public class CoursePermissionEnforcerTest {
         CourseAuthentication authentication = TestObjectFactory.createCourseAuthentication(Set.of(access));
         Optional<AssignmentMetadataDTO> hasAccess = enforcer.shouldAccessAssignment(dto, course.getId(), authentication);
 
-        Assertions.assertThat(hasAccess).isNotEmpty();
-        Assertions.assertThat(hasAccess).hasValue(dto);
+        Assertions.assertFalse(hasAccess.isEmpty());
+        Assertions.assertEquals(dto, hasAccess.get());
     }
 
     private Assignment publishedAssignment() {
-        Course course = TestObjectFactory.createCourse("");
-        Assignment assignment = Assignment.builder().publishDate(ZonedDateTime.now().minusYears(1)).build();
-        assignment.setCourse(course);
-        return assignment;
+        Course course = TestObjectFactory.createCourseWithAssignmentAndExercises("");
+        return Assignment.builder().publishDate(ZonedDateTime.now().minusYears(1)).build();
     }
 
     private Assignment notYetPublishedAssignment() {
-        Course course = TestObjectFactory.createCourse("");
-        Assignment assignment = Assignment.builder().publishDate(ZonedDateTime.now().plusYears(1)).build();
-        assignment.setCourse(course);
-        return assignment;
+        Course course = TestObjectFactory.createCourseWithAssignmentAndExercises("");
+        return Assignment.builder().publishDate(ZonedDateTime.now().plusYears(1)).build();
     }
 
     private GrantedCourseAccess adminAccess() {

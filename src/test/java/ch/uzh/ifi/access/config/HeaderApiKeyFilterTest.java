@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.config;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -26,7 +26,7 @@ public class HeaderApiKeyFilterTest {
         request.setPathInfo("/foo/bar");
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Assertions.assertThat(authentication).isNull();
+        Assertions.assertNull(authentication);
     }
 
     @Test
@@ -40,8 +40,8 @@ public class HeaderApiKeyFilterTest {
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Assertions.assertThat(authentication.getPrincipal()).isEqualTo(hash);
-        Assertions.assertThat(authentication).isInstanceOf(ApiTokenAuthenticationProvider.GithubHeaderAuthentication.class);
+        Assertions.assertEquals(hash, authentication.getPrincipal());
+        Assertions.assertInstanceOf(ApiTokenAuthenticationProvider.GithubHeaderAuthentication.class, authentication);
     }
 
     @Test
@@ -55,8 +55,8 @@ public class HeaderApiKeyFilterTest {
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Assertions.assertThat(authentication.getPrincipal()).isEqualTo("Gitlab");
-        Assertions.assertThat(authentication).isInstanceOf(ApiTokenAuthenticationProvider.GitlabHeaderAuthentication.class);
+        Assertions.assertEquals("Gitlab", authentication.getPrincipal());
+        Assertions.assertInstanceOf(ApiTokenAuthenticationProvider.GitlabHeaderAuthentication.class, authentication);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class HeaderApiKeyFilterTest {
 
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
 
-        Assertions.assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        Assertions.assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 
     @Test
@@ -79,6 +79,6 @@ public class HeaderApiKeyFilterTest {
 
         filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
 
-        Assertions.assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+        Assertions.assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 }

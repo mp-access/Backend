@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.student.evaluation;
 
-import ch.uzh.ifi.access.student.evaluation.process.EvalMachine;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachine.Events;
+import ch.uzh.ifi.access.student.evaluation.process.EvalMachine.States;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachineFactory;
 import ch.uzh.ifi.access.student.evaluation.process.EvalMachineRepoService;
 import ch.uzh.ifi.access.student.evaluation.process.ProcessStepFactoryService;
@@ -9,9 +10,11 @@ import ch.uzh.ifi.access.student.model.StudentSubmission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,10 +38,9 @@ public class EvalProcessService {
 
     public String initEvalProcess(StudentSubmission submission) {
         String processId = UUID.randomUUID().toString();
-        StateMachine m = null;
         try {
-            m = EvalMachineFactory.initSMForSubmission(submission.getId());
-            m.start();
+            StateMachine<States, Events> m = EvalMachineFactory.initSMForSubmission(submission.getId());
+            m.startReactively().subscribe();
             machineRepo.store(processId, m);
         } catch (Exception e) {
             logger.error("Could not create state machine for submission: " + submission.getId());
@@ -50,9 +52,9 @@ public class EvalProcessService {
 
     public Map<String, String> getEvalProcessState(final String processId) {
         Map<String, String> result = new HashMap<>();
-        StateMachine machine = machineRepo.get(processId);
+        StateMachine<States, Events> machine = machineRepo.get(processId);
         if (machine != null) {
-            if (EvalMachine.States.FINISHED == machine.getState().getId()) {
+            if (States.FINISHED == machine.getState().getId()) {
                 result.put("status", "ok");
                 result.put("submission", EvalMachineFactory.extractSubmissionId(machine));
             } else {
@@ -66,14 +68,11 @@ public class EvalProcessService {
 
     @Async("evalWorkerExecutor")
     public void fireEvalProcessExecutionAsync(final String processId) {
-        StateMachine<EvalMachine.States, EvalMachine.Events> machine = machineRepo.get(processId);
+        StateMachine<States, Events> machine = machineRepo.get(processId);
         try {
-
-            while (EvalMachine.States.FINISHED != machine.getState().getId()) {
-
+            while (States.FINISHED != machine.getState().getId()) {
                 machine = executeStep(machine);
                 machineRepo.store(processId, machine);
-
             }
             logger.debug("Submission with id " + processId + " is finished.");
         } catch (InterruptedException e) {
@@ -82,7 +81,7 @@ public class EvalProcessService {
 
     }
 
-    private StateMachine<EvalMachine.States, EvalMachine.Events> executeStep(StateMachine<EvalMachine.States, EvalMachine.Events> machine) throws InterruptedException {
+    private StateMachine<States, Events> executeStep(StateMachine<States, Events> machine) throws InterruptedException {
         String step = EvalMachineFactory.extractProcessStep(machine);
         int stepDelayInS = EvalMachineFactory.extractProcessStepDelayInS(machine);
         String submissionId = EvalMachineFactory.extractSubmissionId(machine);
@@ -97,8 +96,8 @@ public class EvalProcessService {
 
         ProcessStep stepObj = stepFactory.getStep(step);
         if (stepObj != null) {
-            EvalMachine.Events nextEvent = stepObj.execute(submissionId);
-            machine.sendEvent(nextEvent);
+            Events nextEvent = stepObj.execute(submissionId);
+            machine.sendEvent(Mono.just(MessageBuilder.withPayload(nextEvent).build())).subscribe();
         }
 
         return machine;

@@ -1,51 +1,73 @@
 package ch.uzh.ifi.access.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
+import org.keycloak.adapters.KeycloakConfigResolver;
+import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
+import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
+import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
+import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
-import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
+import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.core.session.SessionRegistryImpl;
+
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@Configuration
-@EnableWebSecurity
-@EnableResourceServer
+@KeycloakConfiguration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @ConditionalOnProperty(prefix = "rest.security", value = "enabled", havingValue = "true")
-@Import({SecurityProperties.class})
-public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
-
-    private final ResourceServerProperties resourceServerProperties;
+@ComponentScan(basePackageClasses = KeycloakSpringBootConfigResolver.class)
+public class SecurityConfigurer extends KeycloakWebSecurityConfigurerAdapter {
 
     private final SecurityProperties securityProperties;
 
     private final HeaderApiKeyFilter filter;
 
-    public SecurityConfigurer(ResourceServerProperties resourceServerProperties, SecurityProperties securityProperties, HeaderApiKeyFilter filter) {
-        this.resourceServerProperties = resourceServerProperties;
+    public SecurityConfigurer(SecurityProperties securityProperties, HeaderApiKeyFilter filter) {
         this.securityProperties = securityProperties;
         this.filter = filter;
     }
 
+    /**
+     * Register Keycloak with the authentication manager and set up a mapping from Keycloak role names to
+     * Spring Security's default role naming scheme (with the prefix "ROLE_"). This allows referring to
+     * role names exactly as they appear in Keycloak, without having to add the "ROLE_" prefix.
+     * @see <a href="https://keycloak.org/docs/latest/securing_apps/index.html#naming-security-roles"/>
+     */
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) {
+        KeycloakAuthenticationProvider keycloakAuthenticationProvider = keycloakAuthenticationProvider();
+        keycloakAuthenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
+        auth.authenticationProvider(keycloakAuthenticationProvider);
+    }
+
+    @Bean
     @Override
-    public void configure(ResourceServerSecurityConfigurer resources) {
-        resources.resourceId(resourceServerProperties.getResourceId());
+    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new RegisterSessionAuthenticationStrategy(new SessionRegistryImpl());
+    }
+
+    /**
+     * Use the Spring properties defined in application.properties instead of searching for a "keycloak.json" file.
+     * @see <a href="https://keycloak.org/docs/latest/securing_apps/index.html#using-spring-boot-configuration"/>
+     */
+    @Bean
+    public KeycloakConfigResolver keycloakConfigResolver() {
+        return new KeycloakSpringBootConfigResolver();
     }
 
     @Override
     public void configure(final HttpSecurity http) throws Exception {
-        final String[] permittedPaths = new String[]{"/info", "/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/**", "/swagger-ui.html", "/webjars/**"};
+        super.configure(http);
+        final String[] permittedPaths = new String[]{"/info", "/v3/api-docs/**", "/swagger-ui/**"};
 
         http.cors()
                 .configurationSource(corsConfigurationSource())
@@ -71,15 +93,5 @@ public class SecurityConfigurer extends ResourceServerConfigurerAdapter {
             source.registerCorsConfiguration("/**", securityProperties.getCorsConfiguration());
         }
         return source;
-    }
-
-    @Bean
-    public JwtAccessTokenCustomizer jwtAccessTokenCustomizer(ObjectMapper mapper) {
-        return new JwtAccessTokenCustomizer(mapper);
-    }
-
-    @Bean
-    public JwkTokenStore jwkTokenStore(@Value("${security.oauth2.resource.jwk.key-set-uri}") String jwkSetUrl, JwtAccessTokenCustomizer accessTokenCustomizer) {
-        return new JwkTokenStore(jwkSetUrl, accessTokenCustomizer);
     }
 }

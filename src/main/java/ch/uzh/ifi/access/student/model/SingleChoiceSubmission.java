@@ -17,8 +17,8 @@ public class SingleChoiceSubmission extends StudentSubmission {
     private Integer choice;
 
     @Builder
-    public SingleChoiceSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, Integer choice, boolean isInvalid, boolean isTriggeredReSubmission) {
-        super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
+    public SingleChoiceSubmission(String id, int version, String userId, String commitId, String exerciseId, String courseId, boolean isGraded, Instant timestamp, Integer choice, boolean isInvalid, boolean isTriggeredReSubmission) {
+        super(id, version, userId, commitId, exerciseId, courseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
         this.choice = choice;
     }
 

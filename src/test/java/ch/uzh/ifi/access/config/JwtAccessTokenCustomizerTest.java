@@ -2,10 +2,11 @@ package ch.uzh.ifi.access.config;
 
 import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Map;
@@ -71,13 +72,13 @@ public class JwtAccessTokenCustomizerTest {
     public void extractAuthentication() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(mapper);
-        Map<String, String> map = mapper.readValue(testToken, Map.class);
+        Map<String, Object> map = mapper.readValue(testToken, new TypeReference<>() {});
 
         CourseAuthentication authentication = (CourseAuthentication) tokenCustomizer.extractAuthentication(map);
 
-        Assert.assertEquals(authentication.getUserId(), "e095b656-f219-4e13-bc39-c6329f725cc1");
-        Assert.assertEquals(authentication.getName(), "carl-friedlich.abel@uzh.ch");
-        Assert.assertEquals(authentication.getCourseAccesses(), Set.of(new GrantedCourseAccess("b75be786-f1c1-32d3-99fc-8af4ff155ade", true, false, false)));
+        Assertions.assertEquals(authentication.getUserId(), "e095b656-f219-4e13-bc39-c6329f725cc1");
+        Assertions.assertEquals(authentication.getName(), "carl-friedlich.abel@uzh.ch");
+        Assertions.assertEquals(authentication.getCourseAccesses(), Set.of(new GrantedCourseAccess("b75be786-f1c1-32d3-99fc-8af4ff155ade", true, false, false)));
     }
 
     @Test
@@ -88,7 +89,7 @@ public class JwtAccessTokenCustomizerTest {
         JsonNode token = mapper.readTree(testToken);
         String subject = tokenCustomizer.extractSubject(token);
 
-        Assert.assertEquals("e095b656-f219-4e13-bc39-c6329f725cc1", subject);
+        Assertions.assertEquals("e095b656-f219-4e13-bc39-c6329f725cc1", subject);
     }
 
     @Test
@@ -97,10 +98,10 @@ public class JwtAccessTokenCustomizerTest {
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - students");
 
-        Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
-        Assert.assertTrue(grantedCourseAccess.isStudent());
-        Assert.assertFalse(grantedCourseAccess.isAssistant());
-        Assert.assertFalse(grantedCourseAccess.isAdmin());
+        Assertions.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
+        Assertions.assertTrue(grantedCourseAccess.isStudent());
+        Assertions.assertFalse(grantedCourseAccess.isAssistant());
+        Assertions.assertFalse(grantedCourseAccess.isAdmin());
     }
 
     @Test
@@ -109,10 +110,10 @@ public class JwtAccessTokenCustomizerTest {
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - assistants");
 
-        Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
-        Assert.assertFalse(grantedCourseAccess.isStudent());
-        Assert.assertTrue(grantedCourseAccess.isAssistant());
-        Assert.assertFalse(grantedCourseAccess.isAdmin());
+        Assertions.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
+        Assertions.assertFalse(grantedCourseAccess.isStudent());
+        Assertions.assertTrue(grantedCourseAccess.isAssistant());
+        Assertions.assertFalse(grantedCourseAccess.isAdmin());
     }
 
     @Test
@@ -121,17 +122,18 @@ public class JwtAccessTokenCustomizerTest {
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/Informatics 1 - admins");
 
-        Assert.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
-        Assert.assertFalse(grantedCourseAccess.isStudent());
-        Assert.assertFalse(grantedCourseAccess.isAssistant());
-        Assert.assertTrue(grantedCourseAccess.isAdmin());
+        Assertions.assertEquals("b75be786-f1c1-32d3-99fc-8af4ff155ade", grantedCourseAccess.getCourse());
+        Assertions.assertFalse(grantedCourseAccess.isStudent());
+        Assertions.assertFalse(grantedCourseAccess.isAssistant());
+        Assertions.assertTrue(grantedCourseAccess.isAdmin());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void parseCourseAccessMissingSubgroup() {
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
 
-        tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/");
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> tokenCustomizer.parseCourseAccess("/b75be786-f1c1-32d3-99fc-8af4ff155ade/"));
     }
 
     @Test
@@ -139,9 +141,9 @@ public class JwtAccessTokenCustomizerTest {
         JwtAccessTokenCustomizer tokenCustomizer = new JwtAccessTokenCustomizer(null);
 
         GrantedCourseAccess grantedCourseAccess = tokenCustomizer.parseCourseAccess("");
-        Assert.assertEquals(grantedCourseAccess, GrantedCourseAccess.empty());
+        Assertions.assertEquals(grantedCourseAccess, GrantedCourseAccess.empty());
 
         grantedCourseAccess = tokenCustomizer.parseCourseAccess(null);
-        Assert.assertEquals(grantedCourseAccess, GrantedCourseAccess.empty());
+        Assertions.assertEquals(grantedCourseAccess, GrantedCourseAccess.empty());
     }
 }

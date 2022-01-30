@@ -2,8 +2,8 @@ package ch.uzh.ifi.access.course.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -258,14 +258,14 @@ public class WebhooksControllerTest {
         WebhooksController.WebhookPayload payload = new WebhooksController.WebhookPayload(mapper.readTree(gitlabPayload), true);
 
         JsonNode repository = payload.getRepository();
-        Assertions.assertThat(repository).isNotNull();
-        Assertions.assertThat(payload.getHtmlUrl()).isEqualTo("https://gitlab.com/alexhofmann/testprivaterepo");
-        Assertions.assertThat(payload.getGitUrl()).isEqualTo("https://gitlab.com/alexhofmann/testprivaterepo.git");
-        Assertions.assertThat(payload.getSshUrl()).isEqualTo("git@gitlab.com:alexhofmann/testprivaterepo.git");
+        Assertions.assertNotNull(repository);
+        Assertions.assertEquals("https://gitlab.com/alexhofmann/testprivaterepo", payload.getHtmlUrl());
+        Assertions.assertEquals("https://gitlab.com/alexhofmann/testprivaterepo.git", payload.getGitUrl());
+        Assertions.assertEquals("git@gitlab.com:alexhofmann/testprivaterepo.git", payload.getSshUrl());
 
-        Assertions.assertThat(payload.matchesCourseUrl("https://gitlab.com/alexhofmann/testprivaterepo")).isTrue();
-        Assertions.assertThat(payload.matchesCourseUrl("https://gitlab.com/alexhofmann/testprivaterepo.git")).isTrue();
-        Assertions.assertThat(payload.matchesCourseUrl("git@gitlab.com:alexhofmann/testprivaterepo.git")).isTrue();
+        Assertions.assertTrue(payload.matchesCourseUrl("https://gitlab.com/alexhofmann/testprivaterepo"));
+        Assertions.assertTrue(payload.matchesCourseUrl("https://gitlab.com/alexhofmann/testprivaterepo.git"));
+        Assertions.assertTrue(payload.matchesCourseUrl("git@gitlab.com:alexhofmann/testprivaterepo.git"));
     }
 
     @Test
@@ -274,13 +274,13 @@ public class WebhooksControllerTest {
         WebhooksController.WebhookPayload payload = new WebhooksController.WebhookPayload(mapper.readTree(githubPayload), false);
 
         JsonNode repository = payload.getRepository();
-        Assertions.assertThat(repository).isNotNull();
-        Assertions.assertThat(payload.getHtmlUrl()).isEqualTo("https://github.com/mp-access/Mock-Course");
-        Assertions.assertThat(payload.getGitUrl()).isEqualTo("https://github.com/mp-access/Mock-Course.git");
-        Assertions.assertThat(payload.getSshUrl()).isEqualTo("git@github.com:mp-access/Mock-Course.git");
+        Assertions.assertNotNull(repository);
+        Assertions.assertEquals("https://github.com/mp-access/Mock-Course", payload.getHtmlUrl());
+        Assertions.assertEquals("https://github.com/mp-access/Mock-Course.git", payload.getGitUrl());
+        Assertions.assertEquals("git@github.com:mp-access/Mock-Course.git", payload.getSshUrl());
 
-        Assertions.assertThat(payload.matchesCourseUrl("https://github.com/mp-access/Mock-Course")).isTrue();
-        Assertions.assertThat(payload.matchesCourseUrl("https://github.com/mp-access/Mock-Course.git")).isTrue();
-        Assertions.assertThat(payload.matchesCourseUrl("git@github.com:mp-access/Mock-Course.git")).isTrue();
+        Assertions.assertTrue(payload.matchesCourseUrl("https://github.com/mp-access/Mock-Course"));
+        Assertions.assertTrue(payload.matchesCourseUrl("https://github.com/mp-access/Mock-Course.git"));
+        Assertions.assertTrue(payload.matchesCourseUrl("git@github.com:mp-access/Mock-Course.git"));
     }
 }

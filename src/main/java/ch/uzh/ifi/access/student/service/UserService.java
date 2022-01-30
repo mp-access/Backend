@@ -7,7 +7,6 @@ import lombok.Value;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
@@ -35,11 +34,10 @@ public class UserService {
      * @param course course containing student email addresses
      * @return list of user entities
      */
-    @PreAuthorize("@coursePermissionEvaluator.hasPrivilegedAccessToCourse(authentication, #course)")
-    public UserQueryResult getCourseStudents(Course course) {
-        List<String> emailAddresses = course.getStudents();
-        return getUsersByEmailAddresses(emailAddresses);
-    }
+   public UserQueryResult getCourseStudents(Course course) {
+       List<String> emailAddresses = course.getStudents();
+       return getUsersByEmailAddresses(emailAddresses);
+   }
 
     /**
      * Gets a list of assistants for the given course.
@@ -57,8 +55,7 @@ public class UserService {
         List<User> users = new ArrayList<>(emailAddresses.size());
         List<String> accountsNotFound = new ArrayList<>(emailAddresses.size());
         for (String emailAddress : emailAddresses) {
-            Optional<UserRepresentation> userRepresentation = keycloakClient
-                    .findUsersByEmail(emailAddress);
+            Optional<UserRepresentation> userRepresentation = keycloakClient.findUserByEmail(emailAddress);
 
             if (userRepresentation.isPresent()) {
                 users.add(User.of(userRepresentation.get()));
@@ -89,8 +86,8 @@ public class UserService {
     @Value
     public static class UserQueryResult {
 
-        private List<String> accountsNotFound;
+        List<String> accountsNotFound;
 
-        private List<User> usersFound;
+        List<User> usersFound;
     }
 }

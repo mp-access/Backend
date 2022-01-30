@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from public.solutioncode import Aircraft, IntercontinentalAircraft, ShortHaulAircraft, ControlTower
+from public.solutions import Aircraft, IntercontinentalAircraft, ShortHaulAircraft
 
 
 class Task1Test(TestCase):
