@@ -31,9 +31,9 @@ public class CourseService {
 
     @Async("courseUpdateWorkerExecutor")
     public void updateCourseById(String id) {
-        Course course = courseDao.updateCourseById(id);
-        if (course != null) {
-            courseSetup.initializedCourseParticipants(course);
+        Course updatedCourse = courseDao.updateCourseById(id);
+        if (updatedCourse != null) {
+            courseSetup.initializeCourseParticipants(updatedCourse);
         }
     }
 

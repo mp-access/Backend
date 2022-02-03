@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
+import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class BreakingChangeNotifierTest {
         private List<String> exercises;
 
         @Override
-        public void publishEvent(Object event) {
+        public void publishEvent(@NotNull Object event) {
             exercises = ((BreakingChangeEvent) event).getBreakingChangeExerciseIds();
         }
     }

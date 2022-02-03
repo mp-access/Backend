@@ -15,26 +15,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.core.session.SessionRegistryImpl;
 
-import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @KeycloakConfiguration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-@ConditionalOnProperty(prefix = "rest.security", value = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "keycloak", value = "enabled", havingValue = "true")
 @ComponentScan(basePackageClasses = KeycloakSpringBootConfigResolver.class)
 public class SecurityConfigurer extends KeycloakWebSecurityConfigurerAdapter {
-
-    private final SecurityProperties securityProperties;
-
-    private final HeaderApiKeyFilter filter;
-
-    public SecurityConfigurer(SecurityProperties securityProperties, HeaderApiKeyFilter filter) {
-        this.securityProperties = securityProperties;
-        this.filter = filter;
-    }
 
     /**
      * Register Keycloak with the authentication manager and set up a mapping from Keycloak role names to
@@ -69,29 +57,10 @@ public class SecurityConfigurer extends KeycloakWebSecurityConfigurerAdapter {
         super.configure(http);
         final String[] permittedPaths = new String[]{"/info", "/v3/api-docs/**", "/swagger-ui/**"};
 
-        http.cors()
-                .configurationSource(corsConfigurationSource())
-                .and()
-                .headers()
-                .frameOptions()
-                .disable()
-                .and()
-                .csrf()
-                .disable()
-                .addFilterAfter(filter, AbstractPreAuthenticatedProcessingFilter.class)
-                .authorizeRequests()
+        http.csrf().disable().authorizeRequests()
                 .antMatchers(permittedPaths)
                 .permitAll()
-                .antMatchers(securityProperties.getApiMatcher())
+                .antMatchers("/**")
                 .authenticated();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        if (null != securityProperties.getCorsConfiguration()) {
-            source.registerCorsConfiguration("/**", securityProperties.getCorsConfiguration());
-        }
-        return source;
     }
 }

@@ -3,8 +3,7 @@ package ch.uzh.ifi.access.student.dao;
 import ch.uzh.ifi.access.student.dto.UserMigrationResult;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import com.mongodb.client.result.UpdateResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -14,15 +13,14 @@ import org.springframework.data.mongodb.core.query.Update;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubmissionRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(CustomizedStudentSubmissionRepositoryImpl.class);
-
-    private final MongoTemplate mongoTemplate;
+    private MongoTemplate mongoTemplate;
 
     public CustomizedStudentSubmissionRepositoryImpl(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
@@ -34,7 +32,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
         Update update = Update.update("isInvalid", true);
 
         UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
-        logger.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
+        log.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
     }
 
     @Override
@@ -43,7 +41,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
         Update update = Update.update("isInvalid", true);
 
         UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
-        logger.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
+        log.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
     }
 
     @Override
@@ -91,7 +89,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
                 }
             }
         } catch (Exception e) {
-            logger.warn("Failed to migrated submissions for {} to {}", from, to, e);
+            log.warn("Failed to migrated submissions for {} to {}", from, to, e);
             userMigrationResult.setSuccess(false);
         }
 
@@ -114,7 +112,8 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
                 sortByVersionDesc,
                 groupByExerciseId);
 
-        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "studentSubmissions", Map.class);
-        return results.getMappedResults().stream().map(map -> (Map<String, List<StudentSubmission>>) map).collect(Collectors.toList());
+        List<Map<String, List<StudentSubmission>>> submissionsById = new ArrayList<>();
+        mongoTemplate.aggregate(aggregation, "studentSubmissions", Map.class).getMappedResults().forEach(submissionsById::add);
+        return submissionsById;
     }
 }

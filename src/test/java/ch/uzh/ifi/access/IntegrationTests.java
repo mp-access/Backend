@@ -1,7 +1,6 @@
 package ch.uzh.ifi.access;
 
-import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
-import ch.uzh.ifi.access.config.SecurityProperties;
+import ch.uzh.ifi.access.config.AccessProperties;
 import ch.uzh.ifi.access.course.config.CourseServiceSetup;
 import ch.uzh.ifi.access.course.controller.CourseController;
 import ch.uzh.ifi.access.course.controller.ExerciseController;
@@ -52,12 +51,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        properties = {"spring.main.allow-bean-definition-overriding=true", "rest.security.realm=test"},
-        controllers = {ApiTokenAuthenticationProvider.class, SecurityProperties.class, SubmissionProperties.class, CourseServiceSetup.class,
-                CourseService.class, StudentSubmissionService.class, AdminSubmissionService.class,
-                KeycloakClient.class, CourseController.class, ExerciseController.class, ResultController.class,
-                SubmissionController.class, AssistantController.class})
-public class IntegrationTests {
+        properties = {"spring.main.allow-bean-definition-overriding=true", "keycloak.enabled=true", "keycloak.realm=test"},
+        controllers = {AccessProperties.class, SubmissionProperties.class, KeycloakClient.class, CourseServiceSetup.class,
+                CourseService.class, StudentSubmissionService.class, AdminSubmissionService.class, CourseController.class,
+                ExerciseController.class, ResultController.class, SubmissionController.class, AssistantController.class})
+class IntegrationTests {
 
     Course course1 = TestObjectFactory.createCourseWithAssignments("Course 1", List.of(
             TestObjectFactory.createAssignmentWithExercises(true, false),
@@ -104,7 +102,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = studentId)
-    public void getEnrolledCoursesTest() throws Exception {
+    void getEnrolledCoursesTest() throws Exception {
         String expectedCourses = mapper.writeValueAsString(List.of(new CourseMetadataDTO(course1)));
         mockMvc.perform(get("/courses"))
                 .andExpect(status().isOk())
@@ -113,7 +111,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getEnrolledCourseAllowedTest() throws Exception {
+    void getEnrolledCourseAllowedTest() throws Exception {
         String expectedCourse = mapper.writeValueAsString(new CourseMetadataDTO(course1));
         mockMvc.perform(get("/courses/course-1"))
                 .andExpect(status().isOk())
@@ -122,14 +120,14 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getEnrolledCourseDeniedTest() throws Exception {
+    void getEnrolledCourseDeniedTest() throws Exception {
         mockMvc.perform(get("/courses/course-2"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getAllAssignmentsByCourseAsStudentTest() throws Exception {
+    void getAllAssignmentsByCourseAsStudentTest() throws Exception {
         String expectedAssignments = mapper.writeValueAsString(List.of(new AssignmentMetadataDTO(publishedAssignment)));
         mockMvc.perform(get("/courses/course-1/assignments"))
                 .andExpect(status().isOk())
@@ -138,7 +136,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void getAllAssignmentsByCourseAsAssistantTest() throws Exception {
+    void getAllAssignmentsByCourseAsAssistantTest() throws Exception {
         String expectedAssignments = mapper.writeValueAsString(course1.getAssignments().stream()
                 .map(AssignmentMetadataDTO::new).collect(Collectors.toList()));
         mockMvc.perform(get("/courses/course-1/assignments"))
@@ -148,7 +146,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student", "course-2", "assistant", "course-2-assistant"})
-    public void getAllAssignmentsByCourseAsCourse1StudentAndCourse2AssistantTest() throws Exception {
+    void getAllAssignmentsByCourseAsCourse1StudentAndCourse2AssistantTest() throws Exception {
         String expectedAssignments = mapper.writeValueAsString(List.of(new AssignmentMetadataDTO(publishedAssignment)));
         mockMvc.perform(get("/courses/course-1/assignments"))
                 .andExpect(status().isOk())
@@ -157,7 +155,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getPublishedCourseAssignmentAsStudentTest() throws Exception {
+    void getPublishedCourseAssignmentAsStudentTest() throws Exception {
         String expectedAssignment = mapper.writeValueAsString(new AssignmentMetadataDTO(publishedAssignment));
         mockMvc.perform(get("/courses/course-1/assignments/" + publishedAssignment.getId()))
                 .andExpect(status().isOk())
@@ -166,14 +164,14 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getUnpublishedCourseAssignmentAsStudentTest() throws Exception {
+    void getUnpublishedCourseAssignmentAsStudentTest() throws Exception {
         mockMvc.perform(get("/courses/course-1/assignments/" + unpublishedAssignment.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void getUnpublishedCourseAssignmentAsAssistantTest() throws Exception {
+    void getUnpublishedCourseAssignmentAsAssistantTest() throws Exception {
         String expectedAssignment = mapper.writeValueAsString(new AssignmentMetadataDTO(unpublishedAssignment));
         mockMvc.perform(get("/courses/course-1/assignments/" + unpublishedAssignment.getId()))
                 .andExpect(status().isOk())
@@ -182,35 +180,35 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student", "course-2", "assistant", "course-2-assistant"})
-    public void getUnpublishedCourseAssignmentAsCourse1StudentAndCourse2AssistantTest() throws Exception {
+    void getUnpublishedCourseAssignmentAsCourse1StudentAndCourse2AssistantTest() throws Exception {
         mockMvc.perform(get("/courses/course-1/assignments/" + unpublishedAssignment.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getCourseAssignmentNotFoundTest() throws Exception {
+    void getCourseAssignmentNotFoundTest() throws Exception {
         mockMvc.perform(get("/courses/course-1/assignments/123"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = studentId)
-    public void getCourseResultsAllowedTest() throws Exception {
+    void getCourseResultsAllowedTest() throws Exception {
         mockMvc.perform(get("/courses/course-1/results"))
                 .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = studentId)
-    public void getCourseResultsADeniedTest() throws Exception {
+    void getCourseResultsADeniedTest() throws Exception {
         mockMvc.perform(get("/courses/course-2/results"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getExerciseTest() throws Exception {
+    void getExerciseTest() throws Exception {
         String expectedExercise = mapper.writeValueAsString(publishedExercise);
         mockMvc.perform(get("/exercises/" + publishedExercise.getId()))
                 .andExpect(status().isOk())
@@ -219,14 +217,14 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getExerciseWithSolutionsAsStudentTest() throws Exception {
+    void getExerciseWithSolutionsAsStudentTest() throws Exception {
         mockMvc.perform(get("/exercises/" + unpublishedExercise.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void getExerciseWithSolutionsAsAssistantTest() throws Exception {
+    void getExerciseWithSolutionsAsAssistantTest() throws Exception {
         String expectedExercise = mapper.writeValueAsString(unpublishedExercise);
         mockMvc.perform(get("/exercises/" + unpublishedExercise.getId()))
                 .andExpect(status().isOk())
@@ -235,14 +233,14 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getExerciseNotFoundTest() throws Exception {
+    void getExerciseNotFoundTest() throws Exception {
         mockMvc.perform(get("/exercises/123"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = studentId)
-    public void submitSolutionToPublishedExerciseAsStudentTest() throws Exception {
+    void submitSolutionToPublishedExerciseAsStudentTest() throws Exception {
         StudentAnswerDTO solution = new StudentAnswerDTO(publishedExercise.getType(),
                 mapper.convertValue(TestObjectFactory.createCodeAnswer(studentId, publishedExercise.getId()), JsonNode.class));
         doReturn(false).when(studentSubmissionRepository).existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(studentId);
@@ -259,7 +257,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = studentId)
-    public void submitSolutionToUnpublishedExerciseAsStudentTest() throws Exception {
+    void submitSolutionToUnpublishedExerciseAsStudentTest() throws Exception {
         StudentAnswerDTO solution = new StudentAnswerDTO(unpublishedExercise.getType(),
                 mapper.convertValue(TestObjectFactory.createCodeAnswer(studentId, unpublishedExercise.getId()), JsonNode.class));
         doReturn(false).when(studentSubmissionRepository).existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(studentId);
@@ -276,7 +274,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"}, username = assistantId)
-    public void submitSolutionToUnpublishedExerciseAsAssistantTest() throws Exception {
+    void submitSolutionToUnpublishedExerciseAsAssistantTest() throws Exception {
         StudentAnswerDTO solution = new StudentAnswerDTO(unpublishedExercise.getType(),
                 mapper.convertValue(TestObjectFactory.createCodeAnswer(assistantId, unpublishedExercise.getId()), JsonNode.class));
         doReturn(false).when(studentSubmissionRepository).existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(assistantId);
@@ -293,21 +291,21 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void exportAssignmentResultsAsStudentTest() throws Exception {
+    void exportAssignmentResultsAsStudentTest() throws Exception {
         mockMvc.perform(get("/admins/courses/course-1/assignments/{assignmentId}/results", publishedAssignment.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void exportAssignmentResultsAsAssistantTest() throws Exception {
+    void exportAssignmentResultsAsAssistantTest() throws Exception {
         mockMvc.perform(get("/admins/courses/course-1/assignments/{assignmentId}/results", publishedAssignment.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "admin", "course-1-course-admin"})
-    public void exportAssignmentResultsAsAdminTest() throws Exception {
+    void exportAssignmentResultsAsAdminTest() throws Exception {
         doReturn(new UserService.UserQueryResult(List.of(), List.of())).when(userService).getCourseStudents(course1);
         mockMvc.perform(get("/admins/courses/course-1/assignments/{assignmentId}/results", publishedAssignment.getId()))
                 .andExpect(status().isOk());
@@ -315,21 +313,21 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void reevaluateInvalidateSubmissionsForAssignmentAsStudentTest() throws Exception {
+    void reevaluateInvalidateSubmissionsForAssignmentAsStudentTest() throws Exception {
         mockMvc.perform(get("/admins/courses/course-1/assignments/{assignmentId}/reevaluate", publishedAssignment.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void reevaluateInvalidateSubmissionsForAssignmentAsAssistantTest() throws Exception {
+    void reevaluateInvalidateSubmissionsForAssignmentAsAssistantTest() throws Exception {
         mockMvc.perform(get("/admins/courses/course-1/assignments/{assignmentId}/reevaluate", publishedAssignment.getId()))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "admin", "course-1-course-admin"})
-    public void reevaluateInvalidateSubmissionsForAssignmentAsAdminTest() throws Exception {
+    void reevaluateInvalidateSubmissionsForAssignmentAsAdminTest() throws Exception {
         doReturn(new UserService.UserQueryResult(List.of(), List.of())).when(userService).getCourseStudents(course1);
         mockMvc.perform(get("/admins/courses/course-1/assignments/{assignmentId}/reevaluate", publishedAssignment.getId()))
                 .andExpect(status().isOk());
@@ -337,7 +335,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void migrateUserAsStudentTest() throws Exception {
+    void migrateUserAsStudentTest() throws Exception {
         doReturn(new UserService.UserQueryResult(List.of(), List.of())).when(userService).getUsersByIds(List.of("from", "to"));
         mockMvc.perform(post("/admins/courses/course-1/participants/migrations")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -348,7 +346,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void migrateUserAsAssistantTest() throws Exception {
+    void migrateUserAsAssistantTest() throws Exception {
         doReturn(new UserService.UserQueryResult(List.of(), List.of())).when(userService).getUsersByIds(List.of("from", "to"));
         mockMvc.perform(post("/admins/courses/course-1/participants/migrations")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -359,7 +357,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "admin", "course-1-course-admin"})
-    public void migrateUserAsAdminTest() throws Exception {
+    void migrateUserAsAdminTest() throws Exception {
         doReturn(new UserService.UserQueryResult(List.of(), List.of())).when(userService).getUsersByIds(List.of("from", "to"));
         mockMvc.perform(post("/admins/courses/course-1/participants/migrations")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -370,14 +368,14 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void getCourseParticipantsAsStudentTest() throws Exception {
+    void getCourseParticipantsAsStudentTest() throws Exception {
         mockMvc.perform(get("/admins/courses/course-1/participants"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void getCourseParticipantsAsAssistantTest() throws Exception {
+    void getCourseParticipantsAsAssistantTest() throws Exception {
         doReturn(new UserService.UserQueryResult(List.of(), List.of())).when(userService).getCourseStudents(course1);
         mockMvc.perform(get("/admins/courses/course-1/participants"))
                 .andExpect(status().isOk());
@@ -385,7 +383,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"})
-    public void resetSubmissionCountAsStudentTest() throws Exception {
+    void resetSubmissionCountAsStudentTest() throws Exception {
         mockMvc.perform(
                 get("/admins/courses/course-1/exercises/{exerciseId}/users/{userId}/reset", publishedExercise.getId(), studentId))
                 .andExpect(status().isForbidden());
@@ -393,7 +391,7 @@ public class IntegrationTests {
 
     @Test
     @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"})
-    public void resetSubmissionCountAsAssistantTest() throws Exception {
+    void resetSubmissionCountAsAssistantTest() throws Exception {
         mockMvc.perform(
                 get("/admins/courses/course-1/exercises/{exerciseId}/users/{userId}/reset", publishedExercise.getId(), studentId))
                 .andExpect(status().isOk());

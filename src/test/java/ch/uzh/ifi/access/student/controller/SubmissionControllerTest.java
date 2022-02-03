@@ -30,7 +30,7 @@ import static org.mockito.Mockito.doReturn;
 
 @SpringBootTest(classes = {SubmissionController.class})
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class SubmissionControllerTest {
+class SubmissionControllerTest {
 
     Course course = TestObjectFactory.createCourseWithAssignmentAndExercises("Course 1");
     Exercise exercise = course.getExercises().get(0);
@@ -53,7 +53,7 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void getSubmissionByIdTest() {
+    void getSubmissionByIdTest() {
         doReturn(submission).when(studentSubmissionService).getSubmissionWithPermission(submission.getId());
         ResponseEntity<StudentSubmission> returnedSubmission = submissionController
                 .getSubmissionById(exercise.getId(), submission.getId());
@@ -63,7 +63,7 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void getLatestSubmissionByExerciseTest() {
+    void getLatestSubmissionByExerciseTest() {
         doReturn(Optional.of(submission)).when(studentSubmissionService)
                 .findLatestExerciseSubmission(exercise.getId(), userId);
         doReturn(submission).when(studentSubmissionService).getSubmissionWithPermission(submission.getId());
@@ -75,7 +75,7 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void getLatestSubmissionByExerciseNotFoundTest() {
+    void getLatestSubmissionByExerciseNotFoundTest() {
         doReturn(Optional.empty()).when(studentSubmissionService)
                 .findLatestExerciseSubmission(exercise.getId(), userId);
         ResponseEntity<StudentSubmission> returnedSubmission = submissionController
@@ -85,7 +85,7 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void submitTest() {
+    void submitTest() {
         StudentAnswerDTO testSolution = new StudentAnswerDTO(ExerciseType.code, mapper.convertValue(submission, JsonNode.class));
         doReturn(false).when(studentSubmissionService).isUserRateLimited(userId);
         doReturn(exercise).when(courseService).getExerciseWithPermission(exercise.getId(), true);
@@ -93,12 +93,12 @@ public class SubmissionControllerTest {
         doReturn(testProcessId).when(processService).initEvalProcess(any());
         ResponseEntity<?> returnedResponse = submissionController.submit(testSolution, exercise.getId(), userId);
         Assertions.assertEquals(200, returnedResponse.getStatusCodeValue());
-        Assertions.assertEquals(new AbstractMap.SimpleEntry<>("evalId", testProcessId), returnedResponse.getBody());
+        Assertions.assertEquals(testProcessId, returnedResponse.getBody());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void submitAsRateLimitedUserTest() {
+    void submitAsRateLimitedUserTest() {
         StudentAnswerDTO testSolution = new StudentAnswerDTO(ExerciseType.code, mapper.convertValue(submission, JsonNode.class));
         doReturn(true).when(studentSubmissionService).isUserRateLimited(userId);
         ResponseEntity<?> returnedSubmission = submissionController.submit(testSolution, exercise.getId(), userId);
@@ -107,7 +107,7 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void testRunWithoutRemainingSubmissionsTest() {
+    void testRunWithoutRemainingSubmissionsTest() {
         submission.setGraded(false);
         StudentAnswerDTO testSolution = new StudentAnswerDTO(ExerciseType.code, mapper.convertValue(submission, JsonNode.class));
         doReturn(false).when(studentSubmissionService).isUserRateLimited(userId);
@@ -117,12 +117,12 @@ public class SubmissionControllerTest {
         doReturn(testProcessId).when(processService).initEvalProcess(any());
         ResponseEntity<?> returnedResponse = submissionController.submit(testSolution, exercise.getId(), userId);
         Assertions.assertEquals(200, returnedResponse.getStatusCodeValue());
-        Assertions.assertEquals(new AbstractMap.SimpleEntry<>("evalId", testProcessId), returnedResponse.getBody());
+        Assertions.assertEquals(testProcessId, returnedResponse.getBody());
     }
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void submitForGradingWithoutRemainingSubmissionsTest() {
+    void submitForGradingWithoutRemainingSubmissionsTest() {
         StudentAnswerDTO testSolution = new StudentAnswerDTO(ExerciseType.code, mapper.convertValue(submission, JsonNode.class));
         doReturn(false).when(studentSubmissionService).isUserRateLimited(userId);
         doReturn(exercise).when(courseService).getExerciseWithPermission(exercise.getId(), true);
@@ -135,7 +135,7 @@ public class SubmissionControllerTest {
 
     @Test
     @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
-    public void getAllSubmissionsForExerciseTest() {
+    void getAllSubmissionsForExerciseTest() {
         doReturn(List.of()).when(studentSubmissionService).findAllTestRuns(exercise.getId(), userId);
         doReturn(List.of(submission)).when(studentSubmissionService).findAllGradedSubmissions(exercise.getId(), userId);
         doReturn(exercise).when(courseService).getExerciseWithViewPermission(exercise.getId());

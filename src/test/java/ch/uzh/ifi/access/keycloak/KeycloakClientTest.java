@@ -1,17 +1,11 @@
 package ch.uzh.ifi.access.keycloak;
 
-import ch.uzh.ifi.access.config.SecurityProperties;
-import ch.uzh.ifi.access.course.config.CourseServiceSetup;
+import ch.uzh.ifi.access.config.AccessProperties;
 import ch.uzh.ifi.access.course.model.Course;
 import com.google.common.collect.Sets;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.RolesResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,67 +17,46 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SpringBootTest(
-        properties = {"rest.security.enabled=false", "rest.security.realm=test"},
-        classes = {KeycloakClient.class, SecurityProperties.class, CourseServiceSetup.CourseProperties.class})
-public class KeycloakClientTest {
+@SpringBootTest(properties = {"keycloak.realm=test"}, classes = {KeycloakClient.class, AccessProperties.class})
+class KeycloakClientTest {
 
     @Autowired
-    private SecurityProperties securityProperties;
-
-    @Autowired
-    private CourseServiceSetup.CourseProperties courseProperties;
+    private AccessProperties accessProperties;
 
     @Autowired
     private KeycloakClient keycloakClient;
 
-    @BeforeEach
-    void setUpTestRealm() {
-        Keycloak testClient = keycloakClient.keycloak;
-        RealmRepresentation testRealm = new RealmRepresentation();
-        testRealm.setRealm(securityProperties.getRealm());
-        testClient.realms().create(testRealm);
-        RolesResource testRolesResource = keycloakClient.getRealmRoles();
-        testRolesResource.create(new RoleRepresentation(Roles.STUDENT_ROLE, "", false));
-        testRolesResource.create(new RoleRepresentation(Roles.ASSISTANT_ROLE, "", false));
-        testRolesResource.create(new RoleRepresentation(Roles.ADMIN_ROLE, "", false));
-    }
-
-    @AfterEach
-    void tearDownTestingRealm() {
-        keycloakClient.keycloak.realm(securityProperties.getRealm()).remove();
+    @Test
+    void initKeycloakTest() {
+        List<String> returnedRealms = keycloakClient.getRealmRoles().list().stream()
+                        .map(RoleRepresentation::getName).collect(Collectors.toList());
+        Assertions.assertTrue(returnedRealms.contains(Roles.STUDENT_ROLE));
+        Assertions.assertTrue(returnedRealms.contains(Roles.ASSISTANT_ROLE));
+        Assertions.assertTrue(returnedRealms.contains(Roles.ADMIN_ROLE));
     }
 
     @Test
-    public void initKeycloakTest() {
-        Keycloak testClient = keycloakClient.keycloak;
-        List<String> returnedRealms = testClient.realms().findAll().stream()
-                .map(RealmRepresentation::getRealm).collect(Collectors.toList());
-        Assertions.assertTrue(returnedRealms.size() >= 1);
-    }
-
-    @Test
-    public void getUserByIdTest() {
+    void getUserByIdTest() {
         UserRepresentation expectedUser = new UserRepresentation();
-        expectedUser.setUsername("test-user");
+        expectedUser.setEmail("test-user");
         expectedUser.setFirstName("test");
         expectedUser.setLastName("user");
         String expectedUserId = Utils.getCreatedId(keycloakClient.getRealmUsers().create(expectedUser));
 
         UserRepresentation returnedUser = keycloakClient.getUserById(expectedUserId);
         Assertions.assertNotNull(returnedUser);
-        Assertions.assertEquals(expectedUser.getUsername(), returnedUser.getUsername());
+        Assertions.assertEquals(expectedUser.getEmail(), returnedUser.getUsername());
         Assertions.assertEquals(expectedUser.getFirstName(), returnedUser.getFirstName());
         Assertions.assertEquals(expectedUser.getLastName(), returnedUser.getLastName());
     }
 
     @Test
-    public void getUserByIdNotFoundTest() {
+    void getUserByIdNotFoundTest() {
         Assertions.assertThrows(NotFoundException.class, () -> keycloakClient.getUserById("12"));
     }
 
     @Test
-    public void createAndVerifyUserTest() {
+    void createAndVerifyUserTest() {
         String email = "test@example.com";
         String newUserId = keycloakClient.createAndVerifyUser(email);
         UserRepresentation newUser = keycloakClient.getUserById(newUserId);
@@ -93,14 +66,14 @@ public class KeycloakClientTest {
 
         // Fetch the credentials directly to receive updated data (newUser.getCredentials() might be null)
         List<CredentialRepresentation> newUserCredentials = keycloakClient.getRealmUsers().get(newUserId).credentials();
-        if (courseProperties.isUseDefaultPasswordForNewAccounts()) {
+        if (accessProperties.isUseDefaultPasswordForNewAccounts()) {
             Assertions.assertEquals(1, newUserCredentials.size());
             Assertions.assertEquals(CredentialRepresentation.PASSWORD, newUserCredentials.get(0).getType());
         }
     }
 
     @Test
-    public void enrollUsersInCourseTest() {
+    void enrollUsersInCourseTest() {
         Course course = new Course("Informatics 1");
         course.setTitle("Informatics 1");
         course.setStudents(List.of("alice@example.com", "bob@example.com"));
@@ -117,16 +90,16 @@ public class KeycloakClientTest {
     }
 
     @Test
-    public void enrollUsersAlreadyEnrolledInAnotherCourse() {
+    void enrollUsersAlreadyEnrolledInAnotherCourse() {
         final String emailAddressStudentAndTa = "ta-student@uzh.ch";
 
-        Course course1 = new Course("Informatics 1");
-        course1.setTitle("Informatics 1");
+        Course course1 = new Course("Course 1");
+        course1.setTitle("Course 1");
         course1.setAssistants(List.of(emailAddressStudentAndTa));
         Roles course1Roles = keycloakClient.enrollUsersInCourse(course1);
 
-        Course course2 = new Course("Informatics 2");
-        course2.setTitle("Informatics 2");
+        Course course2 = new Course("Course 2");
+        course2.setTitle("Course 2");
         course2.setStudents(List.of(emailAddressStudentAndTa));
         Roles course2Roles = keycloakClient.enrollUsersInCourse(course2);
 

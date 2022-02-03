@@ -11,9 +11,9 @@ import java.util.Set;
 public class Roles {
 
     /**
-     * Basic user roles, corresponding to the role names as defined in the Keycloak realm. These 3 roles are created
-     * automatically when the app is deployed via the scripts available at mp-access/Infrastructure.
-     * @see <a href=https://github.com/mp-access/Infrastructure />
+     * Names of the basic user roles in the Keycloak realm. These 3 roles are initialised when the realm is
+     * created for the first time by the Keycloak client.
+     * @see KeycloakClient#initKeycloak()   for user roles initialisation
      */
     public static final String STUDENT_ROLE = "student";
     public static final String ASSISTANT_ROLE = "assistant";

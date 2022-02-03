@@ -7,27 +7,27 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.statemachine.StateMachine;
+import reactor.core.publisher.Mono;
 
-public class EvalMachineFactoryTest {
-
-    private String submissionId = "sub1";
+class EvalMachineFactoryTest {
 
     private StateMachine<EvalMachine.States, EvalMachine.Events> stateMachine;
 
     @BeforeEach
-    public void setUp() throws Exception {
-        stateMachine = EvalMachineFactory.initSMForSubmission(submissionId);
-        stateMachine.start();
+    void setUp() throws Exception {
+        stateMachine = EvalMachineFactory.initSMForSubmission("sub1");
+        stateMachine.startReactively().subscribe();
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         stateMachine = null;
     }
 
     @Test
-    public void initTest() {
+    void initTest() {
         Assertions.assertEquals(EvalMachine.States.SUBMITTED,
                 stateMachine.getState().getId());
 
@@ -37,7 +37,7 @@ public class EvalMachineFactoryTest {
     }
 
     @Test
-    public void extendedState() {
+    void extendedState() {
         stateMachine.getExtendedState().getVariables().put("id", "test");
 
         Assertions.assertEquals("test",
@@ -45,8 +45,8 @@ public class EvalMachineFactoryTest {
     }
 
     @Test
-    public void grade() {
-        stateMachine.sendEvent(EvalMachine.Events.GRADE);
+    void grade() {
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.GRADE).build())).subscribe();
 
         Assertions.assertEquals(EvalMachine.States.GRADING, stateMachine.getState().getId());
         Assertions.assertEquals(GradeSubmissionStep.class.getName(),
@@ -54,8 +54,8 @@ public class EvalMachineFactoryTest {
     }
 
     @Test
-    public void delegate() {
-        stateMachine.sendEvent(EvalMachine.Events.DELEGATE);
+    void delegate() {
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.DELEGATE).build())).subscribe();
 
         Assertions.assertEquals(EvalMachine.States.DELEGATE, stateMachine.getState().getId());
         Assertions.assertEquals(DelegateCodeExecStep.class.getName(),
@@ -63,26 +63,26 @@ public class EvalMachineFactoryTest {
     }
 
     @Test
-    public void returning() {
-        stateMachine.sendEvent(EvalMachine.Events.DELEGATE);
+    void returning() {
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.DELEGATE).build())).subscribe();
         Assertions.assertEquals(EvalMachine.States.DELEGATE, stateMachine.getState().getId());
         Assertions.assertEquals(DelegateCodeExecStep.class.getName(),
                 EvalMachineFactory.extractProcessStep(stateMachine));
 
 
-        stateMachine.sendEvent(EvalMachine.Events.RETURN);
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.RETURN).build())).subscribe();
         Assertions.assertEquals(EvalMachine.States.RETURNING, stateMachine.getState().getId());
 //        Assertions.assertThat(EvalMachineFactory.extractProcessStep(stateMachine))
 //                .isEqualTo(DelegateCodeExecStep.class.getName());
     }
 
     @Test
-    public void ignoreWrongEvent() {
-        stateMachine.sendEvent(EvalMachine.Events.DELEGATE);
+    void ignoreWrongEvent() {
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.DELEGATE).build())).subscribe();
         Assertions.assertEquals(EvalMachine.States.DELEGATE,
                 stateMachine.getState().getId());
 
-        stateMachine.sendEvent(EvalMachine.Events.GRADE);
+        stateMachine.sendEvent(Mono.just(MessageBuilder.withPayload(EvalMachine.Events.GRADE).build())).subscribe();
         Assertions.assertEquals(EvalMachine.States.DELEGATE,
                 stateMachine.getState().getId());
     }

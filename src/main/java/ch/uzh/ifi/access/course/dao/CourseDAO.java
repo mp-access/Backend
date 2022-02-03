@@ -10,11 +10,9 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.io.FileOutputStream;
@@ -28,13 +26,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
+@Slf4j
 @Repository("gitrepo")
 public class CourseDAO {
-
-    private static final Logger logger = LoggerFactory.getLogger(CourseDAO.class);
-
-    private static final String CONFIG_FILE = "repositories.json";
 
     private List<Course> courseList;
 
@@ -44,18 +38,17 @@ public class CourseDAO {
 
     private RepoCacher repoCacher;
 
-    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier, RepoCacher repoCacher) {
+    public CourseDAO(BreakingChangeNotifier breakingChangeNotifier, RepoCacher repoCacher,
+                     @Value("${access.repositories}")  List<String> repositories) {
         this.breakingChangeNotifier = breakingChangeNotifier;
         this.repoCacher = repoCacher;
+        log.info("Repos: {}", repositories);
 
-        ClassPathResource resource = new ClassPathResource(CONFIG_FILE);
-        if (resource.exists()) {
+        if (!repositories.isEmpty()) {
             try {
-                ObjectMapper mapper = new ObjectMapper();
-                URLList conf = mapper.readValue(resource.getFile(), URLList.class);
-                courseList = repoCacher.retrieveCourseData(conf.repositories);
+                courseList = repoCacher.retrieveCourseData(repositories);
                 exerciseIndex = buildExerciseIndex(courseList);
-                logger.info(String.format("Parsed %d courses", courseList.size()));
+                log.info("Parsed {} courses", courseList.size());
 
                 writeParseResultsToFileSystem();
             } catch (Exception e) {
@@ -84,9 +77,9 @@ public class CourseDAO {
 
             coursesJson.close();
             exercisesJson.close();
-            logger.info(String.format("Written files: %s, %s", coursesFile, exerciseFile));
+            log.info(String.format("Written files: %s, %s", coursesFile, exerciseFile));
         } catch (IOException e) {
-            logger.warn("Unable to write parse results to file system. Does the folder exists?", e);
+            log.warn("Unable to write parse results to file system. Does the folder exists?", e);
         }
     }
 
@@ -101,7 +94,7 @@ public class CourseDAO {
         Course c = selectCourseById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("No course found"));
 
-        logger.info("Updating course {} {}", c.getTitle(), id);
+        log.info("Updating course {} {}", c.getTitle(), id);
 
         return updateCourse(c);
     }
@@ -112,9 +105,9 @@ public class CourseDAO {
 
         // Try to pull new course
         try {
-            newCourse = repoCacher.retrieveCourseData(new String[]{c.getGitURL()}).get(0);
+            newCourse = repoCacher.retrieveCourseData(List.of(c.getGitURL())).get(0);
         } catch (Exception e) {
-            logger.error("Failed to generate new course", e);
+            log.error("Failed to generate new course", e);
             return null;
         }
 
@@ -123,7 +116,7 @@ public class CourseDAO {
             updateCourse(c, newCourse);
         } catch (Exception e) {
             // If we fail during updating we try to revert to original
-            logger.error("Failed to update course", e);
+            log.error("Failed to update course", e);
             updateCourse(c, clone);
             return null;
         }
@@ -156,20 +149,20 @@ public class CourseDAO {
 
         List<Exercise> breakingChanges = new ArrayList<>();
 
-        logger.info("Checking for breaking changes in course {} (id = {})", before.getTitle(), before.getId());
+        log.info("Checking for breaking changes in course {} (id = {})", before.getTitle(), before.getId());
 
         if (afterAssignments.size() < beforeAssignments.size()) {
-            logger.warn("There are less assignments after the update ({}) then before ({}).", beforeAssignments.size(), afterAssignments.size());
-            logger.warn("Assignments before the update");
-            beforeAssignments.forEach(a -> logger.warn("{} (id = {})", a.getTitle(), a.getId()));
-            logger.warn("Assignments after the update");
-            afterAssignments.forEach(a -> logger.warn("{} (id = {})", a.getTitle(), a.getId()));
+            log.warn("There are less assignments after the update ({}) then before ({}).", beforeAssignments.size(), afterAssignments.size());
+            log.warn("Assignments before the update");
+            beforeAssignments.forEach(a -> log.warn("{} (id = {})", a.getTitle(), a.getId()));
+            log.warn("Assignments after the update");
+            afterAssignments.forEach(a -> log.warn("{} (id = {})", a.getTitle(), a.getId()));
         }
 
         for (int i = 0; i < beforeAssignments.size(); i++) {
             Assignment beforeAssignment = beforeAssignments.get(i);
 
-            logger.info("Checking assignment {} (id = {}) for breaking changes", beforeAssignment.getTitle(), beforeAssignment.getId());
+            log.info("Checking assignment {} (id = {}) for breaking changes", beforeAssignment.getTitle(), beforeAssignment.getId());
             // No assignments were deleted
             if (i < afterAssignments.size()) {
                 Assignment afterAssignment = afterAssignments.get(i);
@@ -185,11 +178,11 @@ public class CourseDAO {
                         .collect(Collectors.toList());
 
                 breakingChanges.addAll(breakingChangesForAssignment);
-                logger.info("Found {} breaking changes for assignment {} (id = {}): {}", breakingChangesForAssignment.size(), beforeAssignment.getTitle(), beforeAssignment.getId(), breakingChangesForAssignment);
+                log.info("Found {} breaking changes for assignment {} (id = {}): {}", breakingChangesForAssignment.size(), beforeAssignment.getTitle(), beforeAssignment.getId(), breakingChangesForAssignment);
             }
         }
 
-        logger.info("Done checking for breaking change");
+        log.info("Done checking for breaking change");
 
         return breakingChanges;
     }
@@ -212,10 +205,5 @@ public class CourseDAO {
 
     public Optional<Exercise> selectExerciseById(String id) {
         return Optional.ofNullable(exerciseIndex.get(id));
-    }
-
-    @Data
-    private static class URLList {
-        private String[] repositories;
     }
 }

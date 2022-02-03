@@ -43,6 +43,7 @@ dependencies {
     // Lombok
     implementation 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
+    implementation 'com.google.flogger:flogger:0.7.4'
 
     // Open API
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.4'
@@ -66,7 +67,7 @@ test {
 }
 
 jacocoTestReport {
-    dependsOn test    
+    dependsOn test
     reports {
         xml.required = true
     }

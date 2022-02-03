@@ -8,25 +8,21 @@ import ch.uzh.ifi.access.student.dto.SubmissionHistoryDTO;
 import ch.uzh.ifi.access.student.evaluation.EvalProcessService;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @RestController
 @RequestMapping("/exercises/{exerciseId}/submissions")
 public class SubmissionController {
-
-    private final static Logger logger = LoggerFactory.getLogger(SubmissionController.class);
 
     private final StudentSubmissionService studentSubmissionService;
 
@@ -50,7 +46,7 @@ public class SubmissionController {
      */
     @GetMapping("/{submissionId}")
     public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String exerciseId, @PathVariable String submissionId) {
-        logger.info("Fetching submission ID {} for exercise '{}'", submissionId, exerciseId);
+        log.info("Fetching submission ID {} for exercise '{}'", submissionId, exerciseId);
         return ResponseEntity.ok(studentSubmissionService.getSubmissionWithPermission(submissionId));
     }
 
@@ -64,7 +60,7 @@ public class SubmissionController {
      */
     @GetMapping("/users/{userId}/latest")
     public ResponseEntity<StudentSubmission> getLatestSubmissionByExercise(@PathVariable String exerciseId, @PathVariable String userId) {
-        logger.info("Fetching latest submission by user {} for exercise {}", userId, exerciseId);
+        log.info("Fetching latest submission by user {} for exercise {}", userId, exerciseId);
         Optional<StudentSubmission> submission = studentSubmissionService.findLatestExerciseSubmission(exerciseId, userId);
         if (submission.isPresent())
             return getSubmissionById(exerciseId, submission.get().getId()); // Verify the user can access the submission
@@ -83,11 +79,11 @@ public class SubmissionController {
      */
     @PostMapping("/users/{userId}/submit")
     @PreAuthorize("authentication.name == #userId")
-    public ResponseEntity<?> submit(@RequestBody StudentAnswerDTO submissionDTO, @PathVariable String exerciseId, @PathVariable String userId) {
-        logger.info("Testing submission by user {} for exercise {}", userId, exerciseId);
+    public ResponseEntity<String> submit(@RequestBody StudentAnswerDTO submissionDTO, @PathVariable String exerciseId, @PathVariable String userId) {
+        log.info("Testing submission by user {} for exercise {}", userId, exerciseId);
 
         if (studentSubmissionService.isUserRateLimited(userId))
-            return new ResponseEntity<>("Submission rejected: User has an other running submission.", HttpStatus.TOO_MANY_REQUESTS);
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Submission rejected: User has an other running submission.");
 
         StudentSubmission submission = submissionDTO.createSubmission(exerciseId, userId);
         Exercise exercise = courseService.getExerciseWithPermission(exerciseId, submission.isGraded());
@@ -100,13 +96,12 @@ public class SubmissionController {
         String processId = processService.initEvalProcess(savedSubmission);
         processService.fireEvalProcessExecutionAsync(processId);
 
-        return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
+        return ResponseEntity.ok().body(processId);
     }
 
     @GetMapping("/eval/{processId}")
     public Map<String, String> getEvalProcessState(@PathVariable String exerciseId, @PathVariable String processId) {
-        logger.info("Checking evaluation process state for exercise {}", exerciseId);
-        Assert.notNull(processId, "No processId.");
+        log.info("Checking evaluation process state for exercise {}", exerciseId);
         return processService.getEvalProcessState(processId);
     }
 
@@ -120,7 +115,7 @@ public class SubmissionController {
      */
     @GetMapping("/users/{userId}/history")
     public SubmissionHistoryDTO getSubmissionHistoryForExercise(@PathVariable String exerciseId, @PathVariable String userId) {
-        logger.info("Fetching all submissions for user {} and exercise {}", userId, exerciseId);
+        log.info("Fetching all submissions for user {} and exercise {}", userId, exerciseId);
 
         List<StudentSubmission> testRuns = studentSubmissionService.findAllTestRuns(exerciseId, userId);
         List<StudentSubmission> submissions = studentSubmissionService.findAllGradedSubmissions(exerciseId, userId);

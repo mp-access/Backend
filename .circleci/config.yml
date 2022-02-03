@@ -26,7 +26,7 @@ jobs:
       - run:
           name: bootBuildImage
           command: ./gradlew bootBuildImage -Pimage=$DOCKER_IMAGE -Ptag=$CIRCLE_BRANCH -Plogin=$DOCKER_LOGIN -Ppassword=$DOCKER_PASSWORD
-          # See the Backend project env variables DOCKER_IMAGE, DOCKER_LOGIN, DOCKER_PASSWORD
+          # See the Backend project environment for the variables DOCKER_IMAGE, DOCKER_LOGIN, DOCKER_PASSWORD
 
 workflows:
   access-backend-workflow:
@@ -38,11 +38,12 @@ workflows:
 
       - gradle/run:       # Run a SonarQube analysis, includes caching (circleci/gradle job)
           name: SonarQube Analysis
-          command: sonarqube
+          command: sonarqube -Dsonar.login=$SONAR_TOKEN
           executor: access-backend-executor
-          context:
-            - SonarCloud
-          # See the SonarCloud context env variable SONAR_TOKEN
+          requires:
+            - Backend Tests
+          context: SonarCloud
+          # See the SonarCloud context environment for the variable SONAR_TOKEN
 
       - create-backend-image:
           name: Build and Push to Docker Hub

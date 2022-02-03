@@ -7,12 +7,11 @@ import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.util.RepoCacher;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,32 +20,26 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class CourseDAOTest {
+@SpringBootTest(classes = {CourseDAO.class})
+class CourseDAOTest {
 
-    private CourseDAO courseDAO;
-
-    @Mock
+    @MockBean
     private RepoCacher repoCacher;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @MockBean
+    private BreakingChangeNotifier breakingChangeNotifier;
 
-        ApplicationEventPublisher noOpPublisher = (event) -> {
-        };
-        BreakingChangeNotifier breakingChangeNotifier = new BreakingChangeNotifier(noOpPublisher);
-
-        courseDAO = new CourseDAO(breakingChangeNotifier, repoCacher);
-    }
+    @Autowired
+    private CourseDAO courseDAO;
 
     @Test
-    public void emptyExerciseIndex() {
+    void emptyExerciseIndex() {
         Map<String, Exercise> exerciseMap = courseDAO.buildExerciseIndex(new ArrayList<>());
         Assertions.assertTrue(exerciseMap.isEmpty());
     }
 
     @Test
-    public void buildExerciseIndex() {
+    void buildExerciseIndex() {
         Course course = new Course("c");
 
         Assignment a1 = new Assignment("a1");
@@ -76,7 +69,7 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void selectExerciseById() {
+    void selectExerciseById() {
         List<Course> courses = courseDAO.selectAllCourses();
         for (Course c : courses) {
             for (Assignment a : c.getAssignments()) {
@@ -89,7 +82,7 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void lookForBreakingChangesSingleExerciseBroken() {
+    void lookForBreakingChangesSingleExerciseBroken() {
         Course before = new Course("title");
         Course after = new Course(before.getTitle());
         Assignment assignmentBefore = new Assignment("Assignment");
@@ -119,7 +112,7 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void lookForBreakingChangesTwoExerciseBroken() {
+    void lookForBreakingChangesTwoExerciseBroken() {
         Course before = new Course("title");
         Course after = new Course(before.getTitle());
         Assignment assignmentBefore = new Assignment("Assignment");
@@ -150,7 +143,7 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void lookForBreakingChangesExerciseWasRemovedExerciseWasUpdated() {
+    void lookForBreakingChangesExerciseWasRemovedExerciseWasUpdated() {
         Course before = new Course("title");
         Course after = new Course(before.getTitle());
         Assignment assignmentBefore = new Assignment("Assignment");
@@ -178,7 +171,7 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void addNewAssignmentShouldNotBeBreakingChange() {
+    void addNewAssignmentShouldNotBeBreakingChange() {
         Course before = new Course("title");
         Course after = new Course(before.getTitle());
 
@@ -239,7 +232,7 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void rollbackNoGitUrlSetTest() {
+    void rollbackNoGitUrlSetTest() {
         Course before = new Course("title");
         Course after = new Course(before.getTitle());
         Assignment assignmentBefore = new Assignment("Assignment");
@@ -268,13 +261,13 @@ public class CourseDAOTest {
     }
 
     @Test
-    public void rollbackDuringUpdateTest() {
+    void rollbackDuringUpdateTest() {
         String oldTitle = "title";
         String newTitle = "New title";
         Course before = new Course(oldTitle);
         Course after = Mockito.spy(new Course(newTitle));
 
-        when(repoCacher.retrieveCourseData(any(String[].class))).thenReturn(List.of(after));
+        when(repoCacher.retrieveCourseData(any())).thenReturn(List.of(after));
         when(after.getOrderedItems()).thenThrow(new UnsupportedOperationException());
 
         Course updated = courseDAO.updateCourse(before);
