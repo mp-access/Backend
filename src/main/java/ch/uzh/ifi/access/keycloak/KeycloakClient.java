@@ -157,18 +157,15 @@ public class KeycloakClient {
                 .clientId(ADMIN_CLIENT_ID)
                 .resteasyClient(restBuilder.build())
                 .build();
-        try {
-            keycloakClient.realm(realmName).remove();
-            log.info("Removed existing realm with the name '{}'", realmName);
-        } catch (Exception e) {
-            log.info("No existing realm found with the name '{}'", realmName);
-        }
-        keycloakClient.realms().create(createAppRealm(realmName));
+
+        if (keycloakClient.realms().findAll().stream().noneMatch(realm -> realm.getRealm().equals(keycloakProperties.getRealm())))
+            keycloakClient.realms().create(createAppRealm(realmName));
+
         return keycloakClient;
     }
 
     protected RealmRepresentation createAppRealm(String realmName) {
-        log.info("Creating a new realm...");
+        log.info("Creating a new realm with the name '{}'...", realmName);
         RolesRepresentation basicUserRoles = new RolesRepresentation();
         basicUserRoles.setRealm(List.of(
                 new RoleRepresentation(Roles.STUDENT_ROLE, "Basic student role", false),

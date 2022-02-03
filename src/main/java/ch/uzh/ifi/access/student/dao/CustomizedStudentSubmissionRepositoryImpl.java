@@ -20,6 +20,10 @@ import java.util.Map;
 @Slf4j
 class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubmissionRepository {
 
+    private String exerciseField = "exerciseId";
+    private String userField = "userId";
+    private String submissionsField = "submissions";
+
     private MongoTemplate mongoTemplate;
 
     public CustomizedStudentSubmissionRepositoryImpl(MongoTemplate mongoTemplate) {
@@ -28,7 +32,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
 
     @Override
     public void invalidateSubmissionsByExerciseId(String exerciseId) {
-        Query query = Query.query(Criteria.where("exerciseId").is(exerciseId));
+        Query query = Query.query(Criteria.where(exerciseField).is(exerciseId));
         Update update = Update.update("isInvalid", true);
 
         UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
@@ -37,7 +41,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
 
     @Override
     public void invalidateSubmissionsByExerciseIdAndUserId(String exerciseId, String userId) {
-        Query query = Query.query(Criteria.where("exerciseId").is(exerciseId).and("userId").is(userId));
+        Query query = Query.query(Criteria.where(exerciseField).is(exerciseId).and(userField).is(userId));
         Update update = Update.update("isInvalid", true);
 
         UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
@@ -47,7 +51,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
     @Override
     public boolean existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(String userId) {
         Query query = Query.query(Criteria
-                .where("userId").is(userId)
+                .where(userField).is(userId)
                 .and("console").exists(false)
                 .and("result").exists(false)
                 .and("timestamp").gt(Instant.now().minus(1, ChronoUnit.MINUTES)));
@@ -73,14 +77,14 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
         int totalUpdated = 0;
         int submissionToMigrate = submissionsByExercises
                 .stream()
-                .filter(map -> map.containsKey("submissions"))
-                .map(map -> map.get("submissions"))
+                .filter(map -> map.containsKey(submissionsField))
+                .map(map -> map.get(submissionsField))
                 .mapToInt(List::size)
                 .sum();
 
         try {
             for (Map<String, List<StudentSubmission>> submissionsByExercise : submissionsByExercises) {
-                List<StudentSubmission> submissions = submissionsByExercise.get("submissions");
+                List<StudentSubmission> submissions = submissionsByExercise.get(submissionsField);
                 for (StudentSubmission submission : submissions) {
                     submission.setVersion(submission.getVersion() - submissions.size());
                     submission.setUserId(to);
@@ -100,12 +104,12 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
     }
 
     private List<Map<String, List<StudentSubmission>>> submissionsByExercises(String userId) {
-        Criteria criteria = Criteria.where("userId").is(userId);
+        Criteria criteria = Criteria.where(userField).is(userId);
         MatchOperation matchByExerciseIdAndUserId = Aggregation.match(criteria);
 
         SortOperation sortByVersionDesc = Aggregation.sort(Sort.by(Sort.Direction.DESC, "version"));
 
-        GroupOperation groupByExerciseId = Aggregation.group("exerciseId").push("$$ROOT").as("submissions");
+        GroupOperation groupByExerciseId = Aggregation.group(exerciseField).push("$$ROOT").as(submissionsField);
 
         Aggregation aggregation = Aggregation.newAggregation(
                 matchByExerciseIdAndUserId,

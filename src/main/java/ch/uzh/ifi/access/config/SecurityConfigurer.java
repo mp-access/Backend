@@ -57,10 +57,13 @@ public class SecurityConfigurer extends KeycloakWebSecurityConfigurerAdapter {
         super.configure(http);
         final String[] permittedPaths = new String[]{"/info", "/v3/api-docs/**", "/swagger-ui/**"};
 
-        http.csrf().disable().authorizeRequests()
+        http.authorizeRequests()
                 .antMatchers(permittedPaths)
                 .permitAll()
                 .antMatchers("/**")
-                .authenticated();
+                .authenticated()
+                .and()
+                .csrf()
+                .disable();
     }
 }

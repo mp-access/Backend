@@ -48,6 +48,7 @@ class KeycloakClientTest {
         Assertions.assertEquals(expectedUser.getEmail(), returnedUser.getUsername());
         Assertions.assertEquals(expectedUser.getFirstName(), returnedUser.getFirstName());
         Assertions.assertEquals(expectedUser.getLastName(), returnedUser.getLastName());
+        keycloakClient.getRealmUsers().get(expectedUserId).remove();
     }
 
     @Test
@@ -70,6 +71,7 @@ class KeycloakClientTest {
             Assertions.assertEquals(1, newUserCredentials.size());
             Assertions.assertEquals(CredentialRepresentation.PASSWORD, newUserCredentials.get(0).getType());
         }
+        keycloakClient.getRealmUsers().get(newUserId).remove();
     }
 
     @Test

@@ -7,6 +7,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
@@ -63,11 +65,16 @@ public class GitClient {
 
     private String getCommitHash(Git git) {
         try {
-            return git.getRepository().findRef("HEAD").getObjectId().getName();
+            Ref head = git.getRepository().findRef("HEAD");
+            if (head != null) {
+                ObjectId headId = head.getObjectId();
+                if (headId != null)
+                    return headId.getName();
+            }
         } catch (NullPointerException | IOException e) {
             log.error("Failed to fetch commit hash of repository {}", git.getRepository().getIdentifier());
-            return null;
         }
+        return null;
     }
 
     private static class SshTransportConfigCallback implements TransportConfigCallback {
