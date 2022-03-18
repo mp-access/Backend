@@ -1,7 +1,7 @@
 package ch.uzh.ifi.access.student.evaluation.process;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.statemachine.StateMachine;
 
 import java.time.Instant;
@@ -30,14 +30,14 @@ public class EvalMachineRepoServiceTest {
         repo.store(id1, m1);
         repo.store(id2, m2);
 
-        Assertions.assertThat(repo.get(id1)).isNotNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
+        Assertions.assertNotNull(repo.get(id1));
+        Assertions.assertNotNull(repo.get(id2));
 
         Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
         repo.removeMachinesOlderThan(fiveMinutesAgo);
 
-        Assertions.assertThat(repo.get(id1)).isNotNull();
-        Assertions.assertThat(repo.get(id2)).isNull();
+        Assertions.assertNotNull(repo.get(id1));
+        Assertions.assertNull(repo.get(id2));
     }
 
     @Test
@@ -54,14 +54,14 @@ public class EvalMachineRepoServiceTest {
         repo.store(id1, m1);
         repo.store(id2, m2);
 
-        Assertions.assertThat(repo.get(id1)).isNotNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
+        Assertions.assertNotNull(repo.get(id1));
+        Assertions.assertNotNull(repo.get(id2));
 
         Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
         repo.removeMachinesOlderThan(fiveMinutesAgo);
 
-        Assertions.assertThat(repo.get(id1)).isNotNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
+        Assertions.assertNotNull(repo.get(id1));
+        Assertions.assertNotNull(repo.get(id2));
     }
 
     @Test
@@ -81,16 +81,16 @@ public class EvalMachineRepoServiceTest {
         repo.store(id2, m2);
         repo.store(id3, m3);
 
-        Assertions.assertThat(repo.get(id1)).isNotNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
-        Assertions.assertThat(repo.get(id3)).isNotNull();
+        Assertions.assertNotNull(repo.get(id1));
+        Assertions.assertNotNull(repo.get(id2));
+        Assertions.assertNotNull(repo.get(id3));
 
         Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
         repo.removeMachinesOlderThan(fiveMinutesAgo);
 
-        Assertions.assertThat(repo.get(id1)).isNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
-        Assertions.assertThat(repo.get(id3)).isNotNull();
+        Assertions.assertNull(repo.get(id1));
+        Assertions.assertNotNull(repo.get(id2));
+        Assertions.assertNotNull(repo.get(id3));
     }
 
     @Test
@@ -114,15 +114,15 @@ public class EvalMachineRepoServiceTest {
         repo.store(id2, m2);
         repo.store(id3, m3);
 
-        Assertions.assertThat(repo.get(id1)).isNotNull();
-        Assertions.assertThat(repo.get(id2)).isNotNull();
-        Assertions.assertThat(repo.get(id3)).isNotNull();
+        Assertions.assertNotNull(repo.get(id1));
+        Assertions.assertNotNull(repo.get(id2));
+        Assertions.assertNotNull(repo.get(id3));
 
         Instant fiveMinutesAgo = Instant.now().minus(5, ChronoUnit.MINUTES);
         repo.removeMachinesOlderThan(fiveMinutesAgo);
 
-        Assertions.assertThat(repo.get(id1)).isNull();
-        Assertions.assertThat(repo.get(id2)).isNull();
-        Assertions.assertThat(repo.get(id3)).isNotNull();
+        Assertions.assertNull(repo.get(id1));
+        Assertions.assertNull(repo.get(id2));
+        Assertions.assertNotNull(repo.get(id3));
     }
 }

@@ -1,121 +1,59 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.config.ApiTokenAuthenticationProvider;
-import ch.uzh.ifi.access.course.model.Course;
+import ch.uzh.ifi.access.config.AccessProperties;
 import ch.uzh.ifi.access.course.service.CourseService;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.security.Principal;
+import java.util.Map;
 
+@Slf4j
 @RestController
-@RequestMapping("/webhooks")
+@RequestMapping("courses/update")
 public class WebhooksController {
 
-    private final CourseService courseService;
+    private static final String GITHUB_HEADER_NAME = "X-Hub-Signature";
+    private static final String GITLAB_HEADER_NAME = "X-Gitlab-Token";
 
-    private static final Logger logger = LoggerFactory.getLogger(WebhooksController.class);
+    private AccessProperties accessProperties;
 
-    public WebhooksController(CourseService courseService) {
+    private CourseService courseService;
+
+    public WebhooksController(AccessProperties accessProperties, CourseService courseService) {
+        this.accessProperties = accessProperties;
         this.courseService = courseService;
     }
 
-    @PostMapping(path = "/courses/{id}/update/github")
-    public void updateCourse(@PathVariable("id") String id, @RequestBody String json,
-                             ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
-        logger.info("Received github web hook");
-
-        if (!authentication.matchesHmacSignature(json)) {
-            throw new BadCredentialsException("Hmac signature does not match!");
-        }
-
-        logger.info("Updating courses");
-        courseService.updateCourseById(id);
-    }
-
-    @PostMapping(path = "/courses/update/github")
-    public ResponseEntity<?> updateCourse(@RequestBody JsonNode payload, ApiTokenAuthenticationProvider.GithubHeaderAuthentication authentication) {
-        logger.info("Received github web hook");
-
-        if (!authentication.matchesHmacSignature(payload.toString())) {
-            throw new BadCredentialsException("Hmac signature does not match!");
-        }
-
-        return processWebhook(payload, false);
-    }
-
-    @PostMapping(path = "/courses/{id}/update/gitlab")
-    public void updateCourse(@PathVariable("id") String id,
-                             ApiTokenAuthenticationProvider.GitlabHeaderAuthentication authentication) {
-        logger.info("Received gitlab web hook");
-
-        if (!authentication.isMatchesSecret()) {
-            throw new BadCredentialsException("Header secret does not match!");
-        }
-
-        logger.info("Updating courses");
-        courseService.updateCourseById(id);
-    }
-
-    @PostMapping(path = "/courses/update/gitlab")
-    public ResponseEntity<?> updateCourse(@RequestBody JsonNode payload, ApiTokenAuthenticationProvider.GitlabHeaderAuthentication authentication) {
-        logger.info("Received gitlab web hook");
-
-        if (!authentication.isMatchesSecret()) {
-            throw new BadCredentialsException("Header secret does not match!");
-        }
-
-        return processWebhook(payload, true);
-    }
-
-    private ResponseEntity<String> processWebhook(JsonNode payload, boolean isGitlab) {
-        logger.info("Updating course");
-        WebhookPayload webhookPayload = new WebhookPayload(payload, isGitlab);
-        Optional<Course> courseToUpdate = courseService.getAllCourses().stream().filter(course -> webhookPayload.matchesCourseUrl(course.getGitURL())).findFirst();
-        courseToUpdate.ifPresent(c -> courseService.updateCourseById(c.getId()));
-        return courseToUpdate.map(c -> ResponseEntity.accepted().body(c.getId())).orElse(ResponseEntity.notFound().build());
-    }
-
-    @Value
-    public static class WebhookPayload {
-
-        private JsonNode repository;
-
-        private boolean isGitlab;
-
-        public WebhookPayload(JsonNode root, boolean isGitlab) {
-            this.repository = root.get("repository");
-            this.isGitlab = isGitlab;
-        }
-
-        public String getHtmlUrl() {
-            if (isGitlab) {
-                return repository.get("homepage").asText();
+    @PostMapping(path = "/{course}")
+    public ResponseEntity<String> updateCourseById(@PathVariable("course") String course, @RequestHeader Map<String, String> headers,
+                                                   @RequestBody JsonNode payload, Principal principal) {
+        String githubHeader = headers.get(GITHUB_HEADER_NAME);
+        if ((githubHeader != null) && githubHeader.startsWith("sha1=")) {
+            log.info("Received a Github webhook for the course {}", course);
+            if (accessProperties.getHmac() == null || accessProperties.getHmac().isEmpty())
+                throw new UnsupportedOperationException("No hmac secret set! Exiting...");
+            String hmacPayload = new HmacUtils(HmacAlgorithms.HMAC_SHA_1, accessProperties.getHmac()).hmacHex(payload.toString());
+            if (!principal.getName().equals("sha1=%s" + hmacPayload))
+                throw new BadCredentialsException("Fail to process Github webhook - Hmac signature does not match!");
+        } else {
+            String gitlabHeader = headers.get(GITLAB_HEADER_NAME);
+            if (gitlabHeader == null)
+                return ResponseEntity.badRequest().build();
+            else {
+                log.info("Received a Gitlab webhook for the course {}", course);
+                if (!gitlabHeader.equals(accessProperties.getGitlabWebhook()))
+                    throw new BadCredentialsException("Fail to process Gitlab webhook - Header secret does not match!");
             }
-            return repository.get("html_url").asText();
         }
 
-        public String getGitUrl() {
-            if (isGitlab) {
-                return repository.get("git_http_url").asText();
-            }
-            return repository.get("clone_url").asText();
-        }
-
-        public String getSshUrl() {
-            if (isGitlab) {
-                return repository.get("git_ssh_url").asText();
-            }
-            return repository.get("ssh_url").asText();
-        }
-
-        public boolean matchesCourseUrl(String courseUrl) {
-            return courseUrl.equalsIgnoreCase(getHtmlUrl()) || courseUrl.equalsIgnoreCase(getGitUrl()) || courseUrl.equalsIgnoreCase(getSshUrl());
-        }
+        log.info("Successfully validated webhook for course {}, initialising update...", course);
+        courseService.updateCourseById(course);
+        return ResponseEntity.accepted().build();
     }
 }

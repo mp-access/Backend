@@ -4,24 +4,19 @@ import ch.uzh.ifi.access.course.model.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Component
 public class RepoCacher {
-
-    private static final Logger logger = LoggerFactory.getLogger(RepoCacher.class);
-
-    private static final String REPO_DIR = "course_repositories";
 
     // FOLDERS
     private static final String ASSIGNMENT_FOLDER_PREFIX = "assignment_";
@@ -37,69 +32,70 @@ public class RepoCacher {
     private static final String EXERCISE_FILE_NAME = "config.json";
     private static final String QUESTION_FILE_NAME = "description.md";
 
-    private static ObjectMapper mapper;
+    private GitClient gitClient;
 
-    private List<String> ignore_dir = Arrays.asList(".git");
-    private List<String> ignore_file = Arrays.asList(".gitattributes", ".gitignore", "README.md");
+    private ObjectMapper mapper;
 
-    public List<Course> retrieveCourseData(String[] urls) {
-        initializeMapper();
+    public RepoCacher(GitClient gitClient) {
+        this.gitClient = gitClient;
+        this.mapper = initMapper();
+    }
 
+    private List<String> ignoreDir = List.of(".git");
+    private List<String> ignoreFile = List.of(".gitattributes", ".gitignore", "README.md");
+
+    public List<Course> retrieveCourseData(List<String> urls) {
         List<Course> courses = new ArrayList<>();
         for (String url : urls) {
             try {
-                String hash = loadFilesFromGit(url);
+                String hash = gitClient.pullOrClone(url);
 
-                RepoCacher cacher = new RepoCacher();
-                File repo = new File(REPO_DIR + "/" + nameFromGitURL(url));
-                Course course = new Course(nameFromGitURL(url));
+                File repo = gitClient.getRepoDir(url);
+                Course course = new Course(repo.getName());
                 course.setGitHash(hash);
                 course.setDirectory(repo.getAbsolutePath());
                 course.setGitURL(url);
 
-                cacher.cacheRepo(repo, course);
+                cacheRepo(repo, course);
                 courses.add(course);
             } catch (Exception e) {
-                logger.error(String.format("Failed to pull repository: %s", url), e);
+                log.error("Failed to pull repository: {}", url, e);
             }
         }
         return courses;
     }
 
-    public static List<Course> retrieveLocalCourseData(List<File> repos) {
-        initializeMapper();
-
+    public List<Course> retrieveLocalCourseData(List<File> repos) {
         List<Course> courses = new ArrayList<>();
         for (File repo : repos) {
             try {
-                RepoCacher cacher = new RepoCacher();
                 Course course = new Course(repo.getName());
                 course.setGitHash("ThisIsARealHash");
                 course.setDirectory(repo.getAbsolutePath());
 
-                cacher.cacheRepo(repo, course);
+                cacheRepo(repo, course);
                 courses.add(course);
             } catch (Exception e) {
-                logger.error(String.format("Failed to cache repository: %s", repo.getName()), e);
+                log.error(String.format("Failed to cache repository: %s", repo.getName()), e);
             }
         }
         return courses;
     }
 
-    private static String readFile(File file) {
+    private String readFile(File file) {
         try {
             String content = Files.readString(file.toPath());
-            logger.trace("Parsed file {}\nContent:\n{}", file.getAbsolutePath(), content);
+            log.trace("Parsed file {}\nContent:\n{}", file.getAbsolutePath(), content);
             return content;
         } catch (Exception e) {
-            logger.warn("Failed to parse file {}", file.getAbsolutePath(), e);
+            log.warn("Failed to parse file {}", file.getAbsolutePath(), e);
             return "";
         }
     }
 
     private void cacheRepo(File file, Object context) {
         if (file.isDirectory()) {
-            if (ignore_dir.contains(file.getName())) return;
+            if (ignoreDir.contains(file.getName())) return;
 
             Object next_context = context;
             if (file.getName().startsWith(ASSIGNMENT_FOLDER_PREFIX)) {
@@ -139,14 +135,14 @@ public class RepoCacher {
                 cacheRepo(new File(file, child), next_context);
             }
         } else {
-            if (ignore_file.contains(file.getName())) return;
+            if (ignoreFile.contains(file.getName())) return;
 
             if (context instanceof Course) {
                 if (file.getName().equals(COURSE_FILE_NAME)) {
                     try {
                         ((Course) context).set(mapper.readValue(file, CourseConfig.class));
                     } catch (Exception e) {
-                        System.err.println("Error while parsing Course information: " + file.getName());
+                        log.error("Error while parsing Course information: {}", file.getName());
                         e.printStackTrace();
                     }
                 }
@@ -155,7 +151,7 @@ public class RepoCacher {
                     try {
                         ((Assignment) context).set(mapper.readValue(file, AssignmentConfig.class));
                     } catch (Exception e) {
-                        System.err.println("Error while parsing Assignment information: " + file.getName());
+                        log.error("Error while parsing Assignment information: {}", file.getName());
                         e.printStackTrace();
                     }
                 }
@@ -166,7 +162,7 @@ public class RepoCacher {
                     try {
                         ((Exercise) context).set(mapper.readValue(file, ExerciseConfig.class));
                     } catch (Exception e) {
-                        System.err.println("Error while parsing Exercise information: " + file.getName());
+                        log.error("Error while parsing Exercise information: {}", file.getName());
                         e.printStackTrace();
                     }
                 }
@@ -174,7 +170,7 @@ public class RepoCacher {
         }
     }
 
-    private static void listFiles(File dir, List<VirtualFile> fileList, String root) {
+    private void listFiles(File dir, List<VirtualFile> fileList, String root) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
             for (String child : children) {
@@ -185,7 +181,7 @@ public class RepoCacher {
         }
     }
 
-    private static String nameFromGitURL(String url) {
+    private String nameFromGitURL(String url) {
         return url
                 .replace("https://github.com/", "")
                 .replace("git@gitlab.com:", "")
@@ -194,17 +190,7 @@ public class RepoCacher {
                 .replace(":", "_");
     }
 
-    private static String loadFilesFromGit(String url) throws Exception {
-        final String directoryPath = REPO_DIR + "/" + nameFromGitURL(url);
-        File gitDir = new File(directoryPath);
-        if (gitDir.exists()) {
-            return new GitClient().pull(directoryPath + "/.git");
-        } else {
-            return new GitClient().clone(url, gitDir);
-        }
-    }
-
-    private static String cleanFolderName(String name) {
+    private String cleanFolderName(String name) {
         String cleanName = name;
         int commentIndex = StringUtils.ordinalIndexOf(name, "_", 2);
 
@@ -214,14 +200,10 @@ public class RepoCacher {
         return cleanName;
     }
 
-    private static void initializeMapper() {
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer());
-
-        mapper = new ObjectMapper();
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        mapper.enable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
-
-        mapper.registerModule(javaTimeModule);
+    private ObjectMapper initMapper() {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule().addDeserializer(ZonedDateTime.class, new ZonedDateTimeDeserializer()))
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES);
     }
 }

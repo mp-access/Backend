@@ -10,63 +10,38 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
-@Repository
 class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubmissionRepository {
 
-    private final MongoTemplate mongoTemplate;
+    private String exerciseField = "exerciseId";
+    private String userField = "userId";
+    private String submissionsField = "submissions";
+
+    private MongoTemplate mongoTemplate;
 
     public CustomizedStudentSubmissionRepositoryImpl(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
     }
 
-    /**
-     * Aggregation pipeline:
-     * 1. Find all submissions by exerciseId and userId
-     * 2. Sort them by version descending
-     * 3. Group all submissions by exerciseId
-     * 4. Take only first submission for every exerciseId group (the one with the highest version number == most recent)
-     * <p>
-     * Represent the following aggregation in mongo:
-     * { "aggregate" : "__collection__", "pipeline" : [{ "$match" : { "exerciseId" : { "$in" : [<exercise ids>] }, "userId" : "<user id>" } }, { "$sort" : { "version" : -1 } }, { "$group" : { "_id" : "$exerciseId", "submissions" : { "$push" : "$$ROOT" } } }, { "$replaceRoot" : { "newRoot" : { "$arrayElemAt" : ["$submissions", 0] } } }] }
-     *
-     * @param exerciseIds exercises for which we want the most recent submissions
-     * @param userId      student user id
-     * @return list of the most recent user submissions for the given exercises
-     */
     @Override
-    public List<StudentSubmission> findByExerciseIdInAndUserIdAndIsGradedOrderByVersionDesc(List<String> exerciseIds, String userId) {
-        Criteria criteria = Criteria.where("exerciseId").in(exerciseIds).and("userId").is(userId).and("isGraded").is(true);
-        MatchOperation matchByExerciseIdAndUserId = Aggregation.match(criteria);
+    public void invalidateSubmissionsByExerciseId(String exerciseId) {
+        Query query = Query.query(Criteria.where(exerciseField).is(exerciseId));
+        Update update = Update.update("isInvalid", true);
 
-        SortOperation sortByVersionDesc = Aggregation.sort(new Sort(Sort.Direction.DESC, "version"));
-
-        GroupOperation groupByExerciseId = Aggregation.group("exerciseId").push("$$ROOT").as("submissions");
-
-        ReplaceRootOperation takeOnlyFirstElement = Aggregation.replaceRoot().withValueOf(ArrayOperators.ArrayElemAt.arrayOf("submissions").elementAt(0));
-
-        Aggregation aggregation = Aggregation.newAggregation(
-                matchByExerciseIdAndUserId,
-                sortByVersionDesc,
-                groupByExerciseId,
-                takeOnlyFirstElement);
-
-        AggregationResults<StudentSubmission> results = mongoTemplate.aggregate(aggregation, "studentSubmissions", StudentSubmission.class);
-
-        return results.getMappedResults();
+        UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
+        log.debug(String.format("Invalidated %d submissions", result.getModifiedCount()));
     }
 
     @Override
-    public void invalidateSubmissionsByExerciseId(String exerciseId) {
-        Query query = Query.query(Criteria.where("exerciseId").is(exerciseId));
+    public void invalidateSubmissionsByExerciseIdAndUserId(String exerciseId, String userId) {
+        Query query = Query.query(Criteria.where(exerciseField).is(exerciseId).and(userField).is(userId));
         Update update = Update.update("isInvalid", true);
 
         UpdateResult result = mongoTemplate.updateMulti(query, update, StudentSubmission.class);
@@ -76,7 +51,7 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
     @Override
     public boolean existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(String userId) {
         Query query = Query.query(Criteria
-                .where("userId").is(userId)
+                .where(userField).is(userId)
                 .and("console").exists(false)
                 .and("result").exists(false)
                 .and("timestamp").gt(Instant.now().minus(1, ChronoUnit.MINUTES)));
@@ -102,14 +77,14 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
         int totalUpdated = 0;
         int submissionToMigrate = submissionsByExercises
                 .stream()
-                .filter(map -> map.containsKey("submissions"))
-                .map(map -> map.get("submissions"))
+                .filter(map -> map.containsKey(submissionsField))
+                .map(map -> map.get(submissionsField))
                 .mapToInt(List::size)
                 .sum();
 
         try {
             for (Map<String, List<StudentSubmission>> submissionsByExercise : submissionsByExercises) {
-                List<StudentSubmission> submissions = submissionsByExercise.get("submissions");
+                List<StudentSubmission> submissions = submissionsByExercise.get(submissionsField);
                 for (StudentSubmission submission : submissions) {
                     submission.setVersion(submission.getVersion() - submissions.size());
                     submission.setUserId(to);
@@ -129,19 +104,20 @@ class CustomizedStudentSubmissionRepositoryImpl implements CustomizedStudentSubm
     }
 
     private List<Map<String, List<StudentSubmission>>> submissionsByExercises(String userId) {
-        Criteria criteria = Criteria.where("userId").is(userId);
+        Criteria criteria = Criteria.where(userField).is(userId);
         MatchOperation matchByExerciseIdAndUserId = Aggregation.match(criteria);
 
-        SortOperation sortByVersionDesc = Aggregation.sort(new Sort(Sort.Direction.DESC, "version"));
+        SortOperation sortByVersionDesc = Aggregation.sort(Sort.by(Sort.Direction.DESC, "version"));
 
-        GroupOperation groupByExerciseId = Aggregation.group("exerciseId").push("$$ROOT").as("submissions");
+        GroupOperation groupByExerciseId = Aggregation.group(exerciseField).push("$$ROOT").as(submissionsField);
 
         Aggregation aggregation = Aggregation.newAggregation(
                 matchByExerciseIdAndUserId,
                 sortByVersionDesc,
                 groupByExerciseId);
 
-        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "studentSubmissions", Map.class);
-        return results.getMappedResults().stream().map(map -> (Map<String, List<StudentSubmission>>) map).collect(Collectors.toList());
+        List<Map<String, List<StudentSubmission>>> submissionsById = new ArrayList<>();
+        mongoTemplate.aggregate(aggregation, "studentSubmissions", Map.class).getMappedResults().forEach(submissionsById::add);
+        return submissionsById;
     }
 }

@@ -1,175 +1,126 @@
 package ch.uzh.ifi.access.keycloak;
 
-import ch.uzh.ifi.access.config.SecurityProperties;
-import ch.uzh.ifi.access.course.config.CourseServiceSetup;
+import ch.uzh.ifi.access.config.AccessProperties;
 import ch.uzh.ifi.access.course.model.Course;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
-import org.keycloak.admin.client.resource.RealmResource;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.admin.client.resource.UsersResource;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.GroupRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.keycloak.admin.client.resource.*;
+import org.keycloak.representations.idm.*;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.NotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
+@EnableConfigurationProperties(KeycloakSpringBootProperties.class)
 public class KeycloakClient {
 
     private static final String ADMIN_CLIENT_ID = "admin-cli";
 
-    private final RealmResource realmResource;
+    private AccessProperties accessProperties;
 
-    private final CourseServiceSetup.CourseProperties courseProperties;
+    private KeycloakSpringBootProperties keycloakProperties;
 
-    private final SecurityProperties securityProperties;
+    protected Keycloak keycloak;
 
-    private final EmailSender emailSender;
-
-    @Autowired
-    public KeycloakClient(SecurityProperties securityProperties, CourseServiceSetup.CourseProperties courseProperties, EmailSender emailSender) {
-        this.courseProperties = courseProperties;
-        this.securityProperties = securityProperties;
-        this.emailSender = emailSender;
-        Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
-
-        log.info("Keycloak instance info:");
-        log.info("Auth server: " + securityProperties.getAuthServer());
-        log.info("Realm: " + securityProperties.getRealm());
-
-        realmResource = keycloak.realm(securityProperties.getRealm());
+    public KeycloakClient(AccessProperties accessProperties, KeycloakSpringBootProperties keycloakProperties) {
+        this.accessProperties = accessProperties;
+        this.keycloakProperties = keycloakProperties;
+        this.keycloak = initKeycloak();
     }
 
-    public KeycloakClient(SecurityProperties securityProperties, String realm, CourseServiceSetup.CourseProperties courseProperties, EmailSender emailSender) {
-        this.courseProperties = courseProperties;
-        this.securityProperties = securityProperties;
-        this.emailSender = emailSender;
-        Keycloak keycloak = KeycloakClient.keycloak(securityProperties);
-        realmResource = keycloak.realm(realm);
-
+    UsersResource getRealmUsers() {
+        return keycloak.realm(keycloakProperties.getRealm()).users();
     }
 
-    public UserRepresentation getUserById(String id) {
-        UserResource userResource = realmResource.users().get(id);
-        return userResource.toRepresentation();
+    RolesResource getRealmRoles() {
+        return keycloak.realm(keycloakProperties.getRealm()).roles();
     }
 
-    public Group enrollUsersInCourse(Course course) {
+    public UserRepresentation getUserById(String userId) {
+        return getRealmUsers().get(userId).toRepresentation();
+    }
+
+    public Roles enrollUsersInCourse(Course course) {
         log.info("Enrolling users in course: {}, {}, {}", course.getTitle(), course.getId(), course.getGitURL());
 
+        // A role is initialized based on the course title and semester
+        Roles courseRoles = new Roles(course.getRoleName(), getRealmRoles());
+        createOrValidateCourseRoles(courseRoles);
+        Set<String> existingCourseUsers = getUsersByRole(course.getRoleName());
         log.info("Checking accounts for students");
-        Users students = getUsersIfExistOrCreateUsers(course.getStudents());
-
+        createOrValidateUsers(existingCourseUsers, course.getStudents(), courseRoles.getStudentRolesForCourse());
         log.info("Checking accounts for assistants");
-        Users assistants = getUsersIfExistOrCreateUsers(course.getAssistants());
-
+        createOrValidateUsers(existingCourseUsers,course.getAssistants(), courseRoles.getAssistantRolesForCourse());
         log.info("Checking accounts for admins");
-        Users admins = getUsersIfExistOrCreateUsers(course.getAdmins());
+        createOrValidateUsers(existingCourseUsers, course.getAdmins(), courseRoles.getAdminRolesForCourse());
 
-        if (course.getTitle() != null && !course.getTitle().isEmpty()) {
-            // A group can only be initialized with a title
-            Group courseGroup = removeIfExistsAndCreateGroup(course.getId(), course.getTitle());
-
-            UsersResource usersResource = realmResource.users();
-            students.enrollUsersInGroup(courseGroup.getStudentsGroupId(), usersResource);
-            assistants.enrollUsersInGroup(courseGroup.getAssistantsGroupId(), usersResource);
-            admins.enrollUsersInGroup(courseGroup.getAdminsGroupId(), usersResource);
-
-            log.info("Finished enrolling users in course: {}, {}, {}", course.getTitle(), course.getId(), course.getGitURL());
-            return courseGroup;
-        } else {
-            log.warn("Cannot enroll users in course {} yet, as the course does not have a title with which to name the groups", course.getGitURL());
-        }
-        return null;
+        log.info("Finished enrolling users in course: {}, {}", course.getTitle(), course.getGitURL());
+        return courseRoles;
     }
 
-    private Group removeIfExistsAndCreateGroup(final String courseId, String title) {
-        try {
-            GroupRepresentation groupRepresentation = realmResource.getGroupByPath(courseId);
-            log.info("Found existing group for course '{}': {}. Removing it and creating it anew", title, groupRepresentation.getName());
-            realmResource.groups().group(groupRepresentation.getId()).remove();
-        } catch (NotFoundException e) {
-            log.debug("Did not find any groups. Creating new group...", e);
-        }
-
-        Group group = Group.create(courseId, title, realmResource);
-        log.info("Created group for course '{}': {}", title, group.getName());
-        return group;
+    void createOrValidateCourseRoles(Roles roles) {
+        RolesResource rolesResource = getRealmRoles();
+        List<RoleRepresentation> existingRoles = rolesResource.list(roles.getCourseRoleName(), false);
+        if (existingRoles.isEmpty()) {
+            roles.createCourseRoles();
+            log.info("Created new roles for the course: {}", roles.getCourseRoleName());
+        } else
+            log.info("Found existing roles for the course: {}", roles.getCourseRoleName());
     }
 
-    Users getUsersIfExistOrCreateUsers(List<String> emailAddresses) {
-
-        log.info("Checking if all {} accounts already exist", emailAddresses.size());
-        UsersResource usersResource = realmResource.users();
-
-        List<UserRepresentation> existingUsers = new ArrayList<>();
-        List<UserRepresentation> createdUsers = new ArrayList<>();
-        List<String> failedToCreateUsers = new ArrayList<>();
-        List<String> failedToSendEmailTo = new ArrayList<>();
-
-        Consumer<UserRepresentation> addToExistingUsers = existingUsers::add;
-        for (String emailAddress : emailAddresses) {
-            Optional<UserRepresentation> user = findUserByEmail(emailAddress, usersResource);
-
-            user.ifPresentOrElse(addToExistingUsers, () -> {
+    void createOrValidateUsers(Set<String> existingCourseUsers, List<String> emailAddresses, List<RoleRepresentation> rolesToAssign) {
+        List<String> newUsers = new ArrayList<>();
+        List<String> existingUsers = new ArrayList<>();
+        emailAddresses.stream().filter(Predicate.not(existingCourseUsers::contains)).forEach(emailAddress ->
+            findUserByEmail(emailAddress).ifPresentOrElse(user -> {
                 try {
-                    UserRepresentation newUser = createAndVerifyUser(emailAddress);
-                    createdUsers.add(newUser);
-                } catch (EmailSender.FailedToSendEmailException e) {
-                    log.error("Failed to send email to user '{}'", emailAddress, e);
-                    failedToSendEmailTo.add(emailAddress);
-                } catch (Exception e) {
-                    failedToCreateUsers.add(emailAddress);
-                    log.error("Failed to create user {}", emailAddress, e);
+                    assignUserToRoles(user.getId(), rolesToAssign);
+                    existingUsers.add(emailAddress);
                 }
-            });
-        }
-
-        log.info("Created {} new accounts", createdUsers.size());
-        log.info("Found {} accounts which already exist", existingUsers.size());
-
-
-        if (!failedToCreateUsers.isEmpty()) {
-            log.warn("Failed to create {} new accounts", failedToCreateUsers.size());
-            log.warn("Failed to create account for users: {}", String.join(", ", failedToCreateUsers));
-        }
-
-        if (!failedToSendEmailTo.isEmpty()) {
-            log.warn("Failed to send {} emails", failedToSendEmailTo.size());
-            log.warn("Failed to send emails to users: {}", String.join(", ", failedToSendEmailTo));
-        }
-
-        return new Users(existingUsers, createdUsers);
+                catch (Exception e) {
+                    log.error("Failed to enroll in course {}", emailAddress, e);
+                }
+            }, () -> {
+                try {
+                    String userId = createAndVerifyUser(emailAddress);
+                    assignUserToRoles(userId, rolesToAssign);
+                    newUsers.add(emailAddress);
+                } catch (Exception e) {
+                    log.error("Failed to create new account for user {}", emailAddress, e);
+                }
+            })
+        );
+        if (!newUsers.isEmpty())
+            log.info("Created {} new accounts", newUsers.size());
+        if (!existingUsers.isEmpty())
+            log.info("Enrolled {} existing accounts", existingUsers.size());
     }
 
-    public Optional<UserRepresentation> findUsersByEmail(String emailAddress) {
-        UsersResource usersResource = realmResource.users();
-        return findUserByEmail(emailAddress, usersResource);
+    public Set<String> getUsersByRole(String roleName) {
+        return getRealmRoles().get(roleName).getRoleUserMembers().stream()
+                .map(UserRepresentation::getEmail).collect(Collectors.toSet());
     }
 
-    private Optional<UserRepresentation> findUserByEmail(final String email, UsersResource usersResource) {
-        List<UserRepresentation> usersByEmail = usersResource.search(email, null, null, null, 0, 10);
-        if (usersByEmail.isEmpty()) {
+    public Optional<UserRepresentation> findUserByEmail(String email) {
+        List<UserRepresentation> usersByEmail = getRealmUsers().search(email, null, null, null, 0, 10);
+        if (usersByEmail.isEmpty())
             return Optional.empty();
-        }
 
-        if (usersByEmail.size() > 1) {
+        if (usersByEmail.size() > 1)
             log.warn(String.format("Found %d users for email address :%s", usersByEmail.size(), email));
-        }
 
         return Optional.of(usersByEmail.get(0));
+    }
+
+    private void assignUserToRoles(String userId, List<RoleRepresentation> roles) {
+        getRealmUsers().get(userId).roles().realmLevel().add(roles);
     }
 
     /**
@@ -179,46 +130,63 @@ public class KeycloakClient {
      * @param email email address
      * @return the newly created user
      */
-    UserRepresentation createAndVerifyUser(final String email) {
-        UsersResource usersResource = realmResource.users();
-
-        String createdId = Utils.getCreatedId(usersResource.create(createUser(email)));
-        UserResource userResource = usersResource.get(createdId);
-
-        Map<String, String> smtpConfig = realmResource.toRepresentation().getSmtpServer();
-        if (!smtpConfig.isEmpty()) {
-            emailSender.sendEmailToUser(userResource, securityProperties);
-        } else {
-            log.warn("No SMTP server configured. Cannot send out verification emails.");
-        }
-        return userResource.toRepresentation();
-    }
-
-    UserRepresentation createUser(final String email) {
+    protected String createAndVerifyUser(String email) {
         UserRepresentation newUser = new UserRepresentation();
-        newUser.setUsername(email);
-        newUser.setEmail(email);
         newUser.setEnabled(true);
+        newUser.setEmail(email);
 
-        if (courseProperties.isUseDefaultPasswordForNewAccounts()) {
+        if (accessProperties.isUseDefaultPasswordForNewAccounts()) {
             CredentialRepresentation credentials = new CredentialRepresentation();
             credentials.setType(CredentialRepresentation.PASSWORD);
-            credentials.setValue(courseProperties.getDefaultPassword());
+            credentials.setValue(accessProperties.getDefaultPassword());
             newUser.setCredentials(List.of(credentials));
         }
-        return newUser;
+        return Utils.getCreatedId(getRealmUsers().create(newUser));
     }
 
-    public static Keycloak keycloak(SecurityProperties securityProperties) {
-        ResteasyClientBuilder builder = new ResteasyClientBuilder().connectionPoolSize(10).disableTrustManager();
-        return KeycloakBuilder.builder()
-                .serverUrl(securityProperties.getAuthServer())
+    private Keycloak initKeycloak() {
+        String realmName = keycloakProperties.getRealm();
+        log.info("Initialising Keycloak for realm '{}' and server URL {}",
+                realmName, keycloakProperties.getAuthServerUrl());
+        ResteasyClientBuilder restBuilder = new ResteasyClientBuilder().connectionPoolSize(10);
+        Keycloak keycloakClient = KeycloakBuilder.builder()
+                .serverUrl(keycloakProperties.getAuthServerUrl())
                 .realm("master")
-                .username(securityProperties.getKeycloakApiAdmin())
-                .password(securityProperties.getKeycloakApiPassword())
+                .username(accessProperties.getAdminCLIUsername())
+                .password(accessProperties.getAdminCLIPassword())
                 .clientId(ADMIN_CLIENT_ID)
-                .resteasyClient(
-                        builder.build()
-                ).build();
+                .resteasyClient(restBuilder.build())
+                .build();
+
+        if (keycloakClient.realms().findAll().stream().noneMatch(realm -> realm.getRealm().equals(keycloakProperties.getRealm())))
+            keycloakClient.realms().create(createAppRealm(realmName));
+
+        return keycloakClient;
+    }
+
+    protected RealmRepresentation createAppRealm(String realmName) {
+        log.info("Creating a new realm with the name '{}'...", realmName);
+        RolesRepresentation basicUserRoles = new RolesRepresentation();
+        basicUserRoles.setRealm(List.of(
+                new RoleRepresentation(Roles.STUDENT_ROLE, "Basic student role", false),
+                new RoleRepresentation(Roles.ASSISTANT_ROLE, "Basic assistant role", false),
+                new RoleRepresentation(Roles.ADMIN_ROLE, "Basic admin role", false)));
+        ClientRepresentation backendClient = new ClientRepresentation();
+        backendClient.setId(realmName + "-backend");
+        backendClient.setEnabled(true);
+        backendClient.setBearerOnly(true);
+        ClientRepresentation frontendClient = new ClientRepresentation();
+        frontendClient.setId(realmName + "-frontend");
+        frontendClient.setEnabled(true);
+        frontendClient.setPublicClient(true);
+        frontendClient.setRedirectUris(List.of("*"));
+        frontendClient.setWebOrigins(List.of("*"));
+        RealmRepresentation newRealm = new RealmRepresentation();
+        newRealm.setRealm(realmName);
+        newRealm.setEnabled(true);
+        newRealm.setRegistrationEmailAsUsername(true);
+        newRealm.setRoles(basicUserRoles);
+        newRealm.setClients(List.of(backendClient, frontendClient));
+        return newRealm;
     }
 }

@@ -5,10 +5,8 @@ import ch.uzh.ifi.access.course.model.ExerciseType;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,16 +14,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 public class CodeEvaluator implements StudentSubmissionEvaluator {
 
     static final String TEST_FAILED_WITHOUT_HINTS = "Test failed without solution hints";
-    private static final Logger logger = LoggerFactory.getLogger(CodeEvaluator.class);
     private static final String HINT_ANNOTATION = "@@";
     private static final String HINT_PATTERN = "^Assertion.*?:.*?(" + HINT_ANNOTATION + ".*?" + HINT_ANNOTATION + ")$";
     private static final String LAST_CRASH_PATTERN = "^(.*?Error):.*?";
     private static final String PYTHON_ASSERTION_ERROR = "AssertionError";
-    private final String runNTestPattern = "^Ran (\\d++) test.*";
-    private final String nokNTestPattern = "^FAILED \\((errors|failures)=(\\d*)(, (errors|failures)=(\\d*))?\\)";
 
     private Pattern hintPattern;
     private Pattern crashPattern;
@@ -35,6 +31,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
     public CodeEvaluator() {
         this.hintPattern = Pattern.compile(HINT_PATTERN, Pattern.MULTILINE | Pattern.DOTALL);
         this.crashPattern = Pattern.compile(LAST_CRASH_PATTERN, Pattern.MULTILINE);
+        String nokNTestPattern = "^FAILED \\((errors|failures)=(\\d*)(, (errors|failures)=(\\d*))?\\)";
         this.failedTestPattern = Pattern.compile(nokNTestPattern, Pattern.MULTILINE);
     }
 
@@ -43,10 +40,10 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         validate(submission, exercise);
         CodeSubmission codeSub = (CodeSubmission) submission;
 
-        String log = codeSub.getConsole().getEvalLog();
+        String consoleLog = codeSub.getConsole().getEvalLog();
 
-        SubmissionEvaluation.Points testResults = parseScoreFromLog(log);
-        List<String> hints = testResults.isEverythingCorrect() ? new ArrayList<String>() : parseHintsFromLog(log);
+        SubmissionEvaluation.Points testResults = parseScoreFromLog(consoleLog);
+        List<String> hints = testResults.isEverythingCorrect() ? new ArrayList<>() : parseHintsFromLog(consoleLog);
 
         return SubmissionEvaluation.builder()
 				.rounding(exercise.getRounding())
@@ -62,7 +59,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         Matcher matcher = hintPattern.matcher(evalLog);
         while (matcher.find()) {
             String possibleHint = matcher.group(1);
-            if (!StringUtils.isEmpty(possibleHint) && possibleHint.contains(HINT_ANNOTATION)) {
+            if (possibleHint.contains(HINT_ANNOTATION)) {
                 hints.add(possibleHint.replace(HINT_ANNOTATION, ""));
             }
         }
@@ -74,18 +71,15 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             String lastCrash = null;
             while (matcher.find()) {
                 String error = matcher.group(1);
-
-                if (!error.equals(PYTHON_ASSERTION_ERROR)) {
+                if (!error.equals(PYTHON_ASSERTION_ERROR))
                     lastCrash = error;
-                }
             }
-            if (lastCrash != null) {
+            if (lastCrash != null)
                 hints.add("Error during execution: " + lastCrash);
-            }
 
-            if (hints.isEmpty()) {
+            if (hints.isEmpty())
                 hints.add(TEST_FAILED_WITHOUT_HINTS);
-            }
+
         }
 
         if (hints.isEmpty()) {
@@ -107,12 +101,12 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
         return hints;
     }
 
-    private SubmissionEvaluation.Points parseScoreFromLog(String log) {
+    private SubmissionEvaluation.Points parseScoreFromLog(String consoleLog) {
         int points = 0;
         int nrOfTest = -1;
 
-        if (log != null && !log.trim().isEmpty()) {
-            List<String> lines = Arrays.asList(log.split("\n"));
+        if (consoleLog != null && !consoleLog.trim().isEmpty()) {
+            List<String> lines = Arrays.asList(consoleLog.split("\n"));
             if (lines.size() >= 3) {
                 String resultLine = lines.get(lines.size() - 1);
 
@@ -124,19 +118,18 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
                     points = nrOfTest - extractNrOfNOKTests(resultLine);
                 }
             } else {
-                points = 0;
                 nrOfTest = 1;
-                logger.info("Log is too short, likely not a valid test output.");
+                log.info("Log is too short, likely not a valid test output.");
             }
-        } else {
-            logger.info("No console log to evaluate.");
-        }
+        } else
+            log.info("No console log to evaluate.");
 
         return new SubmissionEvaluation.Points(points, nrOfTest);
     }
 
     private int extractNrOfTests(String line) {
         int nrTests = 0;
+        String runNTestPattern = "^Ran (\\d++) test.*";
         Pattern p = Pattern.compile(runNTestPattern);
         Matcher m = p.matcher(line);
         if (m.find()) {
@@ -145,14 +138,13 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
             String group1 = m.group(1);
             nrTests = Integer.parseInt(group1);
         }
-        logger.debug(String.format("Exracted nr of test (%s) from line: %s", nrTests, line));
+        log.debug("Extracted nr of test ({}) from line: {}", nrTests, line);
         return nrTests;
     }
 
     private int extractNrOfNOKTests(String line) {
         int nrTests1 = 0;
         int nrTests2 = 0;
-        int total = 0;
         Matcher m = failedTestPattern.matcher(line);
         if (m.find()) {
             if(m.group(2) != null && m.group(5) != null){   // matches FAILED (failures=3, errors=72) or FAILED (errors=3, failures=72)
@@ -162,8 +154,8 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
                 nrTests1 = Integer.parseInt(m.group(2));
             }
         }
-        total = nrTests1 + nrTests2;
-        logger.debug(String.format("Exracted nr of NOK tests (%s) from line: %s", total, line));
+        int total = nrTests1 + nrTests2;
+        log.debug("Extracted nr of NOK tests ({}) from line: {}", total, line);
         return total;
     }
 
@@ -173,8 +165,7 @@ public class CodeEvaluator implements StudentSubmissionEvaluator {
 
         Assert.notNull(exercise, "Exercise object for evaluation cannot be null.");
         Assert.isTrue(exercise.getType().isCodeType(),
-                String.format("Exercise object for evaluation must be of type %s or %s", ExerciseType.code,
-                        ExerciseType.codeSnippet));
+                String.format("Exercise object for evaluation must be of type %s or %s", ExerciseType.code, ExerciseType.codeSnippet));
     }
 
 }

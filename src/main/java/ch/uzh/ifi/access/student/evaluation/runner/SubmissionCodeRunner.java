@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SubmissionCodeRunner {
@@ -67,16 +67,15 @@ public class SubmissionCodeRunner {
 
     private ExecResult executeSmokeTest(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
-        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), RESOURCE_FOLDER), exercise.getResource_files());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath, RESOURCE_FOLDER), exercise.getResource_files());
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         VirtualFile selectedFileForRun = submission.getSelectedFile();
         String executeScriptCommand = buildExecScriptCommand(selectedFileForRun);
         String testCommand = buildExecTestSuiteCommand(PUBLIC_FOLDER);
 
-        List<String> commands = List.of(executeScriptCommand, DELIMITER_CMD, testCommand)
-                .stream()
-                .filter(cmd -> !StringUtils.isEmpty(cmd))
+        List<String> commands = Stream.of(executeScriptCommand, DELIMITER_CMD, testCommand)
+                .filter(cmd -> !cmd.isEmpty())
                 .collect(Collectors.toList());
 
         final String fullCommand = String.join(" ; ", commands);
@@ -85,17 +84,16 @@ public class SubmissionCodeRunner {
 
     private ExecResult executeSubmission(Path workPath, CodeSubmission submission, Exercise exercise, CodeExecutionLimits executionLimits) throws IOException, DockerException, InterruptedException {
         hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PUBLIC_FOLDER), submission.getPublicFiles());
-        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), RESOURCE_FOLDER), exercise.getResource_files());
-        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath.toString(), PRIVATE_FOLDER), exercise.getPrivate_files());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath, RESOURCE_FOLDER), exercise.getResource_files());
+        hierarchySerializer.persistFilesIntoFolder(String.format("%s/%s", workPath, PRIVATE_FOLDER), exercise.getPrivate_files());
 
         Files.createFile(Paths.get(workPath.toAbsolutePath().toString(), INIT_FILE));
 
         String testCommand = buildExecTestSuiteCommand(PRIVATE_FOLDER);
         String setupScriptCommand = exercise.hasGradingSetupScript() ? buildSetupScriptCommand(exercise.getGradingSetup()) : "";
 
-        List<String> commands = List.of(DELIMITER_CMD, setupScriptCommand, testCommand)
-                .stream()
-                .filter(cmd -> !StringUtils.isEmpty(cmd))
+        List<String> commands = Stream.of(DELIMITER_CMD, setupScriptCommand, testCommand)
+                .filter(cmd -> !cmd.isEmpty())
                 .collect(Collectors.toList());
 
         final String fullCommand = String.join(" ; ", commands);

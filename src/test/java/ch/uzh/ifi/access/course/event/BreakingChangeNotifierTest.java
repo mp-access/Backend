@@ -2,10 +2,12 @@ package ch.uzh.ifi.access.course.event;
 
 import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Exercise;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 
+import javax.validation.constraints.NotNull;
+import java.util.Arrays;
 import java.util.List;
 
 public class BreakingChangeNotifierTest {
@@ -15,15 +17,16 @@ public class BreakingChangeNotifierTest {
         MockChangeNotifier mockNotifier = new MockChangeNotifier();
         BreakingChangeNotifier notifier = new BreakingChangeNotifier(mockNotifier);
 
-        Exercise codeExercise = TestObjectFactory.createCodeExercise("");
-        Exercise textExercise = TestObjectFactory.createTextExercise("");
-        Exercise multipleChoiceExercise = TestObjectFactory.createMultipleChoiceExercise("");
+        Exercise codeExercise = TestObjectFactory.createCodeExercise();
+        Exercise textExercise = TestObjectFactory.createTextExercise();
+        Exercise multipleChoiceExercise = TestObjectFactory.createMultipleChoiceExercise();
 
         List<Exercise> exercises = List.of(codeExercise, textExercise, multipleChoiceExercise);
         notifier.notifyBreakingChanges(exercises);
 
         List<String> ids = mockNotifier.exercises;
-        Assertions.assertThat(ids).containsExactly(codeExercise.getId(), textExercise.getId(), multipleChoiceExercise.getId());
+        Assertions.assertEquals(
+                Arrays.asList(codeExercise.getId(), textExercise.getId(), multipleChoiceExercise.getId()), ids);
     }
 
     @Test
@@ -32,10 +35,10 @@ public class BreakingChangeNotifierTest {
         BreakingChangeNotifier notifier = new BreakingChangeNotifier(mockNotifier);
 
         notifier.notifyBreakingChanges(List.of());
-        Assertions.assertThat(mockNotifier.exercises).isNull();
+        Assertions.assertNull(mockNotifier.exercises);
 
         notifier.notifyBreakingChanges(null);
-        Assertions.assertThat(mockNotifier.exercises).isNull();
+        Assertions.assertNull(mockNotifier.exercises);
     }
 
     private static class MockChangeNotifier implements ApplicationEventPublisher {
@@ -43,7 +46,7 @@ public class BreakingChangeNotifierTest {
         private List<String> exercises;
 
         @Override
-        public void publishEvent(Object event) {
+        public void publishEvent(@NotNull Object event) {
             exercises = ((BreakingChangeEvent) event).getBreakingChangeExerciseIds();
         }
     }

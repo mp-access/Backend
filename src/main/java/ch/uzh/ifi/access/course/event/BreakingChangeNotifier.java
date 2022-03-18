@@ -1,20 +1,18 @@
 package ch.uzh.ifi.access.course.event;
 
 import ch.uzh.ifi.access.course.model.Exercise;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class BreakingChangeNotifier {
 
-    private static final Logger logger = LoggerFactory.getLogger(BreakingChangeNotifier.class);
-
-    private final ApplicationEventPublisher eventPublisher;
+    private ApplicationEventPublisher eventPublisher;
 
     public BreakingChangeNotifier(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
@@ -24,7 +22,7 @@ public class BreakingChangeNotifier {
         if (exercises != null && !exercises.isEmpty()) {
             List<String> ids = exercises.stream().map(Exercise::getId).collect(Collectors.toList());
             BreakingChangeEvent event = new BreakingChangeEvent(this, ids);
-            logger.info(String.format("Publishing breaking change event %s: %s)", event.getEventId(), event.getBreakingChangeExerciseIds()));
+            log.info("Publishing breaking change event {}: {}", event.getEventId(), event.getBreakingChangeExerciseIds());
             eventPublisher.publishEvent(event);
         }
     }

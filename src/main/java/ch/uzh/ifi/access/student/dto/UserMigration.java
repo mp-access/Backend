@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class UserMigration {
 
-    private String from;
+    private final String from;
 
-    private String to;
+    private final String to;
 }

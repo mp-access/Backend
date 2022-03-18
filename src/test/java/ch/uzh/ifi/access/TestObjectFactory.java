@@ -1,69 +1,68 @@
 package ch.uzh.ifi.access;
 
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
 import ch.uzh.ifi.access.course.model.*;
-import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
-import org.springframework.security.oauth2.provider.OAuth2Request;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class TestObjectFactory {
 
-    public static Course createCourseWithOneAssignmentAndOneExercise(String courseTitle, String assignmentTitle, String exerciseQuestion) {
-        Course course = createCourse(courseTitle);
-        Assignment assignment = createAssignment(assignmentTitle);
-        Exercise exercise = createCodeExercise(exerciseQuestion);
-        course.addAssignment(assignment);
-        assignment.addExercise(exercise);
-        return course;
-    }
-
-    public static Course createCourse(String title) {
-        Course course = new Course(UUID.randomUUID().toString());
-        course.setTitle(title);
-        return course;
-    }
-
-    public static Assignment createAssignment(String title) {
+    public static Assignment createAssignmentWithExercises(boolean isPublished, boolean isDue) {
         Assignment assignment = new Assignment(UUID.randomUUID().toString());
-        assignment.setTitle(title);
-        assignment.setDescription("Some description");
-        assignment.setDueDate(ZonedDateTime.now().plusDays(7));
-        assignment.setPublishDate(ZonedDateTime.now());
+        assignment.setIndex(0);
+        assignment.setDueDate(ZonedDateTime.now().plusDays(isDue ? -1 : 7));
+        assignment.setPublishDate(ZonedDateTime.now().plusDays(isPublished ? 0 : 1));
+        List.of(createCodeExercise(), createTextExercise(), createMultipleChoiceExercise())
+                .forEach(exercise -> {
+                    assignment.addExercise(exercise);
+                    exercise.setAssignment(assignment);
+                });
         return assignment;
     }
 
-    public static Exercise createCodeExercise(String question) {
-        Exercise exercise = new Exercise(UUID.randomUUID().toString());
+    public static Course createCourseWithAssignments(String title, List<Assignment> assignments) {
+        Course course = new Course(title);
+        assignments.forEach(course::addAssignment);
+        return course;
+    }
+
+    public static Course createCourseWithAssignmentAndExercises(String title) {
+        return createCourseWithAssignments(title, List.of(createAssignmentWithExercises(true, false)));
+    }
+
+    public static Exercise createCodeExercise(String id) {
+        Exercise exercise = new Exercise(id);
+        exercise.setQuestion("Code question");
         exercise.setLanguage("python");
-        exercise.setQuestion(question);
         exercise.setType(ExerciseType.code);
-        exercise.setGitHash("0x123456");
         exercise.setMaxScore(10);
         exercise.setMaxSubmits(10);
+        exercise.setPublic_files(List.of(
+                createVirtualFile("file-1", "py", false),
+                createVirtualFile("file-2", "py", false)));
         return exercise;
     }
 
-    public static Exercise createTextExercise(String question) {
+    public static Exercise createCodeExercise() {
+        return createCodeExercise(UUID.randomUUID().toString());
+    }
+
+    public static Exercise createTextExercise() {
         Exercise exercise = new Exercise(UUID.randomUUID().toString());
-        exercise.setQuestion(question);
+        exercise.setQuestion("Text question");
         exercise.setType(ExerciseType.text);
         exercise.setGitHash("0x123456");
         exercise.setMaxScore(1);
         return exercise;
     }
 
-    public static Exercise createMultipleChoiceExercise(String question) {
+    public static Exercise createMultipleChoiceExercise() {
         Exercise exercise = new Exercise(UUID.randomUUID().toString());
-        exercise.setQuestion(question);
+        exercise.setQuestion("MC question");
         exercise.setType(ExerciseType.multipleChoice);
         exercise.setGitHash("0x123456");
         exercise.setMaxScore(3);
@@ -71,7 +70,8 @@ public class TestObjectFactory {
     }
 
     public static VirtualFile createVirtualFile(String name, String extension, boolean isMediaType) {
-        VirtualFile virtualFile = new VirtualFile(String.format("/foo/bar/%s.%s", name, extension), String.format("bar/%s.%s", name, extension));
+        String virtualPath = String.format("folder/%s.%s", name, extension);
+        VirtualFile virtualFile = new VirtualFile("/root/" + virtualPath, virtualPath);
         virtualFile.setName(name);
         virtualFile.setExtension(extension);
         virtualFile.setIsMediaType(isMediaType);
@@ -79,88 +79,49 @@ public class TestObjectFactory {
         return virtualFile;
     }
 
-    public static CodeSubmission createCodeAnswerWithExerciseAndUserAndVersion(String exerciseId, String userId, int version) {
-        CodeSubmission answer = createCodeAnswerWithExerciseAndUser(exerciseId, userId);
-        answer.setVersion(version);
-        return answer;
-    }
-
-    public static CodeSubmission createCodeAnswerWithExerciseAndUser(String exerciseId, String userId) {
-        CodeSubmission answer = createCodeAnswerWithExercise(exerciseId);
-        answer.setUserId(userId);
-        return answer;
-    }
-
-    public static CodeSubmission createCodeAnswerWithExercise(String exerciseId) {
-        CodeSubmission answer = createCodeAnswer();
-        answer.setExerciseId(exerciseId);
-        return answer;
-    }
-
-    public static CodeSubmission createCodeAnswer() {
+    public static CodeSubmission createCodeAnswer(String id, String userId, String exerciseId, int version) {
         return CodeSubmission.builder()
-                .version(0)
-                .userId("user-1")
+                .id(id)
+                .userId(userId)
+                .exerciseId(exerciseId)
+                .version(version)
                 .commitId("commit-1")
-                .exerciseId("exercise-1")
-                .timestamp(Instant.now())
-                .publicFiles(List.of(createVirtualFile("test", "py", false), createVirtualFile("test2", "py", false)))
+                .publicFiles(List.of(
+                        createVirtualFile("file-1", "py", false),
+                        createVirtualFile("file-2", "py", false)))
                 .isGraded(true)
                 .build();
     }
 
-    public static TextSubmission createTextAnswerWithExercise(String exerciseId) {
-        TextSubmission answer = createTextAnswer();
-        answer.setExerciseId(exerciseId);
-        return answer;
+    public static CodeSubmission createCodeAnswer(String userId, String exerciseId, int version) {
+        return createCodeAnswer(UUID.randomUUID().toString(), userId, exerciseId, version);
     }
 
-    public static TextSubmission createTextAnswer() {
+    public static CodeSubmission createCodeAnswer(String userId, String exerciseId) {
+        return createCodeAnswer(UUID.randomUUID().toString(), userId, exerciseId, 0);
+    }
+
+    public static TextSubmission createTextAnswer(String userId, String exerciseId) {
         return TextSubmission.builder()
+                .id(UUID.randomUUID().toString())
+                .userId(userId)
+                .exerciseId(exerciseId)
                 .version(0)
-                .userId("user-1")
                 .commitId("commit-1")
-                .exerciseId("exercise-1")
                 .timestamp(Instant.now())
                 .answer("Hello world!")
                 .build();
     }
 
-    public static MultipleChoiceSubmission createMultipleChoiceAnswerWithExercise(String exerciseId) {
-        MultipleChoiceSubmission multipleChoiceSubmission = createMultipleChoiceAnswer();
-        multipleChoiceSubmission.setExerciseId(exerciseId);
-        return multipleChoiceSubmission;
-    }
-
-    public static MultipleChoiceSubmission createMultipleChoiceAnswer() {
+    public static MultipleChoiceSubmission createMultipleChoiceAnswer(String userId, String exerciseId) {
         return MultipleChoiceSubmission.builder()
+                .id(UUID.randomUUID().toString())
+                .userId(userId)
+                .exerciseId(exerciseId)
                 .version(0)
-                .userId("user-1")
                 .commitId("commit-1")
-                .exerciseId("exercise-1")
                 .timestamp(Instant.now())
                 .choices(Set.of(1, 3))
                 .build();
-    }
-
-    public static CourseAuthentication createCourseAuthentication(Set<GrantedCourseAccess> grantedCourseAccesses) {
-        OAuth2Request request = new OAuth2Request(Map.of(),
-                "client",
-                List.of(), true,
-                Set.of("openid"),
-                Set.of(), null, null, null);
-        return new CourseAuthentication(request, null, grantedCourseAccesses, "");
-    }
-
-    public static GrantedCourseAccess createAdminAccess(final String courseId) {
-        return new GrantedCourseAccess(courseId, false, false, true);
-    }
-
-    public static GrantedCourseAccess createAssistantAccess(final String courseId) {
-        return new GrantedCourseAccess(courseId, false, true, false);
-    }
-
-    public static GrantedCourseAccess createStudentAccess(final String courseId) {
-        return new GrantedCourseAccess(courseId, true, false, false);
     }
 }

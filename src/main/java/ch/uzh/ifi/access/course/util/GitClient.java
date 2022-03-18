@@ -1,45 +1,84 @@
 package ch.uzh.ifi.access.course.util;
 
+import ch.uzh.ifi.access.config.AccessProperties;
 import com.jcraft.jsch.Session;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
+@Slf4j
+@Component
 public class GitClient {
 
-    private SshTransportConfigCallback sshTransportConfigCallback = new SshTransportConfigCallback();
+    private AccessProperties accessProperties;
 
-    public String pull(String pathname) throws IOException, GitAPIException {
-        Git git = new Git(new FileRepository(new File(pathname)));
-        git.pull().setTransportConfigCallback(sshTransportConfigCallback).call();
-        String head = getCommitHash(git);
-        git.close();
+    private SshTransportConfigCallback sshTransportConfigCallback;
 
-        return head;
+    public GitClient(AccessProperties accessProperties) {
+        this.accessProperties = accessProperties;
+        this.sshTransportConfigCallback = new SshTransportConfigCallback();
     }
 
-    public String clone(String url, File directory) throws GitAPIException {
-        Git git = Git.cloneRepository()
-                .setURI(url)
-                .setTransportConfigCallback(sshTransportConfigCallback)
-                .setDirectory(directory)
-                .call();
-        String head = getCommitHash(git);
-        git.close();
-        return head;
+    public File getRepoDir(String gitURL) throws URISyntaxException {
+        return new File(accessProperties.getCacheDir() + new URIish(gitURL).getPath().replace(".git", ""));
+    }
+
+    public String pullOrClone(String gitURL) {
+        String token = gitURL.contains("gitlab") ? accessProperties.getGitlabWebhook() : accessProperties.getGithubWebhook();
+        CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
+        try {
+            File repoDir = getRepoDir(gitURL);
+            if (repoDir.exists()) {
+                try (Git git = new Git(new FileRepository(repoDir.getPath() + "/.git"))) {
+                    git.pull()
+                            .setCredentialsProvider(credentialsProvider)
+                            .setTransportConfigCallback(sshTransportConfigCallback)
+                            .call();
+                    return getCommitHash(git);
+                }
+            } else {
+                Git git = Git.cloneRepository()
+                        .setURI(gitURL)
+                        .setDirectory(repoDir)
+                        .setCredentialsProvider(credentialsProvider)
+                        .setTransportConfigCallback(sshTransportConfigCallback)
+                        .call();
+                return getCommitHash(git);
+            }
+        } catch (GitAPIException | URISyntaxException | IOException e) {
+            log.error("Failed to pull or clone repository: {}", gitURL, e);
+            return null;
+        }
     }
 
     private String getCommitHash(Git git) {
-        return git.getRepository().getAllRefs().get("HEAD").getObjectId().getName();
+        try {
+            Ref head = git.getRepository().findRef("HEAD");
+            if (head != null) {
+                ObjectId headId = head.getObjectId();
+                if (headId != null)
+                    return headId.getName();
+            }
+        } catch (NullPointerException | IOException e) {
+            log.error("Failed to fetch commit hash of repository {}", git.getRepository().getIdentifier());
+        }
+        return null;
     }
 
-
     private static class SshTransportConfigCallback implements TransportConfigCallback {
+
         private final SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
             @Override
             protected void configure(OpenSshConfig.Host hc, Session session) {

@@ -4,157 +4,124 @@ import ch.uzh.ifi.access.TestObjectFactory;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
+import ch.uzh.ifi.access.keycloak.KeycloakClient;
 import ch.uzh.ifi.access.student.SubmissionProperties;
 import ch.uzh.ifi.access.student.dao.StudentSubmissionRepository;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
+import ch.uzh.ifi.access.student.model.SubmissionEvaluation.Points;
 import ch.uzh.ifi.access.student.model.User;
 import ch.uzh.ifi.access.student.reporting.AssignmentReport;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
 
 @DataMongoTest
-@RunWith(SpringRunner.class)
 public class AdminSubmissionServiceTest {
+
+    Course course = TestObjectFactory.createCourseWithAssignmentAndExercises("Course 1");
+    Assignment assignment = course.getAssignments().get(0);
+    Exercise exercise = assignment.getExercises().get(0);
+
+    @Mock
+    private KeycloakClient keycloakClient;
+
+    @Mock
+    private SubmissionProperties submissionProperties;
 
     @Autowired
     private StudentSubmissionRepository studentSubmissionRepository;
 
-    private AdminSubmissionService service;
+    private StudentSubmissionService studentSubmissionService;
 
-    private StudentSubmissionService submissionService;
+    private AdminSubmissionService adminSubmissionService;
 
-    @Mock
     private UserService userService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-
-        this.submissionService = new StudentSubmissionService(studentSubmissionRepository, new SubmissionProperties());
-        this.service = new AdminSubmissionService(submissionService, userService, null);
+        MockitoAnnotations.openMocks(this);
+        userService = new UserService(keycloakClient);
+        studentSubmissionService = new StudentSubmissionService(studentSubmissionRepository, submissionProperties);
+        adminSubmissionService = new AdminSubmissionService(studentSubmissionService, userService, null);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         studentSubmissionRepository.deleteAll();
     }
 
-    /**
-     * 0. Create at least 2 students
-     * 1. Create assigment
-     * 2. Create at least 2 exercises
-     * 3. Create at least 2 submissions for each exercise for each student
-     * 4. Fetch the latest submission for each student for each exercise in the assignment
-     */
     @Test
     public void generateAssignmentReportTest() {
-        // 0. Create 2 students
-        final String user1Id = "userId-1";
-        final String user1Email = "userId-1@example.com";
-        final String user2Id = "userId-2";
-        final String user2Email = "userId-2@example.com";
+        UserRepresentation user1 = new UserRepresentation();
+        user1.setId("test-user-1");
+        user1.setUsername("test-user-1@example.com");
+        UserRepresentation user2 = new UserRepresentation();
+        user2.setId("test-user-2");
+        user2.setUsername("test-user-2@example.com");
+        UserRepresentation user3 = new UserRepresentation();
+        user3.setId("test-user-3");
+        user3.setUsername("test-user-3@example.com");
+        course.setStudents(List.of(user1.getUsername(), user2.getUsername(), user3.getUsername()));
 
-        // 1. & 2. Create assignment and 2 exercises
-        Assignment assignment = TestObjectFactory.createAssignment("Assignment title");
-        assignment.setIndex(1);
-        Exercise exercise1 = TestObjectFactory.createCodeExercise("Exercise 1");
-        Exercise exercise2 = TestObjectFactory.createTextExercise("Exercise 2");
-        assignment.addExercise(exercise1);
-        assignment.addExercise(exercise2);
-        exercise1.setIndex(0);
-        exercise2.setIndex(1);
-        List<Exercise> exercises = List.of(exercise1, exercise2);
+        CodeSubmission lastSubmissionUser1 = TestObjectFactory.createCodeAnswer(user1.getId(), exercise.getId());
+        lastSubmissionUser1.setResult(SubmissionEvaluation.builder().points(new Points(5, 10))
+                .maxScore(exercise.getMaxScore()).timestamp(Instant.now()).build());
 
-        // 3. Submit multiple versions
-        // Submit multiple versions of exercise 1
-        CodeSubmission ex1Submission1User1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
-        CodeSubmission ex1Submission2User1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
-        CodeSubmission ex1Submission1User2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
-        CodeSubmission ex1Submission2User2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
+        CodeSubmission lastSubmissionUser2 = TestObjectFactory.createCodeAnswer(user2.getId(), exercise.getId());
+        lastSubmissionUser2.setResult(SubmissionEvaluation.builder().points(new Points(10, 10))
+                .maxScore(exercise.getMaxScore()).timestamp(Instant.now()).build());
 
-        // Submit multiple versions of exercise 2
-        CodeSubmission ex2Submission1User1 = TestObjectFactory.createCodeAnswerWithExercise(exercise2.getId());
-        CodeSubmission ex2Submission2User1 = TestObjectFactory.createCodeAnswerWithExercise(exercise2.getId());
-        CodeSubmission ex2Submission1User2 = TestObjectFactory.createCodeAnswerWithExercise(exercise2.getId());
-        CodeSubmission ex2Submission2User2 = TestObjectFactory.createCodeAnswerWithExercise(exercise2.getId());
+        studentSubmissionService.initSubmission(TestObjectFactory.createCodeAnswer(user1.getId(), exercise.getId()));
+        studentSubmissionService.initSubmission(TestObjectFactory.createCodeAnswer(user2.getId(), exercise.getId()));
+        studentSubmissionService.initSubmission(lastSubmissionUser1);
+        studentSubmissionService.initSubmission(lastSubmissionUser2);
 
-        setUserForSubmission(List.of(ex1Submission1User1, ex1Submission2User1, ex2Submission1User1, ex2Submission2User1), user1Id);
-        setUserForSubmission(List.of(ex1Submission1User2, ex1Submission2User2, ex2Submission1User2, ex2Submission2User2), user2Id);
+        List<User> testUsersFound = List.of(User.of(user1), User.of(user2), User.of(user3));
+        Map<User, List<StudentSubmission>> submissionsByStudent = Map.of(
+                testUsersFound.get(0), studentSubmissionService.findLatestGradedSubmissionsByAssignment(assignment, user1.getId()),
+                testUsersFound.get(1), studentSubmissionService.findLatestGradedSubmissionsByAssignment(assignment, user2.getId()),
+                testUsersFound.get(2), List.of());
+        AssignmentReport testReport = new AssignmentReport(assignment, testUsersFound, submissionsByStudent, List.of());
 
-        final double ex1User1Score = 5.0;
-        final SubmissionEvaluation.Points ex1User1Points = new SubmissionEvaluation.Points(5, 10);
-        final double ex1User2Score = 10.0;
-        final SubmissionEvaluation.Points ex1User2Points = new SubmissionEvaluation.Points(10, 10);
-        setResultForSubmission(ex1Submission2User1, ex1User1Points, exercise1.getMaxScore());
-        setResultForSubmission(ex1Submission2User2, ex1User2Points, exercise1.getMaxScore());
-
-        submissionService.initSubmission(ex1Submission1User1);
-        submissionService.initSubmission(ex1Submission2User1);
-
-        submissionService.initSubmission(ex1Submission1User2);
-        submissionService.initSubmission(ex1Submission2User2);
-
-        submissionService.initSubmission(ex2Submission1User1);
-        submissionService.initSubmission(ex2Submission2User1);
-
-        submissionService.initSubmission(ex2Submission1User2);
-        submissionService.initSubmission(ex2Submission2User2);
-
-        Course course = new Course("");
-        course.addAssignment(assignment);
-        final String assignmentId = assignment.getId();
-
-        User user1 = new User(user1Id, user1Email);
-        User user2 = new User(user2Id, user2Email);
-        List<User> students = List.of(user1, user2);
-        course.setStudents(students.stream().map(User::getEmailAddress).collect(Collectors.toList()));
-
-        when(userService.getCourseStudents(eq(course))).thenReturn(new UserService.UserQueryResult(List.of(), students));
-        AssignmentReport report = service.generateAssignmentReport(course, assignment);
-
-        Assertions.assertThat(report).isNotNull();
-        Assertions.assertThat(report.getAssignmentId()).isEqualTo(assignmentId);
-        Map<String, Map<String, SubmissionEvaluation>> submissionByExerciseIdAndUserId = report.getByExercises();
-
-        // assert that there is an entry for each exercise of an assignment
-        assignment.getExercises().forEach(exercise -> Assertions.assertThat(submissionByExerciseIdAndUserId).containsKey(exercise.getAssignmentExerciseIndexing()));
-
-        // assert that for each exercise there is an entry for each student, regardless if the submitted or not
-        for (var exercise : exercises) {
-            Map<String, SubmissionEvaluation> studentSubmissions = report.getByExercises().get(exercise.getAssignmentExerciseIndexing());
-            students.forEach(student -> Assertions.assertThat(studentSubmissions).containsKey(student.getEmailAddress()));
-        }
-
-        Map<String, SubmissionEvaluation> evaluationMap = submissionByExerciseIdAndUserId.get(exercise1.getAssignmentExerciseIndexing());
-        double user1Score = evaluationMap.get(user1.getEmailAddress()).getScore();
-        double user2Score = evaluationMap.get(user2.getEmailAddress()).getScore();
-        Assertions.assertThat(user1Score).isEqualTo(ex1User1Score);
-        Assertions.assertThat(user2Score).isEqualTo(ex1User2Score);
+        doReturn(Optional.of(user1)).when(keycloakClient).findUserByEmail(user1.getUsername());
+        doReturn(Optional.of(user2)).when(keycloakClient).findUserByEmail(user2.getUsername());
+        doReturn(Optional.of(user3)).when(keycloakClient).findUserByEmail(user3.getUsername());
+        AssignmentReport returnedReport = adminSubmissionService.generateAssignmentReport(course, assignment);
+        Assertions.assertEquals(testReport, returnedReport);
     }
 
-    private void setUserForSubmission(List<StudentSubmission> submissions, String userId) {
-        submissions.forEach(submission -> submission.setUserId(userId));
-    }
-
-    private void setResultForSubmission(StudentSubmission submission, SubmissionEvaluation.Points points, double maxScore) {
-        submission.setResult(SubmissionEvaluation.builder().points(points).maxScore(maxScore).timestamp(Instant.now()).build());
+    @Test
+    public void invalidateSubmissionsByExerciseAndUserTest() {
+        String user1 = "test-user-1";
+        String user2 = "test-user-2";
+        CodeSubmission submissionUser1A = TestObjectFactory.createCodeAnswer(user1, exercise.getId());
+        CodeSubmission submissionUser1B = TestObjectFactory.createCodeAnswer(user1, exercise.getId());
+        CodeSubmission submissionUser2 = TestObjectFactory.createCodeAnswer(user2, exercise.getId());
+        studentSubmissionService.initSubmission(submissionUser1A);
+        Assertions.assertFalse(submissionUser1A.isInvalid());
+        studentSubmissionService.initSubmission(submissionUser1B);
+        Assertions.assertFalse(submissionUser1B.isInvalid());
+        studentSubmissionService.initSubmission(submissionUser2);
+        Assertions.assertFalse(submissionUser2.isInvalid());
+        adminSubmissionService.invalidateSubmissionsByExerciseAndUser(exercise.getId(), user1);
+        List<StudentSubmission> submissionsUser1 = studentSubmissionService.findAllGradedSubmissions(exercise.getId(), user1);
+        submissionsUser1.forEach(submission -> Assertions.assertTrue(submission.isInvalid()));
+        List<StudentSubmission> submissionsUser2 = studentSubmissionService.findAllGradedSubmissions(exercise.getId(), user2);
+        submissionsUser2.forEach(submission -> Assertions.assertFalse(submission.isInvalid()));
     }
 }

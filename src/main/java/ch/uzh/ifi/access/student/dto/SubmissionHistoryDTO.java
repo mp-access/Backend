@@ -6,47 +6,40 @@ import ch.uzh.ifi.access.student.model.SubmissionEvaluation;
 import lombok.Value;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Value
 public class SubmissionHistoryDTO {
 
-    private final List<SubmissionMetadata> submissions;
-    private final List<SubmissionMetadata> runs;
+    List<SubmissionMetadata> submissions;
+    List<SubmissionMetadata> runs;
 
-    private final SubmissionCount submissionCount;
+    SubmissionCount submissionCount;
 
-    private final boolean isPastDueDate;
-
-    private final ZonedDateTime dueDate;
-
-    public SubmissionHistoryDTO(List<StudentSubmission> submissions, List<StudentSubmission> runs, SubmissionCount submissionCount, ZonedDateTime dueDate, boolean isPastDueDate) {
+    public SubmissionHistoryDTO(List<StudentSubmission> submissions, List<StudentSubmission> runs, SubmissionCount submissionCount) {
         this.submissions = submissions.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
         this.runs = runs.stream().map(SubmissionMetadata::new).collect(Collectors.toList());
         this.submissionCount = submissionCount;
-        this.isPastDueDate = isPastDueDate;
-        this.dueDate = dueDate;
     }
 
     @Value
     public static class SubmissionMetadata {
-        private final String id;
+        String id;
 
-        private final int version;
+        int version;
 
-        private final Instant timestamp;
+        Instant timestamp;
 
-        private final String commitHash;
+        String commitHash;
 
-        private final boolean graded;
+        boolean graded;
 
-        private final boolean isInvalid;
+        boolean isInvalid;
 
-        private final boolean isTriggeredReSubmission;
+        boolean isTriggeredReSubmission;
 
-        private SubmissionEvaluation result;
+        SubmissionEvaluation result;
 
         SubmissionMetadata(StudentSubmission submission) {
             this.id = submission.getId();

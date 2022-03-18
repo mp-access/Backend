@@ -1,27 +1,25 @@
 package ch.uzh.ifi.access.course.controller;
 
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
-import ch.uzh.ifi.access.course.model.security.GrantedCourseAccess;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
 
 import java.security.Principal;
-import java.util.Set;
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/users")
 public class UserResource {
 
     @GetMapping
-    public ResponseEntity<Principal> getUser(@ApiIgnore Principal principal) {
+    public ResponseEntity<Principal> getUser(Principal principal) {
         return ResponseEntity.ok(principal);
     }
 
     @GetMapping("/courses")
-    public Set<GrantedCourseAccess> getCourses(@ApiIgnore CourseAuthentication authentication) {
-        return authentication.getCourseAccesses();
+    public Collection<?> getCourses(Authentication authentication) {
+        return authentication.getAuthorities();
     }
 }

@@ -24,8 +24,8 @@ public class CodeSubmission extends StudentSubmission {
     private ExecResult console;
 
     @Builder
-    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, List<VirtualFile> publicFiles, String selectedFileId, ExecResult console) {
-        super(id, version, userId, commitId, exerciseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
+    public CodeSubmission(String id, int version, String userId, String commitId, String exerciseId, String courseId, boolean isGraded, Instant timestamp, boolean isInvalid, boolean isTriggeredReSubmission, List<VirtualFile> publicFiles, String selectedFileId, ExecResult console) {
+        super(id, version, userId, commitId, exerciseId, courseId, isGraded, timestamp, null, isInvalid, isTriggeredReSubmission);
         this.publicFiles = publicFiles;
         this.selectedFileId = selectedFileId;
         this.console = console;
@@ -51,6 +51,7 @@ public class CodeSubmission extends StudentSubmission {
         stripped.setUserId(this.getUserId());
         stripped.setCommitId(this.getCommitId());
         stripped.setExerciseId(this.getExerciseId());
+        stripped.setCourseId(this.getCourseId());
         stripped.setGraded(this.isGraded());
         stripped.setPublicFiles(this.publicFiles);
         stripped.setSelectedFileId(this.getSelectedFileId());

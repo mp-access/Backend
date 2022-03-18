@@ -1,136 +1,49 @@
 version: 2.1
-jobs:
-  build:
+
+# CircleCI Packages
+orbs:
+  gradle: circleci/gradle@2.2.0   # Pre-configured gradle jobs, see circleci.com/developer/orbs/orb/circleci/gradle
+
+executors:
+  access-backend-executor:    # Infrastructure setup for backend jobs
     docker:
-      - image: circleci/openjdk:11-jdk
-      - image: jboss/keycloak:7.0.0
+      - image: cimg/openjdk:11.0      # Primary container for running gradle commands
+      - image: circleci/mongo:5.0.5   # MongoDB image (CircleCI version)
+      - image: jboss/keycloak:16.1.0  # Keycloak image, same as the one used in mp-access/Infrastructure
         environment:
-          KEYCLOAK_USER: admin
-          KEYCLOAK_PASSWORD: admin
+          KEYCLOAK_USER: admin      # Initial username for the Keycloak Admin Console
+          KEYCLOAK_PASSWORD: admin  # Initial password for the Keycloak Admin Console
         command:
-          - "-Djboss.bind.address=0.0.0.0"
-          - "-Djboss.http.port=9999"
-      - image: circleci/mongo
+          - "-Djboss.bind.address=0.0.0.0"    # Bind Keycloak to a specific address
+          - "-Djboss.http.port=9999"          # Bind Keycloak to a specific port
 
-    working_directory: ~/course_service
-
-    environment:
-      # Customize the JVM maximum heap limit
-      JVM_OPTS: -Xmx3200m
-      TERM: dumb
-
-    steps:
-      - run:
-          name: "What branch am I on?"
-          command: echo ${CIRCLE_BRANCH}
-
-      - checkout
-
-      - setup_remote_docker
-
-      - run:
-          name: Install dockerize
-          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
-          environment:
-            DOCKERIZE_VERSION: v0.6.1
-      - run:
-          name: Wait for keycloak
-          command: dockerize -wait http://localhost:9999 -timeout 1m
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
-
-      - run: gradle dependencies
-
-      - save_cache:
-          paths:
-            - ~/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
-
-      - run:
-          name: Run tests
-          command: |
-            echo $DOCKER_HOST
-            echo $DOCKER_CERT_PATH
-            gradle test
-
-      - run: gradle jacocoTestReport
-
-      - run:
-          name: Save test results
-          command: |
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - store_test_results:
-          path: ~/test-results
-      - store_artifacts:
-          path: ~/test-results/junit
-
-      - run:
-          name: Analyze on SonarCloud
-          command: gradle build sonarqube
-
-      - run:
-          name: Send test coverage to Codacy
-          command: |
-            #curl -Ls -o codacy-coverage-reporter-assembly.jar $(curl -Ls https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r '.assets | map({content_type, browser_download_url} | select(.content_type | contains("java-archive"))) | .[0].browser_download_url')
-            #java -jar codacy-coverage-reporter-assembly.jar report -l Java -r build/reports/jacoco/test/jacocoTestReport.xml
-            echo "Codacy parsing disabled until it works again"
-
-      - run:
-          name: Create ACCESS local tester
-          command: gradle customFatJar
-      - store_artifacts:
-          path: ./build/libs
-
-  push_to_dockerhub:
-    docker:
-      - image: circleci/openjdk:11-jdk
-
-    working_directory: ~/course_service
-
+jobs:
+  create-backend-image:    # Build and push the backend image to Docker Hub via a gradle task
+    executor: access-backend-executor
     steps:
       - checkout
-
       - setup_remote_docker
-
       - run:
-          name: Print Docker image name
-          command: echo "sealuzh/access-backend:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]')"
-
-      - run:
-          name: Build Docker image
-          command: docker build -t sealuzh/access-backend:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]') .
-
-      - add_ssh_keys:
-          fingerprints:
-            - "fe:b1:c8:73:4c:fd:f9:6f:b9:84:56:6a:bc:ad:03:c8"
-      - run:
-          name: Push Docker image
-          command: |
-            echo $DOCKER_SEAL_PWD | docker login -u $DOCKER_SEAL_LOGIN --password-stdin
-            docker push sealuzh/access-backend:$(echo $CIRCLE_BRANCH | tr -dc '[:alnum:]\n\r' | tr '[:upper:]' '[:lower:]')
-
-  deploy:
-    docker:
-      - image: circleci/openjdk:11-jdk
-    working_directory: ~/course_service
-
-    steps:
-      - run:
-          name: Deploy app to Digital Ocean Server via Docker
-          command: |
-            ssh -o StrictHostKeyChecking=no $DIGITAL_OCEAN_USER@$DIGITAL_OCEAN_HOST "cd /root/Infrastructure && sh ./scripts/restart-containers-do.sh"
+          name: bootBuildImage
+          command: ./gradlew bootBuildImage -Pimage=$DOCKER_IMAGE -Ptag=$CIRCLE_BRANCH -Plogin=$DOCKER_LOGIN -Ppassword=$DOCKER_PASSWORD
+          # See the Backend project environment for the variables DOCKER_IMAGE, DOCKER_LOGIN, DOCKER_PASSWORD
 
 workflows:
-  version: 2
-  build-and-deploy-master:
+  access-backend-workflow:
     jobs:
-      - build:
+      - gradle/test:      # Checkout, build and test the backend, includes caching (circleci/gradle job)
+          name: Backend Tests
+          test_command: test -PexcludeDockerTests=true
+          executor: access-backend-executor
+
+      - gradle/run:       # Run a SonarQube analysis, includes caching (circleci/gradle job)
+          name: SonarQube Analysis
+          command: sonarqube -Dsonar.login=$SONAR_TOKEN
+          executor: access-backend-executor
+          requires:
+            - Backend Tests
           context: SonarCloud
-      - push_to_dockerhub
+          # See the SonarCloud context environment for the variable SONAR_TOKEN
+
+      - create-backend-image:
+          name: Build and Push to Docker Hub

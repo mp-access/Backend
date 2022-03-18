@@ -1,6 +1,7 @@
 package ch.uzh.ifi.access.student.service;
 
 import ch.uzh.ifi.access.TestObjectFactory;
+import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
 import ch.uzh.ifi.access.course.model.Assignment;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.student.SubmissionProperties;
@@ -9,516 +10,315 @@ import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.MultipleChoiceSubmission;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.model.TextSubmission;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.test.context.support.WithMockUser;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-@DataMongoTest
-@RunWith(SpringRunner.class)
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@SpringBootTest(classes = {StudentSubmissionService.class})
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class StudentSubmissionServiceTest {
 
-    @Autowired
-    private StudentSubmissionRepository repository;
+    Assignment assignment = TestObjectFactory.createAssignmentWithExercises(true, false);
+    Exercise codeExercise = assignment.getExercises().get(0);
+    Exercise textExercise = assignment.getExercises().get(1);
+    Exercise MCExercise = assignment.getExercises().get(2);
+    final String userId = "test-user";
+    final String assistantId = "test-assistant";
+    List<StudentSubmission> tempDB;
 
-    private StudentSubmissionService service;
+    @MockBean
+    private StudentSubmissionRepository submissionRepository;
 
+    @MockBean
     private SubmissionProperties submissionProperties;
 
-    @Before
-    public void setUp() {
-        submissionProperties = new SubmissionProperties();
-        this.service = new StudentSubmissionService(repository, submissionProperties);
+    @Autowired
+    private StudentSubmissionService submissionService;
+
+    @BeforeEach
+    void setUpTempDB() {
+        tempDB = new ArrayList<>();
+        doAnswer(this::saveSubmissionInTempDB).when(submissionRepository).save(any(StudentSubmission.class));
     }
 
-    @After
-    public void tearDown() {
-        repository.deleteAll();
-    }
-
-    @Test
-    public void findById() {
-        CodeSubmission submission = new CodeSubmission();
-        submission.setExerciseId("123");
-        submission.setUserId("456");
-        submission = repository.save(submission);
-
-        StudentSubmission foundById = service.findById(submission.getId()).orElse(null);
-        Assertions.assertThat(foundById).isNotNull();
-
-        Assertions.assertThat(foundById.getExerciseId()).isEqualTo(submission.getExerciseId());
-        Assertions.assertThat(foundById.getUserId()).isEqualTo(submission.getUserId());
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void findByIdNull() {
-        service.findById(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void saveNullCodeSubmission() {
-        service.saveSubmission(null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void saveCodeSubmissionNoUserId() {
-        CodeSubmission codeSubmission = new CodeSubmission();
-        codeSubmission.setExerciseId("123");
-        service.saveSubmission(codeSubmission);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void saveCodeSubmissionNoExerciseId() {
-        CodeSubmission codeSubmission = new CodeSubmission();
-        codeSubmission.setUserId("123");
-        service.saveSubmission(codeSubmission);
+    private Answer<Void> saveSubmissionInTempDB(InvocationOnMock invocation) {
+        tempDB.add(invocation.getArgument(0));
+        return null;
     }
 
     @Test
-    public void saveCodeSubmission() {
-        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        CodeSubmission submittedAnswer = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-
-        CodeSubmission savedAnswer = service.saveSubmission(submittedAnswer);
-
-        Assertions.assertThat(savedAnswer).isNotNull();
-        Assertions.assertThat(savedAnswer.getId()).isNotNull();
-        Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(0);
-        Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
-        Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
-        Assertions.assertThat(savedAnswer.getExerciseId()).isEqualTo(submittedAnswer.getExerciseId());
-        Assertions.assertThat(savedAnswer.getTimestamp()).isEqualTo(submittedAnswer.getTimestamp());
+    public void findByIdTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer("", "");
+        doReturn(Optional.of(submission)).when(submissionRepository).findById(submission.getId());
+        Optional<StudentSubmission> returnedSubmission = submissionService.findById(submission.getId());
+        Assertions.assertTrue(returnedSubmission.isPresent());
+        Assertions.assertEquals(submission, returnedSubmission.get());
     }
 
     @Test
-    public void saveTextSubmission() {
-        Exercise exercise = TestObjectFactory.createTextExercise("Hello, world?");
-        TextSubmission submittedAnswer = TestObjectFactory.createTextAnswerWithExercise(exercise.getId());
-
-        TextSubmission savedAnswer = service.saveSubmission(submittedAnswer);
-        Assertions.assertThat(savedAnswer).isNotNull();
-        Assertions.assertThat(savedAnswer.getId()).isNotNull();
-        Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
-        Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
-        Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
-        Assertions.assertThat(savedAnswer.getExerciseId()).isEqualTo(submittedAnswer.getExerciseId());
-        Assertions.assertThat(savedAnswer.getTimestamp()).isEqualTo(submittedAnswer.getTimestamp());
+    public void findByIdWithoutValueTest() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> submissionService.findById(null));
     }
 
     @Test
-    public void saveMultipleChoiceSubmission() {
-        Exercise exercise = TestObjectFactory.createMultipleChoiceExercise("Hello, world?");
-        MultipleChoiceSubmission submittedAnswer = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise.getId());
-
-        MultipleChoiceSubmission savedAnswer = service.saveSubmission(submittedAnswer);
-        Assertions.assertThat(savedAnswer).isNotNull();
-        Assertions.assertThat(savedAnswer.getId()).isNotNull();
-        Assertions.assertThat(savedAnswer.getVersion()).isEqualTo(submittedAnswer.getVersion());
-        Assertions.assertThat(savedAnswer.getUserId()).isEqualTo(submittedAnswer.getUserId());
-        Assertions.assertThat(savedAnswer.getCommitId()).isEqualTo(submittedAnswer.getCommitId());
-        Assertions.assertThat(savedAnswer.getExerciseId()).isEqualTo(submittedAnswer.getExerciseId());
-        Assertions.assertThat(savedAnswer.getTimestamp()).isEqualTo(submittedAnswer.getTimestamp());
+    public void saveSubmissionWithoutSubmissionTest() {
+        Assertions.assertThrows(IllegalArgumentException.class,() -> submissionService.saveSubmission(null));
     }
 
     @Test
-    public void findAllSubmissions() {
-        Exercise codeExercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        CodeSubmission codeSubmission = TestObjectFactory.createCodeAnswerWithExercise(codeExercise.getId());
-
-        Exercise textExercise = TestObjectFactory.createTextExercise("Hello, world?");
-        TextSubmission textSubmission = TestObjectFactory.createTextAnswerWithExercise(textExercise.getId());
-
-        Exercise multipleChoiceExercise = TestObjectFactory.createMultipleChoiceExercise("Hello, world?");
-        MultipleChoiceSubmission multipleChoiceSubmission = TestObjectFactory.createMultipleChoiceAnswerWithExercise(multipleChoiceExercise.getId());
-
-        codeSubmission = service.saveSubmission(codeSubmission);
-        textSubmission = service.saveSubmission(textSubmission);
-        multipleChoiceSubmission = service.saveSubmission(multipleChoiceSubmission);
-
-        List<StudentSubmission> submissions = service.findAll();
-        List<String> submissionIds = submissions.stream().map(StudentSubmission::getId).collect(Collectors.toList());
-
-        Assertions.assertThat(submissionIds).isEqualTo(List.of(codeSubmission.getId(), textSubmission.getId(), multipleChoiceSubmission.getId()));
+    public void saveSubmissionWithoutUserIdTest() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> submissionService.saveSubmission(
+                TestObjectFactory.createCodeAnswer(null, "exercise")));
     }
 
     @Test
-    public void findAllByExerciseId() {
-        repository.deleteAll();
-        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
-
-        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise.getId());
-
-        // Explicitly set user ids for test
-        final String userId1 = "userId-1";
-        final String userId2 = "userId-2";
-        codeSubmission1.setUserId(userId1);
-        codeSubmission2.setUserId(userId1);
-        codeSubmission3.setUserId(userId2);
-        someOtherSubmission.setUserId(userId2);
-
-        codeSubmission1 = service.initSubmission(codeSubmission1);
-        codeSubmission2 = service.initSubmission(codeSubmission2);
-        codeSubmission3 = service.initSubmission(codeSubmission3);
-        someOtherSubmission = service.initSubmission(someOtherSubmission);
-
-        List<CodeSubmission> answers = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId1, true);
-
-        Assertions.assertThat(answers.size()).isEqualTo(2);
-
-        Assertions.assertThat(answers.get(1).getId()).isEqualTo(codeSubmission1.getId());
-        Assertions.assertThat(answers.get(1).getExerciseId()).isEqualTo(codeSubmission1.getExerciseId());
-        Assertions.assertThat(answers.get(1).getVersion()).isEqualTo(codeSubmission1.getVersion());
-        Assertions.assertThat(answers.get(1).getVersion()).isEqualTo(0);
-
-        Assertions.assertThat(answers.get(0).getId()).isEqualTo(codeSubmission2.getId());
-        Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(codeSubmission2.getExerciseId());
-        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission2.getVersion());
-        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(1);
-
-        answers = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId2, true);
-        Assertions.assertThat(answers.size()).isEqualTo(1);
-
-        Assertions.assertThat(answers.get(0).getId()).isEqualTo(codeSubmission3.getId());
-        Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(codeSubmission3.getExerciseId());
-        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(codeSubmission3.getVersion());
-
-        answers = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(someOtherExercise.getId(), userId2, true);
-        Assertions.assertThat(answers.size()).isEqualTo(1);
-
-        Assertions.assertThat(answers.get(0).getId()).isEqualTo(someOtherSubmission.getId());
-        Assertions.assertThat(answers.get(0).getExerciseId()).isEqualTo(someOtherSubmission.getExerciseId());
-        Assertions.assertThat(answers.get(0).getVersion()).isEqualTo(someOtherSubmission.getVersion());
+    public void saveSubmissionWithoutExerciseIdTest() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> submissionService.saveSubmission(
+                TestObjectFactory.createCodeAnswer("user", null)));
     }
 
     @Test
-    public void findLatestExerciseSubmission() {
-        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        Exercise someOtherExercise = TestObjectFactory.createCodeExercise("Some other exercise");
-
-        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-        CodeSubmission someOtherSubmission = TestObjectFactory.createCodeAnswerWithExercise(someOtherExercise.getId());
-
-        // Explicitly set user ids for test
-        final String userId = "userId-1";
-        codeSubmission1.setUserId(userId);
-        codeSubmission2.setUserId(userId);
-        someOtherSubmission.setUserId(userId);
-
-        service.initSubmission(codeSubmission1);
-        codeSubmission2 = service.initSubmission(codeSubmission2);
-        service.initSubmission(someOtherSubmission);
-
-        Optional<StudentSubmission> latestSubmissionOptional = service.findLatestExerciseSubmission(exercise.getId(), userId);
-        StudentSubmission latestSubmission = latestSubmissionOptional.orElseGet(() -> Assertions.fail("There should be 2 submissions"));
-
-        Assertions.assertThat(latestSubmission.getId()).isEqualTo(codeSubmission2.getId());
+    public void saveSubmissionTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        doReturn(submission).when(submissionRepository).save(submission);
+        CodeSubmission returnedSubmission = submissionService.saveSubmission(submission);
+        Assertions.assertEquals(submission, returnedSubmission);
     }
 
     @Test
-    public void findLatestExerciseSubmissionNoSubmissionsYet() {
-        Exercise exercise = TestObjectFactory.createCodeExercise("Hello, world?");
-        final String userId = "userId-1";
-
-        Optional<StudentSubmission> latestSubmission = service.findLatestExerciseSubmission(exercise.getId(), userId);
-
-        Assertions.assertThat(latestSubmission.isPresent()).isFalse();
+    public void findAllSubmissionsTest() {
+        CodeSubmission codeSubmission = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        TextSubmission textSubmission = TestObjectFactory.createTextAnswer(userId, textExercise.getId());
+        MultipleChoiceSubmission MCSubmission = TestObjectFactory.createMultipleChoiceAnswer(userId, MCExercise.getId());
+        submissionService.saveSubmission(codeSubmission);
+        submissionService.saveSubmission(textSubmission);
+        submissionService.saveSubmission(MCSubmission);
+        doReturn(tempDB).when(submissionRepository).findAll();
+        List<StudentSubmission> returnedSubmissions = submissionService.findAll();
+        Assertions.assertEquals(List.of(codeSubmission, textSubmission, MCSubmission), returnedSubmissions);
     }
 
     @Test
-    public void findLatestSubmissionsByAssignment() {
-        Assignment assignment = TestObjectFactory.createAssignment("Assignment title");
-        Exercise exercise1 = TestObjectFactory.createCodeExercise("Exercise 1");
-        Exercise exercise2 = TestObjectFactory.createTextExercise("Exercise 2");
-        Exercise exercise3 = TestObjectFactory.createMultipleChoiceExercise("Exercise 3");
-
-        assignment.addExercise(exercise1);
-        assignment.addExercise(exercise2);
-        assignment.addExercise(exercise3);
-
-        // Submit multiple versions of exercise 1
-        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
-        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise1.getId());
-
-        // Submit once for exercise 2
-        TextSubmission answer2 = TestObjectFactory.createTextAnswerWithExercise(exercise2.getId());
-
-        // Submit once for exercise 3
-        MultipleChoiceSubmission answer3 = TestObjectFactory.createMultipleChoiceAnswerWithExercise(exercise3.getId());
-
-        // Explicitly set user ids for test
-        final String userId = "userId-1";
-        codeSubmission1.setUserId(userId);
-        answer2.setUserId(userId);
-        answer3.setUserId(userId);
-        codeSubmission2.setUserId(userId);
-        codeSubmission3.setUserId(userId);
-
-        service.initSubmission(codeSubmission1);
-        answer2 = service.initSubmission(answer2);
-        answer3 = service.initSubmission(answer3);
-        service.initSubmission(codeSubmission2);
-        codeSubmission3 = service.initSubmission(codeSubmission3);
-
-        List<StudentSubmission> latestSubmissionsByAssignment = service.findLatestGradedSubmissionsByAssignment(assignment, userId);
-        List<String> ids = latestSubmissionsByAssignment.stream().map(StudentSubmission::getId).collect(Collectors.toList());
-        Set<String> latestSubmissionsForAssignment = Set.of(codeSubmission3.getId(), answer2.getId(), answer3.getId());
-
-        Assertions.assertThat(Set.copyOf(ids))
-                .withFailMessage("Submissions should include one submission for each exercise and should include following versions: " + latestSubmissionsByAssignment.toString())
-                .isEqualTo(latestSubmissionsForAssignment);
+    public void findAllSubmissionsByGradingTest() {
+        CodeSubmission submission1 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        CodeSubmission submission2 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        submission2.setGraded(false);
+        doReturn(Optional.of(submission1)).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(codeExercise.getId(), userId);
+        submissionService.initSubmission(submission1);
+        Assertions.assertEquals(1, submission1.getVersion());
+        Assertions.assertTrue(submission1.isGraded());
+        submissionService.initSubmission(submission2);
+        Assertions.assertEquals(2, submission2.getVersion());
+        Assertions.assertFalse(submission2.isGraded());
+        when(submissionRepository.findAllByExerciseIdAndUserIdAndIsGradedOrderByVersionDesc(anyString(), anyString(), anyBoolean()))
+                .thenAnswer(invocation -> tempDB.stream()
+                        .filter(submission -> submission.isGraded() == (boolean) invocation.getArgument(2))
+                        .collect(Collectors.toList()));
+        Assertions.assertEquals(List.of(submission1), submissionService.findAllGradedSubmissions(codeExercise.getId(), userId));
+        Assertions.assertEquals(List.of(submission2), submissionService.findAllTestRuns(codeExercise.getId(), userId));
     }
 
     @Test
-    public void invalidateSubmission() {
-        Exercise exercise = TestObjectFactory.createCodeExercise("Exercise 1");
-        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-        CodeSubmission codeSubmission3 = TestObjectFactory.createCodeAnswerWithExercise(exercise.getId());
-
-        final String userId = "user-1";
-        codeSubmission1.setUserId(userId);
-        codeSubmission2.setUserId(userId);
-        codeSubmission3.setUserId(userId);
-
-        service.initSubmission(codeSubmission1);
-        service.initSubmission(codeSubmission2);
-        service.initSubmission(codeSubmission3);
-
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId, true);
-        Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
-
-        service.invalidateSubmissionsByExerciseId(exercise.getId());
-
-        submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exercise.getId(), userId, true);
-
-        Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
+    public void findLatestExerciseSubmissionNoSubmissionsYetTest() {
+        doReturn(Optional.empty()).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(codeExercise.getId(), userId);
+        Optional<StudentSubmission> latestSubmission = submissionService.findLatestExerciseSubmission(codeExercise.getId(), userId);
+        Assertions.assertFalse(latestSubmission.isPresent());
     }
 
     @Test
-    public void getSubmissionCountByExerciseAndUserAllValid() {
-        final String exerciseId = "123";
-        final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
-        Assertions.assertThat(submissions).noneMatch(StudentSubmission::isInvalid);
-
-        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
-        Assertions.assertThat(validSubmissionCount).isEqualTo(3);
+    public void findLatestSubmissionsByAssignmentTest() {
+        CodeSubmission codeSubmission1 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        CodeSubmission codeSubmission2 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        TextSubmission textSubmission = TestObjectFactory.createTextAnswer(userId, textExercise.getId());
+        submissionService.initSubmission(codeSubmission1);
+        submissionService.initSubmission(textSubmission);
+        submissionService.initSubmission(codeSubmission2);
+        List<StudentSubmission> submissions = List.of(codeSubmission2, textSubmission);
+        doReturn(Optional.of(codeSubmission2)).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(codeExercise.getId(), userId);
+        doReturn(Optional.of(textSubmission)).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(textExercise.getId(), userId);
+        doReturn(Optional.empty()).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(MCExercise.getId(), userId);
+        List<StudentSubmission> returnedSubmissions = submissionService.findLatestGradedSubmissionsByAssignment(assignment, userId);
+        Assertions.assertEquals(submissions, returnedSubmissions);
     }
 
     @Test
-    public void getSubmissionCountByExerciseAndUserOneInvalid() {
-        final String exerciseId = "123";
-        final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        codeSubmission1.setInvalid(true);
-        service.saveSubmission(codeSubmission1);
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
-        Assertions.assertThat(codeSubmission1.isInvalid()).isTrue();
-        Assertions.assertThat(codeSubmission2.isInvalid()).isFalse();
-        Assertions.assertThat(codeSubmission3.isInvalid()).isFalse();
-
-        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
-        Assertions.assertThat(validSubmissionCount).isEqualTo(2);
+    public void invalidateSubmissionsByExerciseIdsTest() {
+        CodeSubmission testCodeSubmissionUser1 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        CodeSubmission testMCSubmissionUser1 = TestObjectFactory.createCodeAnswer(userId, MCExercise.getId());
+        CodeSubmission testTextSubmissionUser2 = TestObjectFactory.createCodeAnswer("test-user-2", textExercise.getId());
+        submissionService.initSubmission(testCodeSubmissionUser1);
+        Assertions.assertFalse(testCodeSubmissionUser1.isInvalid());
+        submissionService.initSubmission(testMCSubmissionUser1);
+        Assertions.assertFalse(testMCSubmissionUser1.isInvalid());
+        submissionService.initSubmission(testTextSubmissionUser2);
+        Assertions.assertFalse(testTextSubmissionUser2.isInvalid());
+        doAnswer(invocation -> {
+            tempDB.stream()
+                    .filter(submission -> submission.getExerciseId().equals(invocation.getArgument(0)))
+                    .forEach(submission -> submission.setInvalid(true));
+            return null;
+        }).when(submissionRepository).invalidateSubmissionsByExerciseId(anyString());
+        submissionService.invalidateSubmissionsByExerciseIdIn(List.of(codeExercise.getId(), textExercise.getId()));
+        Assertions.assertTrue(testCodeSubmissionUser1.isInvalid());
+        Assertions.assertTrue(testTextSubmissionUser2.isInvalid());
+        Assertions.assertFalse(testMCSubmissionUser1.isInvalid());
     }
 
     @Test
-    public void getSubmissionCountByExerciseAndUserTwoInvalid() {
-        final String exerciseId = "123";
-        final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        codeSubmission1.setInvalid(true);
-        service.saveSubmission(codeSubmission1);
-        codeSubmission2.setInvalid(true);
-        service.saveSubmission(codeSubmission2);
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
-        Assertions.assertThat(codeSubmission1.isInvalid()).isTrue();
-        Assertions.assertThat(codeSubmission2.isInvalid()).isTrue();
-        Assertions.assertThat(codeSubmission3.isInvalid()).isFalse();
+    public void invalidateSubmissionsByExerciseAndUserTest() {
+        CodeSubmission submissionUser1A = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        CodeSubmission submissionUser1B = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        CodeSubmission submissionUser2 = TestObjectFactory.createCodeAnswer("test-user-2", codeExercise.getId());
+        submissionService.initSubmission(submissionUser1A);
+        Assertions.assertFalse(submissionUser1A.isInvalid());
+        submissionService.initSubmission(submissionUser1B);
+        Assertions.assertFalse(submissionUser1B.isInvalid());
+        submissionService.initSubmission(submissionUser2);
+        Assertions.assertFalse(submissionUser2.isInvalid());
+        doAnswer(invocation -> {
+            tempDB.stream()
+                    .filter(submission -> submission.getUserId().equals(invocation.getArgument(1)))
+                    .forEach(submission -> submission.setInvalid(true));
+            return null;
+        }).when(submissionRepository).invalidateSubmissionsByExerciseIdAndUserId(codeExercise.getId(), userId);
+        submissionService.invalidateSubmissionsByExerciseAndUser(codeExercise.getId(), userId);
+        Assertions.assertTrue(submissionUser1A.isInvalid());
+        Assertions.assertTrue(submissionUser1B.isInvalid());
+        Assertions.assertFalse(submissionUser2.isInvalid());
 
-        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
-        Assertions.assertThat(validSubmissionCount).isEqualTo(1);
+        doReturn(Optional.of(submissionUser1B)).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(codeExercise.getId(), userId);
+        doReturn(Optional.empty()).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(textExercise.getId(), userId);
+        doReturn(Optional.empty()).when(submissionRepository)
+                .findTopByExerciseIdAndUserIdOrderByVersionDesc(MCExercise.getId(), userId);
+        List<StudentSubmission> returnedSubmissions = submissionService
+                .findLatestGradedInvalidatedSubmissionsByAssignment(assignment, userId);
+        Assertions.assertEquals(List.of(submissionUser1B), returnedSubmissions);
     }
 
     @Test
-    public void getSubmissionCountByExerciseAndUserTwoInvalidOneAutoTriggered() {
-        final String exerciseId = "123";
-        final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        codeSubmission1.setInvalid(true);
-        service.saveSubmission(codeSubmission1);
-        codeSubmission2.setInvalid(true);
-        service.saveSubmission(codeSubmission2);
-        codeSubmission3.setTriggeredReSubmission(true);
-        service.saveSubmission(codeSubmission3);
-
-        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
-        Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
+    public void getSubmissionWithPermissionAsStudentTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        doReturn(Optional.of(submission)).when(submissionRepository).findById(submission.getId());
+        StudentSubmission returnedSubmission = submissionService.getSubmissionWithPermission(submission.getId());
+        Assertions.assertEquals(submission, returnedSubmission);
     }
 
     @Test
-    public void getSubmissionCountByExerciseAndUserNoneValid() {
-        final String exerciseId = "123";
-        final String userId = "user-1";
-        CodeSubmission codeSubmission1 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission2 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        CodeSubmission codeSubmission3 = service.initSubmission(TestObjectFactory.createCodeAnswerWithExerciseAndUser(exerciseId, userId));
-        List<StudentSubmission> submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
-        submissions.forEach(submission -> {
-            submission.setInvalid(true);
-            service.saveSubmission(submission);
-        });
-        submissions = service.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, userId, true);
-        Assertions.assertThat(submissions).allMatch(StudentSubmission::isInvalid);
-
-        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
-        Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
+    public void getSubmissionOfOtherUserAsStudentTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer("test-user-2", codeExercise.getId());
+        doReturn(Optional.of(submission)).when(submissionRepository).findById(submission.getId());
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> submissionService.getSubmissionWithPermission(submission.getId()));
     }
 
     @Test
-    public void getSubmissionCountByExerciseAndUserNoSubmissionsYet() {
-        final String exerciseId = "123";
-        final String userId = "user-1";
-
-        repository.deleteAll();
-
-        int validSubmissionCount = service.getSubmissionCountByExerciseAndUser(exerciseId, userId);
-        Assertions.assertThat(validSubmissionCount).isEqualTo(0);
+    @WithMockUser(roles = {"course-1", "student", "course-1-student", "course-2", "assistant", "course-2-assistant"}, username = userId)
+    public void getSubmissionOfOtherCourse1UserAsCourse1StudentAndCourse2AssistantTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer("test-user-2", codeExercise.getId());
+        doReturn(Optional.of(submission)).when(submissionRepository).findById(submission.getId());
+        Assertions.assertThrows(AccessDeniedException.class,
+                () -> submissionService.getSubmissionWithPermission(submission.getId()));
     }
 
     @Test
-    public void userNotRateLimitedNoSubmission() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        repository.deleteAll();
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"}, username = assistantId)
+    public void getSubmissionWithPermissionAsAssistantTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer(assistantId, codeExercise.getId());
+        doReturn(Optional.of(submission)).when(submissionRepository).findById(submission.getId());
+        StudentSubmission returnedSubmission = submissionService.getSubmissionWithPermission(submission.getId());
+        Assertions.assertEquals(submission, returnedSubmission);
     }
 
     @Test
-    public void userRateLimited() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now())
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isTrue();
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"}, username = assistantId)
+    public void getSubmissionOfOtherUserAsAssistantTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        submission.setCourseId("course-1");
+        doReturn(Optional.of(submission)).when(submissionRepository).findById(submission.getId());
+        StudentSubmission returnedSubmission = submissionService.getSubmissionWithPermission(submission.getId());
+        Assertions.assertEquals(submission, returnedSubmission);
     }
 
     @Test
-    public void rateLimitationDisabled() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(false);
-        repository.deleteAll();
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
+    public void getSubmissionWithPermissionNotFoundTest() {
+        Assertions.assertThrows(ResourceNotFoundException.class,
+                () -> submissionService.getSubmissionWithPermission("123"));
     }
 
     @Test
-    public void userRateLimitedWithSubmissionDisabled() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(false);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now())
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
+    public void getValidSubmissionCountWithPermissionAsStudentTest() {
+        List<StudentSubmission> submissions = new ArrayList<>();
+        CodeSubmission submission1 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        CodeSubmission submission2 = TestObjectFactory.createCodeAnswer(userId, codeExercise.getId());
+        submission1.setCourseId("course-1");
+        submission2.setCourseId("course-1");
+        submissions.add(submission1);
+        submissions.add(submission2);
+        doReturn(submissions).when(submissionRepository)
+            .findAllByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(codeExercise.getId(), userId);
+        Assertions.assertEquals(submissions, submissionService.filterValidSubmissionsByPermission(codeExercise.getId(), userId));
     }
 
     @Test
-    public void userRateLimitedWithOldSubmission() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now().minus(1, ChronoUnit.DAYS))
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
+    @WithMockUser(roles = {"course-1", "assistant", "course-1-assistant"}, username = assistantId)
+    public void getValidSubmissionCountWithPermissionAsAssistantTest() {
+        CodeSubmission submission = TestObjectFactory.createCodeAnswer(assistantId, codeExercise.getId());
+        submission.setCourseId("course-1");
+        List<StudentSubmission> submissions = new ArrayList<>();
+        submissions.add(submission);
+        doReturn(submissions).when(submissionRepository)
+            .findAllByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(codeExercise.getId(), assistantId);
+        Assertions.assertTrue(submissionService.filterValidSubmissionsByPermission(codeExercise.getId(), assistantId).isEmpty());
     }
 
     @Test
-    public void userRateLimitedWithOldSubmissionMinutes() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now().minus(1, ChronoUnit.MINUTES))
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
+    @WithMockUser(roles = {"course-1", "student", "course-1-student"}, username = userId)
+    public void getValidSubmissionCountNoSubmissionsYetTest() {
+        List<StudentSubmission> submissions = new ArrayList<>();
+        doReturn(submissions).when(submissionRepository)
+                .findAllByExerciseIdAndUserIdAndIsInvalidFalseAndIsGradedTrueAndIsTriggeredReSubmissionFalse(codeExercise.getId(), userId);
+        Assertions.assertEquals(submissions, submissionService.filterValidSubmissionsByPermission(codeExercise.getId(), userId));
     }
 
     @Test
-    public void userRateLimitedWithOldSubmissionSeconds() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now().minus(59, ChronoUnit.SECONDS))
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isTrue();
-    }
+    public void isUserRateLimitedTest() {
+        doReturn(false).when(submissionRepository).existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
+        Assertions.assertFalse(submissionService.isUserRateLimited(userId));
 
-    @Test
-    public void userRateLimitedWithOldSubmission1Minute() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now().minus(60, ChronoUnit.SECONDS))
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
-    }
+        doReturn(true).when(submissionRepository).existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
+        Assertions.assertFalse(submissionService.isUserRateLimited(userId));
 
-    @Test
-    public void userRateLimitedWithOldSubmission1Minute1Second() {
-        String userId = "123";
-        submissionProperties.setUserRateLimit(true);
-        CodeSubmission submission = CodeSubmission.builder()
-                .userId(userId)
-                .timestamp(Instant.now().minus(61, ChronoUnit.SECONDS))
-                .build();
-        repository.save(submission);
-        boolean userRateLimited = service.isUserRateLimited(userId);
-        Assertions.assertThat(userRateLimited).isFalse();
+        doReturn(true).when(submissionProperties).isUserRateLimit();
+        Assertions.assertTrue(submissionService.isUserRateLimited(userId));
+
+        doReturn(false).when(submissionRepository).existsByUserIdAndHasNoResultOrConsoleNotOlderThan10min(userId);
+        Assertions.assertFalse(submissionService.isUserRateLimited(userId));
     }
 }

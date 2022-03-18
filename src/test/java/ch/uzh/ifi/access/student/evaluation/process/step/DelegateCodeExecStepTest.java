@@ -11,16 +11,14 @@ import ch.uzh.ifi.access.student.evaluation.runner.SubmissionCodeRunner;
 import ch.uzh.ifi.access.student.model.CodeSubmission;
 import ch.uzh.ifi.access.student.model.ExecResult;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
-import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Optional;
 
@@ -29,7 +27,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @DataMongoTest
-@RunWith(SpringRunner.class)
 public class DelegateCodeExecStepTest {
 
     @Autowired
@@ -45,14 +42,14 @@ public class DelegateCodeExecStepTest {
 
     private CourseService courseService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        MockitoAnnotations.openMocks(this);
         submissionService = new StudentSubmissionService(repository, new SubmissionProperties());
         courseService = new CourseService(courseDAO, null);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         repository.deleteAll();
     }
@@ -63,18 +60,18 @@ public class DelegateCodeExecStepTest {
 
         final String exerciseId = "ex";
         final String submissionId = "id";
-        CodeSubmission studentSubmission = TestObjectFactory.createCodeAnswerWithExercise(exerciseId);
+        CodeSubmission studentSubmission = TestObjectFactory.createCodeAnswer("", exerciseId);
         studentSubmission.setId(submissionId);
         studentSubmission = repository.save(studentSubmission);
 
         ExecResult result = new ExecResult("Hello, stdout", "Hello, stderr", "Hello, private test log", null, null);
         when(codeRunner.execSubmissionForExercise(any(CodeSubmission.class), any(Exercise.class))).thenReturn(result);
-        when(courseService.getExerciseById(anyString())).thenReturn(Optional.of(TestObjectFactory.createCodeExercise("")));
+        when(courseService.getExerciseById(anyString())).thenReturn(Optional.of(TestObjectFactory.createCodeExercise()));
 
         EvalMachine.Events execute = execStep.execute(studentSubmission.getId());
-        Assertions.assertThat(execute).isEqualTo(EvalMachine.Events.RETURN);
+        Assertions.assertEquals(execute, EvalMachine.Events.RETURN);
 
         studentSubmission = (CodeSubmission) repository.findById(studentSubmission.getId()).orElseThrow();
-        Assertions.assertThat(studentSubmission.getConsole()).isEqualTo(result);
+        Assertions.assertEquals(studentSubmission.getConsole(), result);
     }
 }

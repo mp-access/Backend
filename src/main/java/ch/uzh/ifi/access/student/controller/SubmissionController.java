@@ -1,10 +1,5 @@
 package ch.uzh.ifi.access.student.controller;
 
-import ch.uzh.ifi.access.config.GracefulShutdown;
-import ch.uzh.ifi.access.course.config.CourseAuthentication;
-import ch.uzh.ifi.access.course.config.CoursePermissionEvaluator;
-import ch.uzh.ifi.access.course.controller.ResourceNotFoundException;
-import ch.uzh.ifi.access.course.model.Course;
 import ch.uzh.ifi.access.course.model.Exercise;
 import ch.uzh.ifi.access.course.service.CourseService;
 import ch.uzh.ifi.access.student.dto.StudentAnswerDTO;
@@ -13,26 +8,21 @@ import ch.uzh.ifi.access.student.dto.SubmissionHistoryDTO;
 import ch.uzh.ifi.access.student.evaluation.EvalProcessService;
 import ch.uzh.ifi.access.student.model.StudentSubmission;
 import ch.uzh.ifi.access.student.service.StudentSubmissionService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.annotations.ApiIgnore;
 
-import java.time.ZonedDateTime;
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @RestController
-@RequestMapping("/submissions")
+@RequestMapping("/exercises/{exerciseId}/submissions")
 public class SubmissionController {
-
-    private final static Logger logger = LoggerFactory.getLogger(SubmissionController.class);
 
     private final StudentSubmissionService studentSubmissionService;
 
@@ -40,180 +30,115 @@ public class SubmissionController {
 
     private final EvalProcessService processService;
 
-    private final CoursePermissionEvaluator permissionEvaluator;
-
-    private final GracefulShutdown gracefulShutdown;
-
-    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService, EvalProcessService processService, CoursePermissionEvaluator permissionEvaluator, GracefulShutdown gracefulShutdown) {
+    public SubmissionController(StudentSubmissionService studentSubmissionService, CourseService courseService,
+                                EvalProcessService processService) {
         this.studentSubmissionService = studentSubmissionService;
         this.courseService = courseService;
         this.processService = processService;
-        this.permissionEvaluator = permissionEvaluator;
-        this.gracefulShutdown = gracefulShutdown;
     }
 
-    @GetMapping("/{submissionId}/users/{userId}")
-    public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String submissionId, @PathVariable String userId, @ApiIgnore CourseAuthentication authentication) {
-        Optional<StudentSubmission> subOpt = studentSubmissionService.findById(submissionId);
-
-       return subOpt
-                .flatMap(submission -> courseService.getCourseByExerciseId(submission.getExerciseId()))
-                .flatMap(course -> {
-                    if (authentication.hasPrivilegedAccess(course.getId())) {
-                        return subOpt;
-                    }
-                    return Optional.empty();
-                })
-               .map(ResponseEntity::ok)
-               .orElse(ResponseEntity.badRequest().build());
-    }
-
+    /**
+     * Get a submission by its ID if the user who made the request can access the submission.
+     * @param exerciseId    exercise ID of the requested submission
+     * @param submissionId  requested submission ID
+     * @return              status OK with StudentSubmission body, if accessible and found
+     * @see StudentSubmissionService#getSubmissionWithPermission(String)  for permission filtering and exceptions
+     */
     @GetMapping("/{submissionId}")
-    public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String submissionId, @ApiIgnore CourseAuthentication authentication) {
-        StudentSubmission submission = studentSubmissionService.findById(submissionId).orElse(null);
-
-        if (submission == null || !submission.userIdMatches(authentication.getUserId())) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        return ResponseEntity.ok(submission);
+    public ResponseEntity<StudentSubmission> getSubmissionById(@PathVariable String exerciseId, @PathVariable String submissionId) {
+        log.info("Fetching submission ID {} for exercise '{}'", submissionId, exerciseId);
+        return ResponseEntity.ok(studentSubmissionService.getSubmissionWithPermission(submissionId));
     }
 
-    @GetMapping("/exercises/{exerciseId}")
-    public ResponseEntity<StudentSubmission> getSubmissionByExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-        String username = authentication.getName();
-        String userId = authentication.getUserId();
-
-        logger.info(String.format("Fetching submission for user %s", username));
-
-        Optional<StudentSubmission> submission = studentSubmissionService
-                .findLatestExerciseSubmission(exerciseId, userId);
-
-        return submission
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.noContent().build());
+    /**
+     * Get the latest submission made by a user for a specific exercise if exists and the user who made the request
+     * can access the submission, else return an empty response.
+     * @param exerciseId    requested exercise ID
+     * @param userId        ID of the user who posted the submission
+     * @return              status OK with StudentSubmission body, if accessible and found, else without content
+     * @see #getSubmissionById(String, String)
+     */
+    @GetMapping("/users/{userId}/latest")
+    public ResponseEntity<StudentSubmission> getLatestSubmissionByExercise(@PathVariable String exerciseId, @PathVariable String userId) {
+        log.info("Fetching latest submission by user {} for exercise {}", userId, exerciseId);
+        Optional<StudentSubmission> submission = studentSubmissionService.findLatestExerciseSubmission(exerciseId, userId);
+        if (submission.isPresent())
+            return getSubmissionById(exerciseId, submission.get().getId()); // Verify the user can access the submission
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/exercises/{exerciseId}/users/{userId}")
-    public ResponseEntity<StudentSubmission> getSubmissionByExerciseAsAdmin(@PathVariable String exerciseId, @PathVariable String userId, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
+    /**
+     * Initialise evaluation of a solution to an exercise posted by the user who made the request.
+     * @param submissionDTO  solution posted by the user
+     * @param exerciseId     solved exercise ID
+     * @param userId         ID of the submitting user, must match the name of the user who made the request
+     * @return               status OK with the evaluation process ID, if the submission can be evaluated, or
+     *                        status 429 if the user currently has a submission running or exhausted their attempts
+     * @see #getValidSubmissionCountWithPermission(Exercise, String)  for counting past attempts
+     * @see CourseService#getExerciseWithPermission(String, boolean)  for permission filtering and exceptions
+     */
+    @PostMapping("/users/{userId}/submit")
+    @PreAuthorize("authentication.name == #userId")
+    public ResponseEntity<String> submit(@RequestBody StudentAnswerDTO submissionDTO, @PathVariable String exerciseId, @PathVariable String userId) {
+        log.info("Testing submission by user {} for exercise {}", userId, exerciseId);
 
-        Course course = courseService.getCourseByExerciseId(exerciseId).orElseThrow(IllegalArgumentException::new);
+        if (studentSubmissionService.isUserRateLimited(userId))
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("Submission rejected: User has an other running submission.");
 
-        CourseAuthentication impersonation = authentication.impersonateUser(userId, course.getId());
-        if (impersonation != null) {
-            return getSubmissionByExercise(exerciseId, impersonation);
-        }
+        StudentSubmission submission = submissionDTO.createSubmission(exerciseId, userId);
+        Exercise exercise = courseService.getExerciseWithPermission(exerciseId, submission.isGraded());
+        SubmissionCount submissionCount = getValidSubmissionCountWithPermission(exercise, userId);
 
-        logger.warn("User {} called a restricted function for which it does not have enough rights!", authentication.getUserId());
+        if (submission.isGraded() && submissionCount.getSubmissionsRemaining() <= 0)
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("You have exhausted your attempts for this exercise");
 
-        return ResponseEntity.status(403).build();
+        StudentSubmission savedSubmission = studentSubmissionService.initSubmission(submission);
+        String processId = processService.initEvalProcess(savedSubmission);
+        processService.fireEvalProcessExecutionAsync(processId);
+
+        return ResponseEntity.ok().body(processId);
     }
 
-    @PostMapping("/exercises/{exerciseId}")
-    public ResponseEntity<?> submit(@PathVariable String exerciseId, @RequestBody StudentAnswerDTO submissionDTO, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-
-        String username = authentication.getName();
-
-        logger.info(String.format("User %s submitted exercise: %s", username, exerciseId));
-
-        if (gracefulShutdown.isShutdown()) {
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).header("Retry-After", "60").build();
-        }
-
-        if (studentSubmissionService.isUserRateLimited(authentication.getUserId())) {
-            return new ResponseEntity<>(
-                    "Submission rejected: User has an other running submission.", HttpStatus.TOO_MANY_REQUESTS);
-        }
-
-        Exercise exercise = courseService.getExerciseById(exerciseId).orElseThrow(() -> new ResourceNotFoundException("Referenced exercise does not exist"));
-
-        if (permissionEvaluator.hasAccessToExercise(authentication, exercise)) {
-
-            String commitHash = exercise.getGitHash();
-            if (StringUtils.isEmpty(commitHash)) {
-                return ResponseEntity.badRequest().body("Referenced exercise does not exist");
-            }
-
-            StudentSubmission submission = submissionDTO.createSubmission(authentication.getUserId(), exerciseId, commitHash);
-
-            if (!authentication.hasPrivilegedAccess(exercise.getCourseId()) && submission.isGraded()) {
-                int submissionsCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
-                if (submissionsCount >= exercise.getMaxSubmits()) {
-                    return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("You have exhausted your attempts for this exercise");
-                }
-                if (exercise.isPastDueDate()) {
-                    return ResponseEntity.unprocessableEntity().body("Submission is past due date. Cannot accept a graded submission anymore.");
-                }
-            }
-
-            submission = studentSubmissionService.initSubmission(submission);
-            String processId = processService.initEvalProcess(submission);
-            processService.fireEvalProcessExecutionAsync(processId);
-
-            return ResponseEntity.ok().body(new AbstractMap.SimpleEntry<>("evalId", processId));
-        }
-
-        return ResponseEntity.badRequest().body("Exercise is not yet online!");
-    }
-
-    @GetMapping("/evals/{processId}")
-    public Map<String, String> getEvalProcessState(@PathVariable String processId, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-        Assert.notNull(processId, "No processId.");
+    @GetMapping("/eval/{processId}")
+    public Map<String, String> getEvalProcessState(@PathVariable String exerciseId, @PathVariable String processId) {
+        log.info("Checking evaluation process state for exercise {}", exerciseId);
         return processService.getEvalProcessState(processId);
     }
 
-    @GetMapping("/exercises/{exerciseId}/users/{userId}/history")
-    public ResponseEntity<SubmissionHistoryDTO> getAllSubmissionsForExercise(@PathVariable String exerciseId, @PathVariable String userId, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
+    /**
+     * Return the entire submission history of a user for a specific exercise.
+     * @param exerciseId    requested exercise ID
+     * @param userId        ID of the user who posted the submission
+     * @return              status OK with SubmissionHistoryDTO body, if accessible and found
+     * @see #getValidSubmissionCountWithPermission(Exercise, String)  for counting past attempts
+     * @see CourseService#getExerciseWithViewPermission(String)  for permission filtering and exceptions
+     */
+    @GetMapping("/users/{userId}/history")
+    public SubmissionHistoryDTO getSubmissionHistoryForExercise(@PathVariable String exerciseId, @PathVariable String userId) {
+        log.info("Fetching all submissions for user {} and exercise {}", userId, exerciseId);
 
-        Course course = courseService.getCourseByExerciseId(exerciseId).orElseThrow(IllegalArgumentException::new);
+        List<StudentSubmission> testRuns = studentSubmissionService.findAllTestRuns(exerciseId, userId);
+        List<StudentSubmission> submissions = studentSubmissionService.findAllGradedSubmissions(exerciseId, userId);
+        Exercise exercise = courseService.getExerciseWithViewPermission(exerciseId);
+        SubmissionCount submissionCount = getValidSubmissionCountWithPermission(exercise, userId);
 
-        CourseAuthentication impersonation = authentication.impersonateUser(userId, course.getId());
-        if (impersonation != null) {
-            return ResponseEntity.ok(getAllSubmissionsForExercise(exerciseId, impersonation));
-        }
-
-        logger.warn("User {} called a restricted function for which it does not have enough rights!", authentication.getUserId());
-
-        return ResponseEntity.status(403).build();
+        return new SubmissionHistoryDTO(submissions, testRuns, submissionCount);
     }
 
-    @GetMapping("/exercises/{exerciseId}/history")
-    public SubmissionHistoryDTO getAllSubmissionsForExercise(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-
-        logger.info(String.format("Fetching all submission for user %s and exercise %s", authentication.getName(), exerciseId));
-
-        List<StudentSubmission> runs = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), false);
-        List<StudentSubmission> submissions = studentSubmissionService.findAllSubmissionsByExerciseAndUserAndIsGradedOrderedByVersionDesc(exerciseId, authentication.getUserId(), true);
-        Optional<Exercise> exercise = courseService.getExerciseById(exerciseId);
-
-        if (exercise.isPresent() && authentication.hasPrivilegedAccess(exercise.get().getCourseId())) {
-            SubmissionCount submissionCount = new SubmissionCount(999, 0);
-            return new SubmissionHistoryDTO(submissions, runs, submissionCount, null, false);
-        }
-
-        SubmissionCount submissionCount = getAvailableSubmissionCount(exerciseId, authentication);
-        boolean isPastDueDate = exercise.map(Exercise::isPastDueDate).orElse(false);
-        ZonedDateTime dueDate = exercise.map(Exercise::getDueDate).orElse(null);
-
-        return new SubmissionHistoryDTO(submissions, runs, submissionCount, dueDate, isPastDueDate);
+    /**
+     * Check whether the user satisfies the conditions for accessing any submission posted by the input userId, and
+     * if yes get the list of filtered valid submissions for the user and exercise; the number of past, valid, graded
+     * submissions (i.e. the number of graded submission attempts so far) is defined as the size of the returned list.
+     * @param exercise    requested exercise ID
+     * @param userId      ID of the user who posted the submission
+     * @return            SubmissionCount with the maximal and current number of attempts for the user and exercise
+     * @throws AccessDeniedException   if the user cannot access a submission made by the input userId
+     * @see StudentSubmissionService#filterValidSubmissionsByPermission(String, String)   for filtering past submissions
+     * @see StudentSubmissionService#getSubmissionWithPermission(String)   for the conditions for accessing a submission
+     */
+    @PreAuthorize("(authentication.name == #userId) or hasRole(#exercise.courseId + '-assistant')")
+    public SubmissionCount getValidSubmissionCountWithPermission(Exercise exercise, String userId) {
+        int validSubmissionsCount = studentSubmissionService.filterValidSubmissionsByPermission(exercise.getId(), userId).size();
+        return new SubmissionCount(exercise.getMaxSubmits(), validSubmissionsCount);
     }
-
-    @GetMapping("/attempts/exercises/{exerciseId}/")
-    public SubmissionCount getAvailableSubmissionCount(@PathVariable String exerciseId, @ApiIgnore CourseAuthentication authentication) {
-        Assert.notNull(authentication, "No authentication object found for user");
-
-        Integer maxSubmissions = courseService
-                .getExerciseMaxSubmissions(exerciseId)
-                .orElseThrow(() -> new ResourceNotFoundException("Referenced exercise does not exist"));
-
-        int validSubmissionCount = studentSubmissionService.getSubmissionCountByExerciseAndUser(exerciseId, authentication.getUserId());
-        return new SubmissionCount(maxSubmissions, validSubmissionCount);
-    }
-
 }

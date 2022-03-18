@@ -72,8 +72,8 @@ public class VirtualFile implements Serializable {
         return String.format("%s.%s", name, extension);
     }
 
-    public boolean matchesFilenameWithExtension(String filename) {
-        return getNameWithExtension().equals(filename);
+    public boolean matchesFilename(String filename) {
+        return name.equals(filename);
     }
 
     @Override
